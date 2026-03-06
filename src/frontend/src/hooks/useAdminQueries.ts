@@ -153,6 +153,32 @@ export function useUpdateBookingStatus() {
   });
 }
 
+export function useCreateBookingRequest() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      name: string;
+      phone: string;
+      serviceType: string;
+      city: string;
+      date: bigint;
+      message: string;
+    }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.createBookingRequest(
+        data.name,
+        data.phone,
+        data.serviceType,
+        data.city,
+        data.date,
+        data.message,
+      );
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["bookings"] }),
+  });
+}
+
 // ── Users ──────────────────────────────────────────────────────────────────
 
 export function useAllUsers() {

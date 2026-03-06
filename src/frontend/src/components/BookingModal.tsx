@@ -9,6 +9,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useCreateBookingRequest } from "@/hooks/useAdminQueries";
+import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
 interface BookingModalProps {
@@ -24,6 +26,7 @@ export default function BookingModal({
   prefillService = "",
   buttonLabel = "Book Now",
 }: BookingModalProps) {
+  const createBooking = useCreateBookingRequest();
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -44,8 +47,28 @@ export default function BookingModal({
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Convert date string to nanoseconds bigint for backend
+    const dateNs = form.date
+      ? BigInt(new Date(form.date).getTime()) * 1_000_000n
+      : 0n;
+
+    // Save to backend — WhatsApp redirect always happens even if this fails
+    try {
+      await createBooking.mutateAsync({
+        name: form.name,
+        phone: form.phone,
+        serviceType: form.service,
+        city: form.city,
+        date: dateNs,
+        message: form.message,
+      });
+    } catch {
+      // Backend save failed — still proceed to WhatsApp
+    }
+
     const message = `Booking Request - DMT CREATOLOGY
 Name: ${form.name}
 Phone: ${form.phone}
@@ -197,10 +220,18 @@ Message: ${form.message}`;
             </Button>
             <Button
               type="submit"
-              className="w-full sm:w-auto gradient-gold text-[oklch(0.1_0.01_260)] font-bold hover:opacity-90"
+              disabled={createBooking.isPending}
+              className="w-full sm:w-auto gradient-gold text-[oklch(0.1_0.01_260)] font-bold hover:opacity-90 disabled:opacity-60"
               data-ocid="booking.submit_button"
             >
-              Send via WhatsApp
+              {createBooking.isPending ? (
+                <>
+                  <Loader2 className="animate-spin mr-2" size={16} />
+                  Saving...
+                </>
+              ) : (
+                "Send via WhatsApp"
+              )}
             </Button>
           </DialogFooter>
         </form>
