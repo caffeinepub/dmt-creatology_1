@@ -10,7 +10,191 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
-export interface _SERVICE { 'ping' : ActorMethod<[], boolean> }
+export interface Analytics {
+  'totalEvents' : bigint,
+  'totalBookings' : bigint,
+  'totalListings' : bigint,
+  'totalUsers' : bigint,
+  'recentBookings' : Array<Booking>,
+  'totalVendors' : bigint,
+}
+export interface Booking {
+  'id' : bigint,
+  'status' : BookingStatus,
+  'serviceType' : string,
+  'city' : string,
+  'date' : bigint,
+  'name' : string,
+  'createdAt' : bigint,
+  'message' : string,
+  'phone' : string,
+}
+export type BookingStatus = { 'new' : null } |
+  { 'cancelled' : null } |
+  { 'reviewed' : null } |
+  { 'confirmed' : null };
+export interface Event {
+  'id' : bigint,
+  'status' : Status,
+  'subCategory' : string,
+  'duration' : string,
+  'country' : string,
+  'venue' : string,
+  'city' : string,
+  'date' : bigint,
+  'name' : string,
+  'createdAt' : bigint,
+  'time' : string,
+  'description' : string,
+  'state' : string,
+  'posterUrl' : string,
+  'category' : string,
+  'bannerUrl' : string,
+  'ageLimit' : bigint,
+}
+export interface Listing {
+  'id' : bigint,
+  'status' : ListingStatus,
+  'title' : string,
+  'city' : string,
+  'createdAt' : bigint,
+  'submittedBy' : string,
+  'description' : string,
+  'category' : string,
+  'price' : bigint,
+  'contactPhone' : string,
+}
+export type ListingStatus = { 'pending' : null } |
+  { 'approved' : null } |
+  { 'rejected' : null };
+export type Status = { 'cancelled' : null } |
+  { 'published' : null } |
+  { 'draft' : null };
+export interface User {
+  'id' : bigint,
+  'status' : UserStatus,
+  'name' : string,
+  'createdAt' : bigint,
+  'role' : UserRole,
+  'email' : string,
+  'phone' : string,
+}
+export interface UserProfile {
+  'name' : string,
+  'email' : string,
+  'phone' : string,
+}
+export type UserRole = { 'customer' : null } |
+  { 'staff' : null } |
+  { 'vendor' : null };
+export type UserRole__1 = { 'admin' : null } |
+  { 'user' : null } |
+  { 'guest' : null };
+export type UserStatus = { 'active' : null } |
+  { 'inactive' : null };
+export interface Vendor {
+  'id' : bigint,
+  'status' : VendorStatus,
+  'city' : string,
+  'name' : string,
+  'createdAt' : bigint,
+  'businessName' : string,
+  'email' : string,
+  'experience' : bigint,
+  'phone' : string,
+  'services' : string,
+}
+export type VendorStatus = { 'pending' : null } |
+  { 'approved' : null } |
+  { 'rejected' : null } |
+  { 'suspended' : null };
+export interface _SERVICE {
+  '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
+  'assignCallerUserRole' : ActorMethod<[Principal, UserRole__1], undefined>,
+  'createBookingRequest' : ActorMethod<
+    [string, string, string, string, bigint, string],
+    bigint
+  >,
+  'createEvent' : ActorMethod<
+    [
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      bigint,
+      string,
+      string,
+      bigint,
+      string,
+      string,
+      string,
+      Status,
+    ],
+    bigint
+  >,
+  'createListing' : ActorMethod<
+    [string, string, string, string, bigint, string, string],
+    bigint
+  >,
+  'createUser' : ActorMethod<[string, string, string, UserRole], bigint>,
+  'createVendor' : ActorMethod<
+    [string, string, string, string, bigint, string, string],
+    bigint
+  >,
+  'deleteEvent' : ActorMethod<[bigint], undefined>,
+  'getAllBookings' : ActorMethod<[], Array<Booking>>,
+  'getAllEvents' : ActorMethod<[], Array<Event>>,
+  'getAllListings' : ActorMethod<[], Array<Listing>>,
+  'getAllUsers' : ActorMethod<[], Array<User>>,
+  'getAllVendors' : ActorMethod<[], Array<Vendor>>,
+  'getAnalytics' : ActorMethod<[], Analytics>,
+  'getBooking' : ActorMethod<[bigint], [] | [Booking]>,
+  'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
+  'getCallerUserRole' : ActorMethod<[], UserRole__1>,
+  'getEvent' : ActorMethod<[bigint], [] | [Event]>,
+  'getListing' : ActorMethod<[bigint], [] | [Listing]>,
+  'getUser' : ActorMethod<[bigint], [] | [User]>,
+  'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'getVendor' : ActorMethod<[bigint], [] | [Vendor]>,
+  'isCallerAdmin' : ActorMethod<[], boolean>,
+  'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'updateBookingStatus' : ActorMethod<[bigint, BookingStatus], undefined>,
+  'updateEvent' : ActorMethod<
+    [
+      bigint,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      bigint,
+      string,
+      string,
+      bigint,
+      string,
+      string,
+      string,
+      Status,
+    ],
+    undefined
+  >,
+  'updateListingStatus' : ActorMethod<[bigint, ListingStatus], undefined>,
+  'updateUser' : ActorMethod<
+    [bigint, string, string, string, UserRole],
+    undefined
+  >,
+  'updateUserStatus' : ActorMethod<[bigint, UserStatus], undefined>,
+  'updateVendor' : ActorMethod<
+    [bigint, string, string, string, string, bigint, string, string],
+    undefined
+  >,
+  'updateVendorStatus' : ActorMethod<[bigint, VendorStatus], undefined>,
+}
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];
 export declare const idlFactory: IDL.InterfaceFactory;

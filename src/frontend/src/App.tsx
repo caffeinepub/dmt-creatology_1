@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
+import AdminLayout from "./components/admin/AdminLayout";
 import AdvertisePage from "./pages/AdvertisePage";
 import ArtistsPage from "./pages/ArtistsPage";
 import BusinessServicesPage from "./pages/BusinessServicesPage";
@@ -21,8 +22,16 @@ import StaffJobsPage from "./pages/StaffJobsPage";
 import TransportPage from "./pages/TransportPage";
 import VendorsPage from "./pages/VendorsPage";
 import VenuesPage from "./pages/VenuesPage";
+import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
+import AdminBookingsPage from "./pages/admin/AdminBookingsPage";
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import AdminEventsPage from "./pages/admin/AdminEventsPage";
+import AdminListingsPage from "./pages/admin/AdminListingsPage";
+import AdminLoginPage from "./pages/admin/AdminLoginPage";
+import AdminUsersPage from "./pages/admin/AdminUsersPage";
+import AdminVendorsPage from "./pages/admin/AdminVendorsPage";
 
-// Root layout
+// ── Public Root Layout ─────────────────────────────────────────────────────
 const rootRoute = createRootRoute({
   component: () => (
     <div className="min-h-screen flex flex-col bg-background">
@@ -106,7 +115,74 @@ const contactRoute = createRoute({
   component: ContactPage,
 });
 
-const routeTree = rootRoute.addChildren([
+// ── Admin Root (no Navbar/Footer) ──────────────────────────────────────────
+const adminRootRoute = createRootRoute({
+  component: () => <Outlet />,
+});
+
+// Admin Login — standalone (no AdminLayout)
+const adminLoginRoute = createRoute({
+  getParentRoute: () => adminRootRoute,
+  path: "/admin/login",
+  component: AdminLoginPage,
+});
+
+// Admin Layout wrapper
+const adminLayoutRoute = createRoute({
+  getParentRoute: () => adminRootRoute,
+  path: "/admin",
+  component: AdminLayout,
+});
+
+const adminDashboardRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/",
+  component: AdminDashboardPage,
+});
+const adminEventsRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/events",
+  component: AdminEventsPage,
+});
+const adminVendorsRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/vendors",
+  component: AdminVendorsPage,
+});
+const adminBookingsRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/bookings",
+  component: AdminBookingsPage,
+});
+const adminUsersRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/users",
+  component: AdminUsersPage,
+});
+const adminListingsRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/listings",
+  component: AdminListingsPage,
+});
+const adminAnalyticsRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/analytics",
+  component: AdminAnalyticsPage,
+});
+
+// Wire admin layout children
+adminLayoutRoute.addChildren([
+  adminDashboardRoute,
+  adminEventsRoute,
+  adminVendorsRoute,
+  adminBookingsRoute,
+  adminUsersRoute,
+  adminListingsRoute,
+  adminAnalyticsRoute,
+]);
+
+// Public route tree
+const publicRouteTree = rootRoute.addChildren([
   indexRoute,
   eventsRoute,
   hotelsRoute,
@@ -123,14 +199,31 @@ const routeTree = rootRoute.addChildren([
   contactRoute,
 ]);
 
-const router = createRouter({ routeTree });
+// Admin route tree
+const adminRouteTree = adminRootRoute.addChildren([
+  adminLoginRoute,
+  adminLayoutRoute,
+]);
+
+// Build routers
+const publicRouter = createRouter({ routeTree: publicRouteTree });
+const adminRouter = createRouter({ routeTree: adminRouteTree });
 
 declare module "@tanstack/react-router" {
   interface Register {
-    router: typeof router;
+    router: typeof publicRouter;
   }
 }
 
+// Determine which router to use based on pathname
+function isAdminPath(pathname: string) {
+  return pathname.startsWith("/admin");
+}
+
 export default function App() {
-  return <RouterProvider router={router} />;
+  const pathname = window.location.pathname;
+  if (isAdminPath(pathname)) {
+    return <RouterProvider router={adminRouter} />;
+  }
+  return <RouterProvider router={publicRouter} />;
 }

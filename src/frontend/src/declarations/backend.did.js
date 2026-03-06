@@ -8,14 +8,458 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
+export const UserRole__1 = IDL.Variant({
+  'admin' : IDL.Null,
+  'user' : IDL.Null,
+  'guest' : IDL.Null,
+});
+export const Status = IDL.Variant({
+  'cancelled' : IDL.Null,
+  'published' : IDL.Null,
+  'draft' : IDL.Null,
+});
+export const UserRole = IDL.Variant({
+  'customer' : IDL.Null,
+  'staff' : IDL.Null,
+  'vendor' : IDL.Null,
+});
+export const BookingStatus = IDL.Variant({
+  'new' : IDL.Null,
+  'cancelled' : IDL.Null,
+  'reviewed' : IDL.Null,
+  'confirmed' : IDL.Null,
+});
+export const Booking = IDL.Record({
+  'id' : IDL.Nat,
+  'status' : BookingStatus,
+  'serviceType' : IDL.Text,
+  'city' : IDL.Text,
+  'date' : IDL.Int,
+  'name' : IDL.Text,
+  'createdAt' : IDL.Int,
+  'message' : IDL.Text,
+  'phone' : IDL.Text,
+});
+export const Event = IDL.Record({
+  'id' : IDL.Nat,
+  'status' : Status,
+  'subCategory' : IDL.Text,
+  'duration' : IDL.Text,
+  'country' : IDL.Text,
+  'venue' : IDL.Text,
+  'city' : IDL.Text,
+  'date' : IDL.Int,
+  'name' : IDL.Text,
+  'createdAt' : IDL.Int,
+  'time' : IDL.Text,
+  'description' : IDL.Text,
+  'state' : IDL.Text,
+  'posterUrl' : IDL.Text,
+  'category' : IDL.Text,
+  'bannerUrl' : IDL.Text,
+  'ageLimit' : IDL.Nat,
+});
+export const ListingStatus = IDL.Variant({
+  'pending' : IDL.Null,
+  'approved' : IDL.Null,
+  'rejected' : IDL.Null,
+});
+export const Listing = IDL.Record({
+  'id' : IDL.Nat,
+  'status' : ListingStatus,
+  'title' : IDL.Text,
+  'city' : IDL.Text,
+  'createdAt' : IDL.Int,
+  'submittedBy' : IDL.Text,
+  'description' : IDL.Text,
+  'category' : IDL.Text,
+  'price' : IDL.Nat,
+  'contactPhone' : IDL.Text,
+});
+export const UserStatus = IDL.Variant({
+  'active' : IDL.Null,
+  'inactive' : IDL.Null,
+});
+export const User = IDL.Record({
+  'id' : IDL.Nat,
+  'status' : UserStatus,
+  'name' : IDL.Text,
+  'createdAt' : IDL.Int,
+  'role' : UserRole,
+  'email' : IDL.Text,
+  'phone' : IDL.Text,
+});
+export const VendorStatus = IDL.Variant({
+  'pending' : IDL.Null,
+  'approved' : IDL.Null,
+  'rejected' : IDL.Null,
+  'suspended' : IDL.Null,
+});
+export const Vendor = IDL.Record({
+  'id' : IDL.Nat,
+  'status' : VendorStatus,
+  'city' : IDL.Text,
+  'name' : IDL.Text,
+  'createdAt' : IDL.Int,
+  'businessName' : IDL.Text,
+  'email' : IDL.Text,
+  'experience' : IDL.Nat,
+  'phone' : IDL.Text,
+  'services' : IDL.Text,
+});
+export const Analytics = IDL.Record({
+  'totalEvents' : IDL.Nat,
+  'totalBookings' : IDL.Nat,
+  'totalListings' : IDL.Nat,
+  'totalUsers' : IDL.Nat,
+  'recentBookings' : IDL.Vec(Booking),
+  'totalVendors' : IDL.Nat,
+});
+export const UserProfile = IDL.Record({
+  'name' : IDL.Text,
+  'email' : IDL.Text,
+  'phone' : IDL.Text,
+});
+
 export const idlService = IDL.Service({
-  'ping' : IDL.Func([], [IDL.Bool], ['query']),
+  '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+  'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
+  'createBookingRequest' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Int, IDL.Text],
+      [IDL.Nat],
+      [],
+    ),
+  'createEvent' : IDL.Func(
+      [
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Int,
+        IDL.Text,
+        IDL.Text,
+        IDL.Nat,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        Status,
+      ],
+      [IDL.Nat],
+      [],
+    ),
+  'createListing' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Text, IDL.Text],
+      [IDL.Nat],
+      [],
+    ),
+  'createUser' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, UserRole],
+      [IDL.Nat],
+      [],
+    ),
+  'createVendor' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Text, IDL.Text],
+      [IDL.Nat],
+      [],
+    ),
+  'deleteEvent' : IDL.Func([IDL.Nat], [], []),
+  'getAllBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
+  'getAllEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
+  'getAllListings' : IDL.Func([], [IDL.Vec(Listing)], ['query']),
+  'getAllUsers' : IDL.Func([], [IDL.Vec(User)], ['query']),
+  'getAllVendors' : IDL.Func([], [IDL.Vec(Vendor)], ['query']),
+  'getAnalytics' : IDL.Func([], [Analytics], ['query']),
+  'getBooking' : IDL.Func([IDL.Nat], [IDL.Opt(Booking)], ['query']),
+  'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
+  'getCallerUserRole' : IDL.Func([], [UserRole__1], ['query']),
+  'getEvent' : IDL.Func([IDL.Nat], [IDL.Opt(Event)], ['query']),
+  'getListing' : IDL.Func([IDL.Nat], [IDL.Opt(Listing)], ['query']),
+  'getUser' : IDL.Func([IDL.Nat], [IDL.Opt(User)], ['query']),
+  'getUserProfile' : IDL.Func(
+      [IDL.Principal],
+      [IDL.Opt(UserProfile)],
+      ['query'],
+    ),
+  'getVendor' : IDL.Func([IDL.Nat], [IDL.Opt(Vendor)], ['query']),
+  'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'updateBookingStatus' : IDL.Func([IDL.Nat, BookingStatus], [], []),
+  'updateEvent' : IDL.Func(
+      [
+        IDL.Nat,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Int,
+        IDL.Text,
+        IDL.Text,
+        IDL.Nat,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        Status,
+      ],
+      [],
+      [],
+    ),
+  'updateListingStatus' : IDL.Func([IDL.Nat, ListingStatus], [], []),
+  'updateUser' : IDL.Func(
+      [IDL.Nat, IDL.Text, IDL.Text, IDL.Text, UserRole],
+      [],
+      [],
+    ),
+  'updateUserStatus' : IDL.Func([IDL.Nat, UserStatus], [], []),
+  'updateVendor' : IDL.Func(
+      [
+        IDL.Nat,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Nat,
+        IDL.Text,
+        IDL.Text,
+      ],
+      [],
+      [],
+    ),
+  'updateVendorStatus' : IDL.Func([IDL.Nat, VendorStatus], [], []),
 });
 
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
-  return IDL.Service({ 'ping' : IDL.Func([], [IDL.Bool], ['query']) });
+  const UserRole__1 = IDL.Variant({
+    'admin' : IDL.Null,
+    'user' : IDL.Null,
+    'guest' : IDL.Null,
+  });
+  const Status = IDL.Variant({
+    'cancelled' : IDL.Null,
+    'published' : IDL.Null,
+    'draft' : IDL.Null,
+  });
+  const UserRole = IDL.Variant({
+    'customer' : IDL.Null,
+    'staff' : IDL.Null,
+    'vendor' : IDL.Null,
+  });
+  const BookingStatus = IDL.Variant({
+    'new' : IDL.Null,
+    'cancelled' : IDL.Null,
+    'reviewed' : IDL.Null,
+    'confirmed' : IDL.Null,
+  });
+  const Booking = IDL.Record({
+    'id' : IDL.Nat,
+    'status' : BookingStatus,
+    'serviceType' : IDL.Text,
+    'city' : IDL.Text,
+    'date' : IDL.Int,
+    'name' : IDL.Text,
+    'createdAt' : IDL.Int,
+    'message' : IDL.Text,
+    'phone' : IDL.Text,
+  });
+  const Event = IDL.Record({
+    'id' : IDL.Nat,
+    'status' : Status,
+    'subCategory' : IDL.Text,
+    'duration' : IDL.Text,
+    'country' : IDL.Text,
+    'venue' : IDL.Text,
+    'city' : IDL.Text,
+    'date' : IDL.Int,
+    'name' : IDL.Text,
+    'createdAt' : IDL.Int,
+    'time' : IDL.Text,
+    'description' : IDL.Text,
+    'state' : IDL.Text,
+    'posterUrl' : IDL.Text,
+    'category' : IDL.Text,
+    'bannerUrl' : IDL.Text,
+    'ageLimit' : IDL.Nat,
+  });
+  const ListingStatus = IDL.Variant({
+    'pending' : IDL.Null,
+    'approved' : IDL.Null,
+    'rejected' : IDL.Null,
+  });
+  const Listing = IDL.Record({
+    'id' : IDL.Nat,
+    'status' : ListingStatus,
+    'title' : IDL.Text,
+    'city' : IDL.Text,
+    'createdAt' : IDL.Int,
+    'submittedBy' : IDL.Text,
+    'description' : IDL.Text,
+    'category' : IDL.Text,
+    'price' : IDL.Nat,
+    'contactPhone' : IDL.Text,
+  });
+  const UserStatus = IDL.Variant({
+    'active' : IDL.Null,
+    'inactive' : IDL.Null,
+  });
+  const User = IDL.Record({
+    'id' : IDL.Nat,
+    'status' : UserStatus,
+    'name' : IDL.Text,
+    'createdAt' : IDL.Int,
+    'role' : UserRole,
+    'email' : IDL.Text,
+    'phone' : IDL.Text,
+  });
+  const VendorStatus = IDL.Variant({
+    'pending' : IDL.Null,
+    'approved' : IDL.Null,
+    'rejected' : IDL.Null,
+    'suspended' : IDL.Null,
+  });
+  const Vendor = IDL.Record({
+    'id' : IDL.Nat,
+    'status' : VendorStatus,
+    'city' : IDL.Text,
+    'name' : IDL.Text,
+    'createdAt' : IDL.Int,
+    'businessName' : IDL.Text,
+    'email' : IDL.Text,
+    'experience' : IDL.Nat,
+    'phone' : IDL.Text,
+    'services' : IDL.Text,
+  });
+  const Analytics = IDL.Record({
+    'totalEvents' : IDL.Nat,
+    'totalBookings' : IDL.Nat,
+    'totalListings' : IDL.Nat,
+    'totalUsers' : IDL.Nat,
+    'recentBookings' : IDL.Vec(Booking),
+    'totalVendors' : IDL.Nat,
+  });
+  const UserProfile = IDL.Record({
+    'name' : IDL.Text,
+    'email' : IDL.Text,
+    'phone' : IDL.Text,
+  });
+  
+  return IDL.Service({
+    '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+    'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
+    'createBookingRequest' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Int, IDL.Text],
+        [IDL.Nat],
+        [],
+      ),
+    'createEvent' : IDL.Func(
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Int,
+          IDL.Text,
+          IDL.Text,
+          IDL.Nat,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          Status,
+        ],
+        [IDL.Nat],
+        [],
+      ),
+    'createListing' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Text, IDL.Text],
+        [IDL.Nat],
+        [],
+      ),
+    'createUser' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text, UserRole],
+        [IDL.Nat],
+        [],
+      ),
+    'createVendor' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Text, IDL.Text],
+        [IDL.Nat],
+        [],
+      ),
+    'deleteEvent' : IDL.Func([IDL.Nat], [], []),
+    'getAllBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
+    'getAllEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
+    'getAllListings' : IDL.Func([], [IDL.Vec(Listing)], ['query']),
+    'getAllUsers' : IDL.Func([], [IDL.Vec(User)], ['query']),
+    'getAllVendors' : IDL.Func([], [IDL.Vec(Vendor)], ['query']),
+    'getAnalytics' : IDL.Func([], [Analytics], ['query']),
+    'getBooking' : IDL.Func([IDL.Nat], [IDL.Opt(Booking)], ['query']),
+    'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
+    'getCallerUserRole' : IDL.Func([], [UserRole__1], ['query']),
+    'getEvent' : IDL.Func([IDL.Nat], [IDL.Opt(Event)], ['query']),
+    'getListing' : IDL.Func([IDL.Nat], [IDL.Opt(Listing)], ['query']),
+    'getUser' : IDL.Func([IDL.Nat], [IDL.Opt(User)], ['query']),
+    'getUserProfile' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Opt(UserProfile)],
+        ['query'],
+      ),
+    'getVendor' : IDL.Func([IDL.Nat], [IDL.Opt(Vendor)], ['query']),
+    'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'updateBookingStatus' : IDL.Func([IDL.Nat, BookingStatus], [], []),
+    'updateEvent' : IDL.Func(
+        [
+          IDL.Nat,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Int,
+          IDL.Text,
+          IDL.Text,
+          IDL.Nat,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          Status,
+        ],
+        [],
+        [],
+      ),
+    'updateListingStatus' : IDL.Func([IDL.Nat, ListingStatus], [], []),
+    'updateUser' : IDL.Func(
+        [IDL.Nat, IDL.Text, IDL.Text, IDL.Text, UserRole],
+        [],
+        [],
+      ),
+    'updateUserStatus' : IDL.Func([IDL.Nat, UserStatus], [], []),
+    'updateVendor' : IDL.Func(
+        [
+          IDL.Nat,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Nat,
+          IDL.Text,
+          IDL.Text,
+        ],
+        [],
+        [],
+      ),
+    'updateVendorStatus' : IDL.Func([IDL.Nat, VendorStatus], [], []),
+  });
 };
 
 export const init = ({ IDL }) => { return []; };
