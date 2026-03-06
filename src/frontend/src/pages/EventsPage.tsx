@@ -1,83 +1,264 @@
+import EventBookingModal from "@/components/EventBookingModal";
 import PageHeader from "@/components/PageHeader";
-import ServiceCard from "@/components/ServiceCard";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { usePublishedEvents } from "@/hooks/useAdminQueries";
+import { CalendarDays, MapPin, Music, Star, Tag } from "lucide-react";
+import { useState } from "react";
+import type { Event } from "../backend.d";
 
-const IMG = "/assets/generated/hero-events.dim_800x450.jpg";
+const FALLBACK_IMG = "/assets/generated/hero-events.dim_800x450.jpg";
 
-const events = [
+function formatNanoDate(ns: bigint): string {
+  return new Date(Number(ns) / 1_000_000).toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+const GENRES = [
+  "All",
+  "Music",
+  "Comedy",
+  "Sports",
+  "Theatre",
+  "Dance",
+  "Festival",
+  "Other",
+];
+
+function EventCard({ event, index }: { event: Event; index: number }) {
+  const [modalOpen, setModalOpen] = useState(false);
+
+  return (
+    <>
+      <Card
+        className="bg-card border-border overflow-hidden card-hover group"
+        data-ocid={`events.item.${index}`}
+      >
+        <div className="relative overflow-hidden h-48">
+          <img
+            src={event.posterUrl || FALLBACK_IMG}
+            alt={event.name}
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = FALLBACK_IMG;
+            }}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
+          />
+          {/* Overlay badges */}
+          <div className="absolute top-3 left-3 right-3 flex items-start justify-between gap-1">
+            <Badge className="bg-black/70 text-gold border-0 text-xs backdrop-blur-sm truncate max-w-[120px]">
+              {event.category}
+            </Badge>
+            <Badge className="bg-black/70 text-white/80 border-0 text-xs backdrop-blur-sm shrink-0">
+              {formatNanoDate(event.date)}
+            </Badge>
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        </div>
+
+        <CardContent className="p-4 space-y-3">
+          <div>
+            <h3 className="font-display font-bold text-foreground text-lg leading-tight line-clamp-1">
+              {event.name}
+            </h3>
+            <div className="flex items-center gap-1 mt-1 text-muted-foreground text-sm">
+              <MapPin className="w-3 h-3 text-gold shrink-0" />
+              <span className="truncate">
+                {event.venue ? `${event.venue}, ` : ""}
+                {event.city}
+              </span>
+            </div>
+          </div>
+
+          {event.description && (
+            <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2">
+              {event.description}
+            </p>
+          )}
+
+          <div className="flex items-center justify-between pt-1 gap-2">
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              {event.time && (
+                <span className="flex items-center gap-1">
+                  <CalendarDays className="w-3 h-3 text-gold" />
+                  {event.time}
+                </span>
+              )}
+              {event.subCategory && (
+                <span className="flex items-center gap-1">
+                  <Tag className="w-3 h-3 text-gold" />
+                  {event.subCategory}
+                </span>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setModalOpen(true)}
+              className="shrink-0 px-3 py-1.5 gradient-gold text-[oklch(0.1_0.01_260)] font-bold text-sm rounded-md hover:opacity-90 transition-opacity"
+              data-ocid={`events.book_button.${index}`}
+            >
+              Book Event
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <EventBookingModal
+        event={event}
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+      />
+    </>
+  );
+}
+
+const STATIC_EVENTS = [
   {
-    title: "Sunburn Arena Mumbai",
-    subtitle: "Mumbai, Maharashtra",
+    id: -1n,
+    name: "Sunburn Arena Mumbai",
+    category: "Music",
+    subCategory: "EDM",
+    city: "Mumbai",
+    state: "Maharashtra",
+    country: "India",
+    venue: "MMRDA Grounds, BKC",
+    date: BigInt(new Date("2025-12-26").getTime() * 1_000_000),
+    time: "6:00 PM",
+    duration: "3 days",
+    ageLimit: 18n,
     description:
       "India's biggest EDM festival returns with world-class DJs and spectacular laser and pyrotechnic production.",
-    details: "₹2,000 onwards",
-    service: "Sunburn Arena Mumbai Event",
-    badge: "FEATURED",
-    rating: 4.9,
-    genre: "EDM",
-    date: "Dec 26-28, 2025",
+    posterUrl: FALLBACK_IMG,
+    bannerUrl: "",
+    status: "published" as const,
+    createdAt: 0n,
   },
   {
-    title: "NH7 Weekender Pune",
-    subtitle: "Pune, Maharashtra",
+    id: -2n,
+    name: "NH7 Weekender Pune",
+    category: "Music",
+    subCategory: "Multi-Genre",
+    city: "Pune",
+    state: "Maharashtra",
+    country: "India",
+    venue: "Shivaji Stadium",
+    date: BigInt(new Date("2025-11-22").getTime() * 1_000_000),
+    time: "4:00 PM",
+    duration: "3 days",
+    ageLimit: 16n,
     description:
       "Multi-genre music festival spanning 3 days with indie, folk, jazz, and electronic music across 4 stages.",
-    details: "₹1,500 onwards",
-    service: "NH7 Weekender Pune Event",
-    badge: "TRENDING",
-    rating: 4.8,
-    genre: "Multi-Genre",
-    date: "Nov 22-24, 2025",
+    posterUrl: FALLBACK_IMG,
+    bannerUrl: "",
+    status: "published" as const,
+    createdAt: 0n,
   },
   {
-    title: "Bollywood Night Delhi",
-    subtitle: "Delhi",
+    id: -3n,
+    name: "Bollywood Night Delhi",
+    category: "Music",
+    subCategory: "Bollywood",
+    city: "Delhi",
+    state: "Delhi",
+    country: "India",
+    venue: "Jawaharlal Nehru Stadium",
+    date: BigInt(new Date("2025-12-31").getTime() * 1_000_000),
+    time: "8:00 PM",
+    duration: "4 hours",
+    ageLimit: 0n,
     description:
       "A spectacular evening of classic and contemporary Bollywood with celebrity performances and live orchestra.",
-    details: "₹1,200 onwards",
-    service: "Bollywood Night Delhi",
-    rating: 4.7,
-    genre: "Bollywood",
-    date: "Dec 31, 2025",
+    posterUrl: FALLBACK_IMG,
+    bannerUrl: "",
+    status: "published" as const,
+    createdAt: 0n,
   },
   {
-    title: "Techno Rave Bangalore",
-    subtitle: "Bangalore, Karnataka",
-    description:
-      "Underground techno experience featuring international and local DJs in a massive warehouse venue.",
-    details: "₹800 onwards",
-    service: "Techno Rave Bangalore",
-    badge: "SOLD OUT",
-    rating: 4.6,
-    genre: "Techno",
-    date: "Jan 15, 2026",
-  },
-  {
-    title: "Sufi Night Jaipur",
-    subtitle: "Jaipur, Rajasthan",
-    description:
-      "Soulful Sufi music under the stars at a heritage fort. An evening of mystical music and poetry.",
-    details: "₹600 onwards",
-    service: "Sufi Night Jaipur",
-    rating: 4.8,
-    genre: "Sufi",
-    date: "Jan 20, 2026",
-  },
-  {
-    title: "Comedy Festival Hyderabad",
-    subtitle: "Hyderabad, Telangana",
+    id: -4n,
+    name: "Comedy Festival Hyderabad",
+    category: "Comedy",
+    subCategory: "Stand-up",
+    city: "Hyderabad",
+    state: "Telangana",
+    country: "India",
+    venue: "Hitex Exhibition Centre",
+    date: BigInt(new Date("2026-02-05").getTime() * 1_000_000),
+    time: "7:00 PM",
+    duration: "2 days",
+    ageLimit: 18n,
     description:
       "India's funniest comedians gather for a weekend of laughter, stand-up, and improv shows.",
-    details: "₹500 onwards",
-    service: "Comedy Festival Hyderabad",
-    badge: "POPULAR",
-    rating: 4.7,
-    genre: "Comedy",
-    date: "Feb 5-6, 2026",
+    posterUrl: FALLBACK_IMG,
+    bannerUrl: "",
+    status: "published" as const,
+    createdAt: 0n,
+  },
+  {
+    id: -5n,
+    name: "Sufi Night Jaipur",
+    category: "Music",
+    subCategory: "Sufi",
+    city: "Jaipur",
+    state: "Rajasthan",
+    country: "India",
+    venue: "Amber Fort Grounds",
+    date: BigInt(new Date("2026-01-20").getTime() * 1_000_000),
+    time: "7:30 PM",
+    duration: "3 hours",
+    ageLimit: 0n,
+    description:
+      "Soulful Sufi music under the stars at a heritage fort. An evening of mystical music and poetry.",
+    posterUrl: FALLBACK_IMG,
+    bannerUrl: "",
+    status: "published" as const,
+    createdAt: 0n,
+  },
+  {
+    id: -6n,
+    name: "Techno Rave Bangalore",
+    category: "Music",
+    subCategory: "Techno",
+    city: "Bangalore",
+    state: "Karnataka",
+    country: "India",
+    venue: "Phoenix MarketCity",
+    date: BigInt(new Date("2026-01-15").getTime() * 1_000_000),
+    time: "10:00 PM",
+    duration: "8 hours",
+    ageLimit: 21n,
+    description:
+      "Underground techno experience featuring international and local DJs in a massive warehouse venue.",
+    posterUrl: FALLBACK_IMG,
+    bannerUrl: "",
+    status: "published" as const,
+    createdAt: 0n,
   },
 ];
 
 export default function EventsPage() {
+  const { data: liveEvents, isLoading } = usePublishedEvents();
+  const [activeGenre, setActiveGenre] = useState("All");
+
+  // Merge: prefer live events, fall back to static sample content
+  const allEvents: Event[] =
+    liveEvents && liveEvents.length > 0
+      ? (liveEvents as Event[])
+      : (STATIC_EVENTS as unknown as Event[]);
+
+  const filteredEvents =
+    activeGenre === "All"
+      ? allEvents
+      : allEvents.filter(
+          (e) =>
+            e.category.toLowerCase() === activeGenre.toLowerCase() ||
+            e.subCategory.toLowerCase() === activeGenre.toLowerCase(),
+        );
+
   return (
     <div>
       <PageHeader
@@ -88,46 +269,67 @@ export default function EventsPage() {
 
       <section className="py-10">
         <div className="container mx-auto px-4">
-          {/* Genre tags */}
+          {/* Genre filter badges */}
           <div className="flex flex-wrap gap-2 mb-8">
-            {[
-              "All",
-              "EDM",
-              "Bollywood",
-              "Multi-Genre",
-              "Techno",
-              "Sufi",
-              "Comedy",
-            ].map((genre) => (
+            {GENRES.map((genre) => (
               <Badge
                 key={genre}
-                variant={genre === "All" ? "default" : "outline"}
+                variant={activeGenre === genre ? "default" : "outline"}
                 className={
-                  genre === "All"
+                  activeGenre === genre
                     ? "gradient-gold text-[oklch(0.1_0.01_260)] border-0 cursor-pointer"
                     : "border-border text-muted-foreground cursor-pointer hover:border-gold hover:text-gold"
                 }
+                onClick={() => setActiveGenre(genre)}
+                data-ocid="events.genre.tab"
               >
                 {genre}
               </Badge>
             ))}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events.map((event, i) => (
-              <div key={event.title} className="relative">
-                <div className="absolute top-3 right-3 z-10 flex flex-col gap-1 items-end">
-                  <Badge className="bg-black/70 text-gold border-0 text-xs backdrop-blur-sm">
-                    {event.genre}
-                  </Badge>
-                  <Badge className="bg-black/70 text-white/80 border-0 text-xs backdrop-blur-sm">
-                    {event.date}
-                  </Badge>
+          {isLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="space-y-3">
+                  <Skeleton className="h-48 w-full bg-muted rounded-xl" />
+                  <Skeleton className="h-5 w-3/4 bg-muted" />
+                  <Skeleton className="h-4 w-1/2 bg-muted" />
+                  <Skeleton className="h-8 w-full bg-muted" />
                 </div>
-                <ServiceCard {...event} image={IMG} index={i + 1} />
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : filteredEvents.length === 0 ? (
+            <div
+              className="text-center py-20 text-muted-foreground"
+              data-ocid="events.empty_state"
+            >
+              <Music className="w-12 h-12 mx-auto mb-4 opacity-20" />
+              <p className="font-display text-lg font-semibold text-foreground mb-1">
+                No upcoming events
+              </p>
+              <p className="text-sm">
+                {activeGenre === "All"
+                  ? "Check back soon — new events are added regularly."
+                  : `No ${activeGenre} events found. Try a different category.`}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredEvents.map((event, i) => (
+                <EventCard key={String(event.id)} event={event} index={i + 1} />
+              ))}
+            </div>
+          )}
+
+          {/* Live indicator — shown when events come from backend */}
+          {liveEvents && liveEvents.length > 0 && (
+            <div className="mt-8 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+              <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              Showing {liveEvents.length} live event
+              {liveEvents.length !== 1 ? "s" : ""} from the platform
+            </div>
+          )}
         </div>
       </section>
     </div>

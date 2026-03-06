@@ -1,70 +1,54 @@
-# DMT Creatology — Phase 3: Vendor Marketplace
+# DMT Creatology
 
 ## Current State
 
-The platform has:
-- A full 14-page public static website (Home, Events, Hotels, Food, Venues, Transport, Vendors, Artists, Staff Jobs, Digital Products, Business Services, Rankings, Advertise, Contact)
-- An admin dashboard at `/admin` with: Events, Vendors, Bookings, Users, Listings, Analytics panels
-- A live booking system: public Book Now form saves to backend with status "Pending", visible in Admin → Bookings
-- Backend Vendor type: id, name, businessName, city, services, experience, phone, email, status (pending/approved/rejected/suspended), createdAt
-- `createVendor` is admin-only. No public vendor registration exists.
-- `getAllVendors` is admin-only. The public Vendors page uses hardcoded static data.
-- Authorization component installed (Internet Identity login for admin)
+- Admin panel at `/admin/events` allows creating events (name, category, venue, city, date, status, etc.) stored in the Motoko backend.
+- Public `/events` page is fully static — it renders a hardcoded list of sample events and does NOT read from the backend.
+- The `Booking` type stores: name, phone, serviceType, city, date, message, status, createdAt.
+- The `Event` type has no ticket categories.
+- Admin Bookings panel at `/admin/bookings` displays all bookings from `getAllBookings()`.
+- No event-specific booking flow exists — all bookings go through a generic "Book Now" form on each service page.
 
 ## Requested Changes (Diff)
 
 ### Add
 
-1. **VendorApplication type** in backend: businessName, ownerName, city, serviceCategory, description, phone, email, portfolioImages (array of text URLs), status (pending/approved/rejected), createdAt, principal (submitter)
-2. **ServiceListing type** in backend: id, vendorId (principal), title, category, description, price, createdAt
-3. **Backend functions**:
-   - `submitVendorApplication(...)` — public, no auth required, saves with status pending
-   - `getMyVendorApplication()` — caller-only, returns their own application
-   - `updateMyVendorApplication(...)` — caller can update their own pending application
-   - `getAllVendorApplications()` — admin only
-   - `reviewVendorApplication(id, status)` — admin only, approve/reject
-   - `getApprovedVendors()` — public query, returns only approved vendor applications
-   - `addServiceListing(title, category, description, price)` — authenticated vendor only (must have approved application)
-   - `updateServiceListing(id, title, category, description, price)` — vendor can update their own listings
-   - `deleteServiceListing(id)` — vendor can delete their own listings
-   - `getMyServiceListings()` — returns service listings for caller's vendor
-   - `getBookingsForMyVendor()` — returns bookings where serviceType matches vendor's serviceCategory
-4. **Public Vendor Signup page** at `/vendor/register`:
-   - Form fields: Business name, Owner name, City, Service category (dropdown), Description, Phone, Email, Portfolio images (up to 5 image URLs or file upload)
-   - Submits to `submitVendorApplication`
-   - Shows success confirmation with next steps message
-5. **Vendor Dashboard** at `/vendor/dashboard`:
-   - Requires Internet Identity login (same auth system as admin)
-   - Tabs: Profile, Services, Bookings
-   - Profile tab: shows current application status (pending/approved/rejected), edit form if pending or approved
-   - Services tab: add/edit/delete service listings with title, category, description, price
-   - Bookings tab: list of bookings related to their service category
-6. **Vendor Login page** at `/vendor/login`:
-   - Internet Identity login button
-   - Redirects to `/vendor/dashboard` on success
-7. **Public Vendors page update**: Replace hardcoded static data with live data from `getApprovedVendors()`. Show "Register as Vendor" CTA button linking to `/vendor/register`. Maintain existing card layout.
-8. **Admin Vendors page update**: Show vendor applications (not just legacy vendor records). Show all fields including email, phone, serviceCategory, description. Approve/reject actions call `reviewVendorApplication`.
+- **TicketCategory type** in backend: `{ id: Nat; eventId: Nat; name: Text; price: Nat; availableQty: Nat; }`.
+- **EventBooking type** in backend: `{ id: Nat; eventId: Nat; eventName: Text; ticketCategory: Text; name: Text; phone: Text; city: Text; quantity: Nat; message: Text; status: BookingStatus; createdAt: Int; }`.
+- Backend functions:
+  - `addTicketCategory(eventId, name, price, availableQty)` — admin only.
+  - `getTicketCategoriesByEvent(eventId)` — public query.
+  - `deleteTicketCategory(id)` — admin only.
+  - `createEventBooking(eventId, eventName, ticketCategory, name, phone, city, quantity, message)` — public (no auth required).
+  - `getAllEventBookings()` — admin only.
+  - `updateEventBookingStatus(id, status)` — admin only.
+- **EventsPage** (`/events`): Replace static list with live `getPublishedEvents()` call. Show dynamic event cards from the backend. Fall back to empty state if no events exist.
+- **Event detail / booking modal**: On each event card, "Book Event" button opens a modal that:
+  1. Loads ticket categories for that event via `getTicketCategoriesByEvent(eventId)`.
+  2. Lets user select a ticket category from a dropdown.
+  3. Collects: Name, Phone, City, Quantity, Message.
+  4. Submits via `createEventBooking(...)`.
+  5. On success: shows confirmation, then redirects to WhatsApp with booking details.
+- **AdminEventsPage**: Add a "Manage Tickets" button per event row that opens a ticket management modal. Admin can add ticket categories (name, price, qty) and delete existing ones.
+- **AdminBookingsPage**: Add a second tab section (or a new tab "Event Bookings") that shows all event bookings from `getAllEventBookings()` with the same status update controls. Alternatively, render event bookings in a separate panel below or a new tab within the existing page.
 
 ### Modify
 
-- `VendorsPage.tsx`: Replace static vendor array with live `getApprovedVendors()` data. Add "Become a Vendor" CTA at top of page.
-- `AdminVendorsPage.tsx`: Extend to display vendor applications with full details and approve/reject controls.
-- `App.tsx`: Add routes for `/vendor/login`, `/vendor/register`, `/vendor/dashboard`.
+- **EventsPage** (`/events`): Remove static hardcoded `events` array. Fetch live published events from backend. Display event cards with a "Book Event" button instead of generic "Book Now".
+- **AdminBookingsPage**: Extend to show event bookings alongside or separately from general bookings. Event bookings display: event name, ticket category, name, phone, city, quantity, message, date, status.
+- **backend.d.ts**: Will be regenerated by Motoko code generation to include new types and functions.
+- **useAdminQueries.ts**: Add hooks for ticket categories and event bookings.
 
 ### Remove
 
-- Nothing removed. All existing public pages and admin panels remain unchanged.
+- Hardcoded static `events` array in `EventsPage.tsx`.
 
 ## Implementation Plan
 
-1. Extend `main.mo` with VendorApplication and ServiceListing types and all new backend functions
-2. Select `blob-storage` component for portfolio image uploads
-3. Regenerate `backend.d.ts` via `generate_motoko_code`
-4. Create `VendorRegisterPage.tsx` — public signup form
-5. Create `VendorLoginPage.tsx` — Internet Identity login
-6. Create `VendorDashboardPage.tsx` — vendor authenticated area with 3 tabs
-7. Update `VendorsPage.tsx` — fetch live approved vendors, add CTA
-8. Update `AdminVendorsPage.tsx` — show vendor applications with full review controls
-9. Update `App.tsx` — add vendor routes under a new vendor router (same pattern as admin)
-10. Add `useVendorQueries.ts` hook file for React Query integration
-11. Validate (typecheck + lint + build), fix errors
+1. Update `main.mo` to add `TicketCategory` and `EventBooking` types, counters, stores, and all CRUD functions.
+2. Regenerate `backend.d.ts` (auto via `generate_motoko_code`).
+3. Update `EventsPage.tsx` to fetch and display live published events from the backend; add "Book Event" button that opens a ticket booking modal.
+4. Create `EventBookingModal` component: loads ticket categories, booking form (ticket select, name, phone, city, qty, message), submits booking, shows success + WhatsApp redirect.
+5. Update `AdminEventsPage.tsx`: add "Manage Tickets" button per row; add ticket management dialog (list existing tickets, add new ticket form, delete ticket).
+6. Update `AdminBookingsPage.tsx`: add "Event Bookings" tab that fetches and displays event bookings with status update controls.
+7. Add new hooks to `useAdminQueries.ts`: `useTicketCategoriesByEvent`, `useAddTicketCategory`, `useDeleteTicketCategory`, `useAllEventBookings`, `useCreateEventBooking`, `useUpdateEventBookingStatus`.

@@ -57,6 +57,19 @@ export const Booking = IDL.Record({
   'message' : IDL.Text,
   'phone' : IDL.Text,
 });
+export const EventBooking = IDL.Record({
+  'id' : IDL.Nat,
+  'status' : BookingStatus,
+  'eventId' : IDL.Nat,
+  'ticketCategory' : IDL.Text,
+  'city' : IDL.Text,
+  'name' : IDL.Text,
+  'createdAt' : IDL.Int,
+  'message' : IDL.Text,
+  'quantity' : IDL.Nat,
+  'phone' : IDL.Text,
+  'eventName' : IDL.Text,
+});
 export const Event = IDL.Record({
   'id' : IDL.Nat,
   'status' : Status,
@@ -166,6 +179,13 @@ export const UserProfile = IDL.Record({
   'email' : IDL.Text,
   'phone' : IDL.Text,
 });
+export const TicketCategory = IDL.Record({
+  'id' : IDL.Nat,
+  'eventId' : IDL.Nat,
+  'availableQty' : IDL.Nat,
+  'name' : IDL.Text,
+  'price' : IDL.Nat,
+});
 export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const PortfolioImageInput = IDL.Record({
   'title' : IDL.Opt(IDL.Text),
@@ -208,6 +228,11 @@ export const idlService = IDL.Service({
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'addServiceListing' : IDL.Func([ServiceListingInput], [IDL.Nat], []),
+  'addTicketCategory' : IDL.Func(
+      [IDL.Nat, IDL.Text, IDL.Nat, IDL.Nat],
+      [IDL.Nat],
+      [],
+    ),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
   'createBookingRequest' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Int, IDL.Text],
@@ -235,6 +260,20 @@ export const idlService = IDL.Service({
       [IDL.Nat],
       [],
     ),
+  'createEventBooking' : IDL.Func(
+      [
+        IDL.Nat,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Nat,
+        IDL.Text,
+      ],
+      [IDL.Nat],
+      [],
+    ),
   'createListing' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Text, IDL.Text],
       [IDL.Nat],
@@ -253,7 +292,9 @@ export const idlService = IDL.Service({
   'deleteEvent' : IDL.Func([IDL.Nat], [], []),
   'deletePortfolioImage' : IDL.Func([IDL.Nat], [], []),
   'deleteServiceListing' : IDL.Func([IDL.Nat], [], []),
+  'deleteTicketCategory' : IDL.Func([IDL.Nat], [], []),
   'getAllBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
+  'getAllEventBookings' : IDL.Func([], [IDL.Vec(EventBooking)], ['query']),
   'getAllEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
   'getAllListings' : IDL.Func([], [IDL.Vec(Listing)], ['query']),
   'getAllServiceListings' : IDL.Func([], [IDL.Vec(ServiceListing)], ['query']),
@@ -288,6 +329,11 @@ export const idlService = IDL.Service({
   'getCallerUserRole' : IDL.Func([], [UserRole__1], ['query']),
   'getConfirmedBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
   'getEvent' : IDL.Func([IDL.Nat], [IDL.Opt(Event)], ['query']),
+  'getEventBookingsByEvent' : IDL.Func(
+      [IDL.Nat],
+      [IDL.Vec(EventBooking)],
+      ['query'],
+    ),
   'getListing' : IDL.Func([IDL.Nat], [IDL.Opt(Listing)], ['query']),
   'getListingsByCategory' : IDL.Func([IDL.Text], [IDL.Vec(Listing)], ['query']),
   'getListingsByCity' : IDL.Func([IDL.Text], [IDL.Vec(Listing)], ['query']),
@@ -321,6 +367,11 @@ export const idlService = IDL.Service({
     ),
   'getPublishedEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
   'getPublishedVendors' : IDL.Func([], [IDL.Vec(Vendor)], ['query']),
+  'getTicketCategoriesByEvent' : IDL.Func(
+      [IDL.Nat],
+      [IDL.Vec(TicketCategory)],
+      ['query'],
+    ),
   'getUpcomingEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
   'getUser' : IDL.Func([IDL.Nat], [IDL.Opt(User)], ['query']),
   'getUserProfile' : IDL.Func(
@@ -376,6 +427,7 @@ export const idlService = IDL.Service({
       [],
       [],
     ),
+  'updateEventBookingStatus' : IDL.Func([IDL.Nat, BookingStatus], [], []),
   'updateListingStatus' : IDL.Func([IDL.Nat, ListingStatus], [], []),
   'updateMyVendorApplication' : IDL.Func(
       [
@@ -472,6 +524,19 @@ export const idlFactory = ({ IDL }) => {
     'createdAt' : IDL.Int,
     'message' : IDL.Text,
     'phone' : IDL.Text,
+  });
+  const EventBooking = IDL.Record({
+    'id' : IDL.Nat,
+    'status' : BookingStatus,
+    'eventId' : IDL.Nat,
+    'ticketCategory' : IDL.Text,
+    'city' : IDL.Text,
+    'name' : IDL.Text,
+    'createdAt' : IDL.Int,
+    'message' : IDL.Text,
+    'quantity' : IDL.Nat,
+    'phone' : IDL.Text,
+    'eventName' : IDL.Text,
   });
   const Event = IDL.Record({
     'id' : IDL.Nat,
@@ -582,6 +647,13 @@ export const idlFactory = ({ IDL }) => {
     'email' : IDL.Text,
     'phone' : IDL.Text,
   });
+  const TicketCategory = IDL.Record({
+    'id' : IDL.Nat,
+    'eventId' : IDL.Nat,
+    'availableQty' : IDL.Nat,
+    'name' : IDL.Text,
+    'price' : IDL.Nat,
+  });
   const ExternalBlob = IDL.Vec(IDL.Nat8);
   const PortfolioImageInput = IDL.Record({
     'title' : IDL.Opt(IDL.Text),
@@ -624,6 +696,11 @@ export const idlFactory = ({ IDL }) => {
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'addServiceListing' : IDL.Func([ServiceListingInput], [IDL.Nat], []),
+    'addTicketCategory' : IDL.Func(
+        [IDL.Nat, IDL.Text, IDL.Nat, IDL.Nat],
+        [IDL.Nat],
+        [],
+      ),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
     'createBookingRequest' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Int, IDL.Text],
@@ -651,6 +728,20 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Nat],
         [],
       ),
+    'createEventBooking' : IDL.Func(
+        [
+          IDL.Nat,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Nat,
+          IDL.Text,
+        ],
+        [IDL.Nat],
+        [],
+      ),
     'createListing' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Text, IDL.Text],
         [IDL.Nat],
@@ -669,7 +760,9 @@ export const idlFactory = ({ IDL }) => {
     'deleteEvent' : IDL.Func([IDL.Nat], [], []),
     'deletePortfolioImage' : IDL.Func([IDL.Nat], [], []),
     'deleteServiceListing' : IDL.Func([IDL.Nat], [], []),
+    'deleteTicketCategory' : IDL.Func([IDL.Nat], [], []),
     'getAllBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
+    'getAllEventBookings' : IDL.Func([], [IDL.Vec(EventBooking)], ['query']),
     'getAllEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
     'getAllListings' : IDL.Func([], [IDL.Vec(Listing)], ['query']),
     'getAllServiceListings' : IDL.Func(
@@ -712,6 +805,11 @@ export const idlFactory = ({ IDL }) => {
     'getCallerUserRole' : IDL.Func([], [UserRole__1], ['query']),
     'getConfirmedBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
     'getEvent' : IDL.Func([IDL.Nat], [IDL.Opt(Event)], ['query']),
+    'getEventBookingsByEvent' : IDL.Func(
+        [IDL.Nat],
+        [IDL.Vec(EventBooking)],
+        ['query'],
+      ),
     'getListing' : IDL.Func([IDL.Nat], [IDL.Opt(Listing)], ['query']),
     'getListingsByCategory' : IDL.Func(
         [IDL.Text],
@@ -749,6 +847,11 @@ export const idlFactory = ({ IDL }) => {
       ),
     'getPublishedEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
     'getPublishedVendors' : IDL.Func([], [IDL.Vec(Vendor)], ['query']),
+    'getTicketCategoriesByEvent' : IDL.Func(
+        [IDL.Nat],
+        [IDL.Vec(TicketCategory)],
+        ['query'],
+      ),
     'getUpcomingEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
     'getUser' : IDL.Func([IDL.Nat], [IDL.Opt(User)], ['query']),
     'getUserProfile' : IDL.Func(
@@ -804,6 +907,7 @@ export const idlFactory = ({ IDL }) => {
         [],
         [],
       ),
+    'updateEventBookingStatus' : IDL.Func([IDL.Nat, BookingStatus], [], []),
     'updateListingStatus' : IDL.Func([IDL.Nat, ListingStatus], [], []),
     'updateMyVendorApplication' : IDL.Func(
         [

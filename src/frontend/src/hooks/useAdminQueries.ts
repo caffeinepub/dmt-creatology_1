@@ -256,3 +256,133 @@ export function useIsCallerAdmin() {
     enabled: !!actor && !isFetching,
   });
 }
+
+// ── Published Events (public) ───────────────────────────────────────────────
+
+export function usePublishedEvents() {
+  const { actor, isFetching } = useActor();
+  return useQuery({
+    queryKey: ["publishedEvents"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getPublishedEvents();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+// ── Ticket Categories ───────────────────────────────────────────────────────
+
+export function useTicketCategoriesByEvent(eventId: bigint | null) {
+  const { actor, isFetching } = useActor();
+  return useQuery({
+    queryKey: ["ticketCategories", String(eventId)],
+    queryFn: async () => {
+      if (!actor || eventId === null) return [];
+      return actor.getTicketCategoriesByEvent(eventId);
+    },
+    enabled: !!actor && !isFetching && eventId !== null,
+  });
+}
+
+export function useAddTicketCategory() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      eventId: bigint;
+      name: string;
+      price: bigint;
+      availableQty: bigint;
+    }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.addTicketCategory(
+        data.eventId,
+        data.name,
+        data.price,
+        data.availableQty,
+      );
+    },
+    onSuccess: (_result, vars) =>
+      qc.invalidateQueries({
+        queryKey: ["ticketCategories", String(vars.eventId)],
+      }),
+  });
+}
+
+export function useDeleteTicketCategory() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { id: bigint; eventId: bigint }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.deleteTicketCategory(data.id);
+    },
+    onSuccess: (_result, vars) =>
+      qc.invalidateQueries({
+        queryKey: ["ticketCategories", String(vars.eventId)],
+      }),
+  });
+}
+
+// ── Event Bookings ──────────────────────────────────────────────────────────
+
+export function useAllEventBookings() {
+  const { actor, isFetching } = useActor();
+  return useQuery({
+    queryKey: ["eventBookings"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllEventBookings();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useCreateEventBooking() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      eventId: bigint;
+      eventName: string;
+      ticketCategory: string;
+      name: string;
+      phone: string;
+      city: string;
+      quantity: bigint;
+      message: string;
+    }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.createEventBooking(
+        data.eventId,
+        data.eventName,
+        data.ticketCategory,
+        data.name,
+        data.phone,
+        data.city,
+        data.quantity,
+        data.message,
+      );
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["eventBookings"] }),
+  });
+}
+
+export function useUpdateEventBookingStatus() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      status,
+    }: {
+      id: bigint;
+      status: BookingStatus;
+    }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.updateEventBookingStatus(id, status);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["eventBookings"] }),
+  });
+}

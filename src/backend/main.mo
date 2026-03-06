@@ -10,7 +10,9 @@ import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
+import Migration "migration";
 
+(with migration = Migration.run)
 actor {
   include MixinStorage();
 
@@ -202,6 +204,8 @@ actor {
   var vendorApplicationId = 0;
   var serviceListingId = 0;
   var imageId = 0;
+  var ticketCategoryId = 0;
+  var eventBookingId = 0;
 
   // Data stores
   let events = Maps.empty<Nat, Event>();
@@ -213,8 +217,128 @@ actor {
   let vendorApplications = Maps.empty<Nat, VendorApplication>();
   let serviceListings = Maps.empty<Nat, ServiceListing>();
   let portfolioImages = Maps.empty<Nat, ImageMetadata>();
+  let ticketCategories = Maps.empty<Nat, TicketCategory>();
+  let eventBookings = Maps.empty<Nat, EventBooking>();
 
-  //// User profile management (required by frontend)
+  /** TICKET SYSTEM **/
+  // Type for ticket categories
+  public type TicketCategory = {
+    id : Nat;
+    eventId : Nat;
+    name : Text;
+    price : Nat;
+    availableQty : Nat;
+  };
+
+  // Type for event bookings (tickets)
+  public type EventBooking = {
+    id : Nat;
+    eventId : Nat;
+    eventName : Text;
+    ticketCategory : Text;
+    name : Text;
+    phone : Text;
+    city : Text;
+    quantity : Nat;
+    message : Text;
+    status : BookingStatus;
+    createdAt : Int;
+  };
+
+  // Add a ticket category (admin only)
+  public shared ({ caller }) func addTicketCategory(eventId : Nat, name : Text, price : Nat, availableQty : Nat) : async Nat {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can add ticket categories");
+    };
+    let id = ticketCategoryId;
+    let tc : TicketCategory = { id; eventId; name; price; availableQty };
+    ticketCategories.add(id, tc);
+    ticketCategoryId += 1;
+    id;
+  };
+
+  // Get ticket categories for a specific event
+  public query func getTicketCategoriesByEvent(eventId : Nat) : async [TicketCategory] {
+    let result = List.empty<TicketCategory>();
+    for ((id, tc) in ticketCategories.entries()) {
+      if (tc.eventId == eventId) {
+        result.add(tc);
+      };
+    };
+    result.toArray();
+  };
+
+  // Delete a ticket category (admin only)
+  public shared ({ caller }) func deleteTicketCategory(id : Nat) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can delete ticket categories");
+    };
+    switch (ticketCategories.get(id)) {
+      case (null) { Runtime.trap("Ticket category not found") };
+      case (?_) { ticketCategories.remove(id) };
+    };
+  };
+
+  // Create an event booking (buy tickets) - requires authenticated user
+  public shared ({ caller }) func createEventBooking(eventId : Nat, eventName : Text, ticketCategory : Text, name : Text, phone : Text, city : Text, quantity : Nat, message : Text) : async Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can create event bookings");
+    };
+    let id = eventBookingId;
+    let eb : EventBooking = {
+      id;
+      eventId;
+      eventName;
+      ticketCategory;
+      name;
+      phone;
+      city;
+      quantity;
+      message;
+      status = #new;
+      createdAt = Time.now();
+    };
+    eventBookings.add(id, eb);
+    eventBookingId += 1;
+    id;
+  };
+
+  // Get all event bookings (admin only - contains PII)
+  public query ({ caller }) func getAllEventBookings() : async [EventBooking] {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can view all event bookings");
+    };
+    eventBookings.values().toArray();
+  };
+
+  // Update event booking status (admin only)
+  public shared ({ caller }) func updateEventBookingStatus(id : Nat, status : BookingStatus) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can update event booking status");
+    };
+    switch (eventBookings.get(id)) {
+      case (null) { Runtime.trap("Event booking not found") };
+      case (?existing) {
+        let updated : EventBooking = { existing with status };
+        eventBookings.add(id, updated);
+      };
+    };
+  };
+
+  // Get bookings for a specific event (admin only - contains PII)
+  public query ({ caller }) func getEventBookingsByEvent(eventId : Nat) : async [EventBooking] {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can view event bookings");
+    };
+    let result = List.empty<EventBooking>();
+    for ((id, eb) in eventBookings.entries()) {
+      if (eb.eventId == eventId) {
+        result.add(eb);
+      };
+    };
+    result.toArray();
+  };
+
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can save profiles");
@@ -463,10 +587,6 @@ actor {
     };
     filtered.toArray();
   };
-
-  // public query ({ caller }) func getVendorsByCategory(category: Text) : async [Vendor] {
-  //   vendors.values().toArray();
-  // };
 
   ////////////////////////////////////////////////////////
   // Booking Management

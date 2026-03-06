@@ -27,14 +27,18 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  useAddTicketCategory,
   useAllEvents,
   useCreateEvent,
   useDeleteEvent,
+  useDeleteTicketCategory,
+  useTicketCategoriesByEvent,
 } from "@/hooks/useAdminQueries";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Loader2, Plus, Ticket, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Status } from "../../backend.d";
+import type { Event } from "../../backend.d";
 
 function formatNanoDate(ns: bigint): string {
   return new Date(Number(ns) / 1_000_000).toLocaleDateString("en-IN", {
@@ -85,6 +89,270 @@ const EMPTY_FORM = {
   status: Status.draft,
 };
 
+const EMPTY_TICKET_FORM = { name: "", price: "", availableQty: "" };
+
+// ── Ticket Categories Modal ─────────────────────────────────────────────────
+
+function TicketCategoriesDialog({
+  event,
+  onClose,
+}: {
+  event: Event | null;
+  onClose: () => void;
+}) {
+  const isOpen = event !== null;
+  const { data: tickets, isLoading } = useTicketCategoriesByEvent(
+    isOpen ? event!.id : null,
+  );
+  const addTicket = useAddTicketCategory();
+  const deleteTicket = useDeleteTicketCategory();
+
+  const [ticketForm, setTicketForm] = useState(EMPTY_TICKET_FORM);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<bigint | null>(null);
+
+  const handleTicketChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTicketForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleAddTicket = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!event) return;
+    try {
+      await addTicket.mutateAsync({
+        eventId: event.id,
+        name: ticketForm.name,
+        price: BigInt(Math.round(Number(ticketForm.price)) || 0),
+        availableQty: BigInt(Math.round(Number(ticketForm.availableQty)) || 0),
+      });
+      toast.success("Ticket category added");
+      setTicketForm(EMPTY_TICKET_FORM);
+    } catch {
+      toast.error("Failed to add ticket category");
+    }
+  };
+
+  const handleDeleteTicket = async (id: bigint) => {
+    if (!event) return;
+    try {
+      await deleteTicket.mutateAsync({ id, eventId: event.id });
+      toast.success("Ticket category deleted");
+      setDeleteConfirmId(null);
+    } catch {
+      toast.error("Failed to delete ticket category");
+    }
+  };
+
+  return (
+    <>
+      <Dialog open={isOpen} onOpenChange={(o) => !o && onClose()}>
+        <DialogContent
+          className="bg-slate-900 border-white/10 text-white max-w-lg max-h-[90vh] overflow-y-auto"
+          data-ocid="admin.tickets.dialog"
+        >
+          <DialogHeader>
+            <DialogTitle className="text-white font-display text-lg">
+              Ticket Categories — {event?.name}
+            </DialogTitle>
+          </DialogHeader>
+
+          {/* Existing tickets list */}
+          <div className="space-y-2 mt-2">
+            {isLoading ? (
+              <div className="space-y-2">
+                {[1, 2].map((i) => (
+                  <Skeleton key={i} className="h-10 w-full bg-slate-800" />
+                ))}
+              </div>
+            ) : !tickets?.length ? (
+              <p className="text-slate-500 text-sm text-center py-4">
+                No ticket categories yet. Add one below.
+              </p>
+            ) : (
+              <div className="rounded-lg border border-white/10 overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-white/10 hover:bg-transparent">
+                      <TableHead className="text-slate-400 text-xs">
+                        Name
+                      </TableHead>
+                      <TableHead className="text-slate-400 text-xs">
+                        Price
+                      </TableHead>
+                      <TableHead className="text-slate-400 text-xs">
+                        Qty
+                      </TableHead>
+                      <TableHead className="text-slate-400 text-xs text-right">
+                        Del
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {tickets.map((tc, i) => (
+                      <TableRow
+                        key={String(tc.id)}
+                        className="border-white/5"
+                        data-ocid={`admin.tickets.row.${i + 1}`}
+                      >
+                        <TableCell className="text-white text-sm font-medium">
+                          {tc.name}
+                        </TableCell>
+                        <TableCell className="text-gold text-sm font-semibold">
+                          ₹{Number(tc.price).toLocaleString("en-IN")}
+                        </TableCell>
+                        <TableCell className="text-slate-300 text-sm">
+                          {Number(tc.availableQty)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setDeleteConfirmId(tc.id)}
+                            className="text-slate-500 hover:text-red-400 hover:bg-red-500/10 h-7 w-7 p-0"
+                            data-ocid={`admin.tickets.delete_button.${i + 1}`}
+                          >
+                            <Trash2 size={13} />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
+
+          {/* Add ticket form */}
+          <div className="border-t border-white/10 pt-4 mt-2">
+            <p className="text-slate-300 text-sm font-semibold mb-3">
+              Add Ticket Category
+            </p>
+            <form onSubmit={handleAddTicket} className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-3 space-y-1.5">
+                  <Label className="text-slate-400 text-xs">Name *</Label>
+                  <Input
+                    name="name"
+                    value={ticketForm.name}
+                    onChange={handleTicketChange}
+                    placeholder="e.g. VIP, General, Early Bird"
+                    required
+                    className="bg-slate-800 border-white/10 text-white placeholder:text-slate-500 h-9"
+                    data-ocid="admin.tickets.name_input"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-slate-400 text-xs">Price (₹) *</Label>
+                  <Input
+                    name="price"
+                    type="number"
+                    min={0}
+                    value={ticketForm.price}
+                    onChange={handleTicketChange}
+                    placeholder="0"
+                    required
+                    className="bg-slate-800 border-white/10 text-white placeholder:text-slate-500 h-9"
+                    data-ocid="admin.tickets.price_input"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-slate-400 text-xs">
+                    Available Qty *
+                  </Label>
+                  <Input
+                    name="availableQty"
+                    type="number"
+                    min={1}
+                    value={ticketForm.availableQty}
+                    onChange={handleTicketChange}
+                    placeholder="100"
+                    required
+                    className="bg-slate-800 border-white/10 text-white placeholder:text-slate-500 h-9"
+                    data-ocid="admin.tickets.qty_input"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <Button
+                    type="submit"
+                    disabled={addTicket.isPending}
+                    className="w-full bg-gold text-slate-950 hover:bg-gold/90 font-semibold h-9 text-sm"
+                    data-ocid="admin.tickets.add_button"
+                  >
+                    {addTicket.isPending ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <>
+                        <Plus size={14} className="mr-1" />
+                        Add
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <DialogFooter className="pt-2">
+            <Button
+              variant="ghost"
+              onClick={onClose}
+              className="text-slate-400 hover:text-white"
+              data-ocid="admin.tickets.close_button"
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete ticket confirm dialog */}
+      <Dialog
+        open={deleteConfirmId !== null}
+        onOpenChange={(o) => !o && setDeleteConfirmId(null)}
+      >
+        <DialogContent
+          className="bg-slate-900 border-white/10 text-white max-w-xs"
+          data-ocid="admin.tickets.delete.dialog"
+        >
+          <DialogHeader>
+            <DialogTitle className="text-white font-display">
+              Delete Ticket Category?
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-slate-400 text-sm">
+            This will permanently remove this ticket category.
+          </p>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setDeleteConfirmId(null)}
+              className="text-slate-400"
+              data-ocid="admin.tickets.delete.cancel_button"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={deleteTicket.isPending}
+              onClick={() =>
+                deleteConfirmId !== null && handleDeleteTicket(deleteConfirmId)
+              }
+              data-ocid="admin.tickets.delete.confirm_button"
+            >
+              {deleteTicket.isPending ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                "Delete"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+// ── Main Page ───────────────────────────────────────────────────────────────
+
 export default function AdminEventsPage() {
   const { data: events, isLoading } = useAllEvents();
   const createEvent = useCreateEvent();
@@ -93,6 +361,7 @@ export default function AdminEventsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [deleteConfirmId, setDeleteConfirmId] = useState<bigint | null>(null);
+  const [ticketEvent, setTicketEvent] = useState<Event | null>(null);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -147,7 +416,7 @@ export default function AdminEventsPage() {
             Events
           </h1>
           <p className="text-slate-400 text-sm mt-0.5">
-            Manage platform events
+            Manage platform events and ticket categories
           </p>
         </div>
         <Button
@@ -215,15 +484,27 @@ export default function AdminEventsPage() {
                   </TableCell>
                   <TableCell>{statusBadge(event.status)}</TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setDeleteConfirmId(event.id)}
-                      className="text-slate-500 hover:text-red-400 hover:bg-red-500/10 h-7 w-7 p-0"
-                      data-ocid={`admin.events.delete_button.${i + 1}`}
-                    >
-                      <Trash2 size={14} />
-                    </Button>
+                    <div className="flex items-center justify-end gap-1.5">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setTicketEvent(event)}
+                        className="text-slate-400 hover:text-gold hover:bg-gold/10 h-7 px-2 text-xs gap-1"
+                        data-ocid={`admin.events.tickets_button.${i + 1}`}
+                      >
+                        <Ticket size={13} />
+                        Tickets
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setDeleteConfirmId(event.id)}
+                        className="text-slate-500 hover:text-red-400 hover:bg-red-500/10 h-7 w-7 p-0"
+                        data-ocid={`admin.events.delete_button.${i + 1}`}
+                      >
+                        <Trash2 size={14} />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -231,6 +512,12 @@ export default function AdminEventsPage() {
           </Table>
         )}
       </div>
+
+      {/* Ticket Categories Dialog */}
+      <TicketCategoriesDialog
+        event={ticketEvent}
+        onClose={() => setTicketEvent(null)}
+      />
 
       {/* Create Event Dialog */}
       <Dialog open={showCreate} onOpenChange={setShowCreate}>

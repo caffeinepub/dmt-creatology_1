@@ -55,6 +55,19 @@ export interface Event {
   'bannerUrl' : string,
   'ageLimit' : bigint,
 }
+export interface EventBooking {
+  'id' : bigint,
+  'status' : BookingStatus,
+  'eventId' : bigint,
+  'ticketCategory' : string,
+  'city' : string,
+  'name' : string,
+  'createdAt' : bigint,
+  'message' : string,
+  'quantity' : bigint,
+  'phone' : string,
+  'eventName' : string,
+}
 export type ExternalBlob = Uint8Array;
 export interface Listing {
   'id' : bigint,
@@ -100,6 +113,13 @@ export interface ServiceListingInput {
 export type Status = { 'cancelled' : null } |
   { 'published' : null } |
   { 'draft' : null };
+export interface TicketCategory {
+  'id' : bigint,
+  'eventId' : bigint,
+  'availableQty' : bigint,
+  'name' : string,
+  'price' : bigint,
+}
 export interface User {
   'id' : bigint,
   'status' : UserStatus,
@@ -182,6 +202,7 @@ export interface _SERVICE {
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'addServiceListing' : ActorMethod<[ServiceListingInput], bigint>,
+  'addTicketCategory' : ActorMethod<[bigint, string, bigint, bigint], bigint>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole__1], undefined>,
   'createBookingRequest' : ActorMethod<
     [string, string, string, string, bigint, string],
@@ -207,6 +228,10 @@ export interface _SERVICE {
     ],
     bigint
   >,
+  'createEventBooking' : ActorMethod<
+    [bigint, string, string, string, string, string, bigint, string],
+    bigint
+  >,
   'createListing' : ActorMethod<
     [string, string, string, string, bigint, string, string],
     bigint
@@ -219,7 +244,9 @@ export interface _SERVICE {
   'deleteEvent' : ActorMethod<[bigint], undefined>,
   'deletePortfolioImage' : ActorMethod<[bigint], undefined>,
   'deleteServiceListing' : ActorMethod<[bigint], undefined>,
+  'deleteTicketCategory' : ActorMethod<[bigint], undefined>,
   'getAllBookings' : ActorMethod<[], Array<Booking>>,
+  'getAllEventBookings' : ActorMethod<[], Array<EventBooking>>,
   'getAllEvents' : ActorMethod<[], Array<Event>>,
   'getAllListings' : ActorMethod<[], Array<Listing>>,
   'getAllServiceListings' : ActorMethod<[], Array<ServiceListing>>,
@@ -238,6 +265,7 @@ export interface _SERVICE {
   'getCallerUserRole' : ActorMethod<[], UserRole__1>,
   'getConfirmedBookings' : ActorMethod<[], Array<Booking>>,
   'getEvent' : ActorMethod<[bigint], [] | [Event]>,
+  'getEventBookingsByEvent' : ActorMethod<[bigint], Array<EventBooking>>,
   'getListing' : ActorMethod<[bigint], [] | [Listing]>,
   'getListingsByCategory' : ActorMethod<[string], Array<Listing>>,
   'getListingsByCity' : ActorMethod<[string], Array<Listing>>,
@@ -251,6 +279,7 @@ export interface _SERVICE {
   'getPublicVendorsByServices' : ActorMethod<[string], Array<Vendor>>,
   'getPublishedEvents' : ActorMethod<[], Array<Event>>,
   'getPublishedVendors' : ActorMethod<[], Array<Vendor>>,
+  'getTicketCategoriesByEvent' : ActorMethod<[bigint], Array<TicketCategory>>,
   'getUpcomingEvents' : ActorMethod<[], Array<Event>>,
   'getUser' : ActorMethod<[bigint], [] | [User]>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
@@ -290,6 +319,7 @@ export interface _SERVICE {
     ],
     undefined
   >,
+  'updateEventBookingStatus' : ActorMethod<[bigint, BookingStatus], undefined>,
   'updateListingStatus' : ActorMethod<[bigint, ListingStatus], undefined>,
   'updateMyVendorApplication' : ActorMethod<
     [string, string, string, string, string, string, string, Array<string>],
