@@ -8,6 +8,23 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
+export const _CaffeineStorageCreateCertificateResult = IDL.Record({
+  'method' : IDL.Text,
+  'blob_hash' : IDL.Text,
+});
+export const _CaffeineStorageRefillInformation = IDL.Record({
+  'proposed_top_up_amount' : IDL.Opt(IDL.Nat),
+});
+export const _CaffeineStorageRefillResult = IDL.Record({
+  'success' : IDL.Opt(IDL.Bool),
+  'topped_up_amount' : IDL.Opt(IDL.Nat),
+});
+export const ServiceListingInput = IDL.Record({
+  'title' : IDL.Text,
+  'description' : IDL.Text,
+  'category' : IDL.Text,
+  'price' : IDL.Nat,
+});
 export const UserRole__1 = IDL.Variant({
   'admin' : IDL.Null,
   'user' : IDL.Null,
@@ -76,6 +93,15 @@ export const Listing = IDL.Record({
   'price' : IDL.Nat,
   'contactPhone' : IDL.Text,
 });
+export const ServiceListing = IDL.Record({
+  'id' : IDL.Nat,
+  'title' : IDL.Text,
+  'createdAt' : IDL.Int,
+  'vendorPrincipal' : IDL.Principal,
+  'description' : IDL.Text,
+  'category' : IDL.Text,
+  'price' : IDL.Nat,
+});
 export const UserStatus = IDL.Variant({
   'active' : IDL.Null,
   'inactive' : IDL.Null,
@@ -88,6 +114,26 @@ export const User = IDL.Record({
   'role' : UserRole,
   'email' : IDL.Text,
   'phone' : IDL.Text,
+});
+export const ApplicationStatus = IDL.Variant({
+  'pending' : IDL.Null,
+  'approved' : IDL.Null,
+  'rejected' : IDL.Null,
+});
+export const VendorApplication = IDL.Record({
+  'id' : IDL.Nat,
+  'status' : ApplicationStatus,
+  'serviceCategory' : IDL.Text,
+  'principal' : IDL.Principal,
+  'ownerName' : IDL.Text,
+  'city' : IDL.Text,
+  'businessName' : IDL.Text,
+  'submittedAt' : IDL.Int,
+  'description' : IDL.Text,
+  'reviewedAt' : IDL.Opt(IDL.Int),
+  'email' : IDL.Text,
+  'phone' : IDL.Text,
+  'portfolioImages' : IDL.Vec(IDL.Text),
 });
 export const VendorStatus = IDL.Variant({
   'pending' : IDL.Null,
@@ -120,9 +166,48 @@ export const UserProfile = IDL.Record({
   'email' : IDL.Text,
   'phone' : IDL.Text,
 });
+export const ExternalBlob = IDL.Vec(IDL.Nat8);
+export const PortfolioImageInput = IDL.Record({
+  'title' : IDL.Opt(IDL.Text),
+  'file' : ExternalBlob,
+  'size' : IDL.Nat,
+  'vendorPrincipal' : IDL.Opt(IDL.Principal),
+  'mimeType' : IDL.Text,
+  'description' : IDL.Opt(IDL.Text),
+  'filename' : IDL.Text,
+  'vendorId' : IDL.Opt(IDL.Nat),
+  'category' : IDL.Text,
+});
 
 export const idlService = IDL.Service({
+  '_caffeineStorageBlobIsLive' : IDL.Func(
+      [IDL.Vec(IDL.Nat8)],
+      [IDL.Bool],
+      ['query'],
+    ),
+  '_caffeineStorageBlobsToDelete' : IDL.Func(
+      [],
+      [IDL.Vec(IDL.Vec(IDL.Nat8))],
+      ['query'],
+    ),
+  '_caffeineStorageConfirmBlobDeletion' : IDL.Func(
+      [IDL.Vec(IDL.Vec(IDL.Nat8))],
+      [],
+      [],
+    ),
+  '_caffeineStorageCreateCertificate' : IDL.Func(
+      [IDL.Text],
+      [_CaffeineStorageCreateCertificateResult],
+      [],
+    ),
+  '_caffeineStorageRefillCashier' : IDL.Func(
+      [IDL.Opt(_CaffeineStorageRefillInformation)],
+      [_CaffeineStorageRefillResult],
+      [],
+    ),
+  '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+  'addServiceListing' : IDL.Func([ServiceListingInput], [IDL.Nat], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
   'createBookingRequest' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Int, IDL.Text],
@@ -166,26 +251,108 @@ export const idlService = IDL.Service({
       [],
     ),
   'deleteEvent' : IDL.Func([IDL.Nat], [], []),
+  'deletePortfolioImage' : IDL.Func([IDL.Nat], [], []),
+  'deleteServiceListing' : IDL.Func([IDL.Nat], [], []),
   'getAllBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
   'getAllEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
   'getAllListings' : IDL.Func([], [IDL.Vec(Listing)], ['query']),
+  'getAllServiceListings' : IDL.Func([], [IDL.Vec(ServiceListing)], ['query']),
   'getAllUsers' : IDL.Func([], [IDL.Vec(User)], ['query']),
+  'getAllVendorApplications' : IDL.Func(
+      [],
+      [IDL.Vec(VendorApplication)],
+      ['query'],
+    ),
   'getAllVendors' : IDL.Func([], [IDL.Vec(Vendor)], ['query']),
   'getAnalytics' : IDL.Func([], [Analytics], ['query']),
+  'getApprovedVendors' : IDL.Func([], [IDL.Vec(VendorApplication)], ['query']),
   'getBooking' : IDL.Func([IDL.Nat], [IDL.Opt(Booking)], ['query']),
+  'getBookingsByCity' : IDL.Func([IDL.Text], [IDL.Vec(Booking)], ['query']),
+  'getBookingsByDateRange' : IDL.Func(
+      [IDL.Int, IDL.Int],
+      [IDL.Vec(Booking)],
+      ['query'],
+    ),
+  'getBookingsByServiceType' : IDL.Func(
+      [IDL.Text],
+      [IDL.Vec(Booking)],
+      ['query'],
+    ),
+  'getBookingsByStatus' : IDL.Func(
+      [BookingStatus],
+      [IDL.Vec(Booking)],
+      ['query'],
+    ),
+  'getBookingsForMyVendor' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole__1], ['query']),
+  'getConfirmedBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
   'getEvent' : IDL.Func([IDL.Nat], [IDL.Opt(Event)], ['query']),
   'getListing' : IDL.Func([IDL.Nat], [IDL.Opt(Listing)], ['query']),
+  'getListingsByCategory' : IDL.Func([IDL.Text], [IDL.Vec(Listing)], ['query']),
+  'getListingsByCity' : IDL.Func([IDL.Text], [IDL.Vec(Listing)], ['query']),
+  'getMyServiceListings' : IDL.Func([], [IDL.Vec(ServiceListing)], ['query']),
+  'getMyVendorApplication' : IDL.Func(
+      [],
+      [IDL.Opt(VendorApplication)],
+      ['query'],
+    ),
+  'getNewBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
+  'getPublicApprovedVendors' : IDL.Func(
+      [],
+      [IDL.Vec(VendorApplication)],
+      ['query'],
+    ),
+  'getPublicEventsByCategory' : IDL.Func(
+      [IDL.Text],
+      [IDL.Vec(Event)],
+      ['query'],
+    ),
+  'getPublicEventsBySubCategory' : IDL.Func(
+      [IDL.Text],
+      [IDL.Vec(Event)],
+      ['query'],
+    ),
+  'getPublicListings' : IDL.Func([], [IDL.Vec(Listing)], ['query']),
+  'getPublicVendorsByServices' : IDL.Func(
+      [IDL.Text],
+      [IDL.Vec(Vendor)],
+      ['query'],
+    ),
+  'getPublishedEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
+  'getPublishedVendors' : IDL.Func([], [IDL.Vec(Vendor)], ['query']),
+  'getUpcomingEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
   'getUser' : IDL.Func([IDL.Nat], [IDL.Opt(User)], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
+  'getUsersByRole' : IDL.Func([UserRole], [IDL.Vec(User)], ['query']),
   'getVendor' : IDL.Func([IDL.Nat], [IDL.Opt(Vendor)], ['query']),
+  'getVendorApplication' : IDL.Func(
+      [IDL.Nat],
+      [IDL.Opt(VendorApplication)],
+      ['query'],
+    ),
+  'getVendorsByCity' : IDL.Func([IDL.Text], [IDL.Vec(Vendor)], ['query']),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'reviewVendorApplication' : IDL.Func([IDL.Nat, ApplicationStatus], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'submitVendorApplication' : IDL.Func(
+      [
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Vec(IDL.Text),
+      ],
+      [IDL.Nat],
+      [],
+    ),
   'updateBookingStatus' : IDL.Func([IDL.Nat, BookingStatus], [], []),
   'updateEvent' : IDL.Func(
       [
@@ -210,6 +377,21 @@ export const idlService = IDL.Service({
       [],
     ),
   'updateListingStatus' : IDL.Func([IDL.Nat, ListingStatus], [], []),
+  'updateMyVendorApplication' : IDL.Func(
+      [
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Vec(IDL.Text),
+      ],
+      [],
+      [],
+    ),
+  'updateServiceListing' : IDL.Func([IDL.Nat, ServiceListingInput], [], []),
   'updateUser' : IDL.Func(
       [IDL.Nat, IDL.Text, IDL.Text, IDL.Text, UserRole],
       [],
@@ -230,12 +412,35 @@ export const idlService = IDL.Service({
       [],
       [],
     ),
+  'updateVendorApplicationStatus' : IDL.Func(
+      [IDL.Nat, ApplicationStatus],
+      [],
+      [],
+    ),
   'updateVendorStatus' : IDL.Func([IDL.Nat, VendorStatus], [], []),
+  'uploadPortfolioImage' : IDL.Func([PortfolioImageInput], [IDL.Nat], []),
 });
 
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
+  const _CaffeineStorageCreateCertificateResult = IDL.Record({
+    'method' : IDL.Text,
+    'blob_hash' : IDL.Text,
+  });
+  const _CaffeineStorageRefillInformation = IDL.Record({
+    'proposed_top_up_amount' : IDL.Opt(IDL.Nat),
+  });
+  const _CaffeineStorageRefillResult = IDL.Record({
+    'success' : IDL.Opt(IDL.Bool),
+    'topped_up_amount' : IDL.Opt(IDL.Nat),
+  });
+  const ServiceListingInput = IDL.Record({
+    'title' : IDL.Text,
+    'description' : IDL.Text,
+    'category' : IDL.Text,
+    'price' : IDL.Nat,
+  });
   const UserRole__1 = IDL.Variant({
     'admin' : IDL.Null,
     'user' : IDL.Null,
@@ -304,6 +509,15 @@ export const idlFactory = ({ IDL }) => {
     'price' : IDL.Nat,
     'contactPhone' : IDL.Text,
   });
+  const ServiceListing = IDL.Record({
+    'id' : IDL.Nat,
+    'title' : IDL.Text,
+    'createdAt' : IDL.Int,
+    'vendorPrincipal' : IDL.Principal,
+    'description' : IDL.Text,
+    'category' : IDL.Text,
+    'price' : IDL.Nat,
+  });
   const UserStatus = IDL.Variant({
     'active' : IDL.Null,
     'inactive' : IDL.Null,
@@ -316,6 +530,26 @@ export const idlFactory = ({ IDL }) => {
     'role' : UserRole,
     'email' : IDL.Text,
     'phone' : IDL.Text,
+  });
+  const ApplicationStatus = IDL.Variant({
+    'pending' : IDL.Null,
+    'approved' : IDL.Null,
+    'rejected' : IDL.Null,
+  });
+  const VendorApplication = IDL.Record({
+    'id' : IDL.Nat,
+    'status' : ApplicationStatus,
+    'serviceCategory' : IDL.Text,
+    'principal' : IDL.Principal,
+    'ownerName' : IDL.Text,
+    'city' : IDL.Text,
+    'businessName' : IDL.Text,
+    'submittedAt' : IDL.Int,
+    'description' : IDL.Text,
+    'reviewedAt' : IDL.Opt(IDL.Int),
+    'email' : IDL.Text,
+    'phone' : IDL.Text,
+    'portfolioImages' : IDL.Vec(IDL.Text),
   });
   const VendorStatus = IDL.Variant({
     'pending' : IDL.Null,
@@ -348,9 +582,48 @@ export const idlFactory = ({ IDL }) => {
     'email' : IDL.Text,
     'phone' : IDL.Text,
   });
+  const ExternalBlob = IDL.Vec(IDL.Nat8);
+  const PortfolioImageInput = IDL.Record({
+    'title' : IDL.Opt(IDL.Text),
+    'file' : ExternalBlob,
+    'size' : IDL.Nat,
+    'vendorPrincipal' : IDL.Opt(IDL.Principal),
+    'mimeType' : IDL.Text,
+    'description' : IDL.Opt(IDL.Text),
+    'filename' : IDL.Text,
+    'vendorId' : IDL.Opt(IDL.Nat),
+    'category' : IDL.Text,
+  });
   
   return IDL.Service({
+    '_caffeineStorageBlobIsLive' : IDL.Func(
+        [IDL.Vec(IDL.Nat8)],
+        [IDL.Bool],
+        ['query'],
+      ),
+    '_caffeineStorageBlobsToDelete' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Vec(IDL.Nat8))],
+        ['query'],
+      ),
+    '_caffeineStorageConfirmBlobDeletion' : IDL.Func(
+        [IDL.Vec(IDL.Vec(IDL.Nat8))],
+        [],
+        [],
+      ),
+    '_caffeineStorageCreateCertificate' : IDL.Func(
+        [IDL.Text],
+        [_CaffeineStorageCreateCertificateResult],
+        [],
+      ),
+    '_caffeineStorageRefillCashier' : IDL.Func(
+        [IDL.Opt(_CaffeineStorageRefillInformation)],
+        [_CaffeineStorageRefillResult],
+        [],
+      ),
+    '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+    'addServiceListing' : IDL.Func([ServiceListingInput], [IDL.Nat], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
     'createBookingRequest' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Int, IDL.Text],
@@ -394,26 +667,120 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'deleteEvent' : IDL.Func([IDL.Nat], [], []),
+    'deletePortfolioImage' : IDL.Func([IDL.Nat], [], []),
+    'deleteServiceListing' : IDL.Func([IDL.Nat], [], []),
     'getAllBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
     'getAllEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
     'getAllListings' : IDL.Func([], [IDL.Vec(Listing)], ['query']),
+    'getAllServiceListings' : IDL.Func(
+        [],
+        [IDL.Vec(ServiceListing)],
+        ['query'],
+      ),
     'getAllUsers' : IDL.Func([], [IDL.Vec(User)], ['query']),
+    'getAllVendorApplications' : IDL.Func(
+        [],
+        [IDL.Vec(VendorApplication)],
+        ['query'],
+      ),
     'getAllVendors' : IDL.Func([], [IDL.Vec(Vendor)], ['query']),
     'getAnalytics' : IDL.Func([], [Analytics], ['query']),
+    'getApprovedVendors' : IDL.Func(
+        [],
+        [IDL.Vec(VendorApplication)],
+        ['query'],
+      ),
     'getBooking' : IDL.Func([IDL.Nat], [IDL.Opt(Booking)], ['query']),
+    'getBookingsByCity' : IDL.Func([IDL.Text], [IDL.Vec(Booking)], ['query']),
+    'getBookingsByDateRange' : IDL.Func(
+        [IDL.Int, IDL.Int],
+        [IDL.Vec(Booking)],
+        ['query'],
+      ),
+    'getBookingsByServiceType' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(Booking)],
+        ['query'],
+      ),
+    'getBookingsByStatus' : IDL.Func(
+        [BookingStatus],
+        [IDL.Vec(Booking)],
+        ['query'],
+      ),
+    'getBookingsForMyVendor' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole__1], ['query']),
+    'getConfirmedBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
     'getEvent' : IDL.Func([IDL.Nat], [IDL.Opt(Event)], ['query']),
     'getListing' : IDL.Func([IDL.Nat], [IDL.Opt(Listing)], ['query']),
+    'getListingsByCategory' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(Listing)],
+        ['query'],
+      ),
+    'getListingsByCity' : IDL.Func([IDL.Text], [IDL.Vec(Listing)], ['query']),
+    'getMyServiceListings' : IDL.Func([], [IDL.Vec(ServiceListing)], ['query']),
+    'getMyVendorApplication' : IDL.Func(
+        [],
+        [IDL.Opt(VendorApplication)],
+        ['query'],
+      ),
+    'getNewBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
+    'getPublicApprovedVendors' : IDL.Func(
+        [],
+        [IDL.Vec(VendorApplication)],
+        ['query'],
+      ),
+    'getPublicEventsByCategory' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(Event)],
+        ['query'],
+      ),
+    'getPublicEventsBySubCategory' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(Event)],
+        ['query'],
+      ),
+    'getPublicListings' : IDL.Func([], [IDL.Vec(Listing)], ['query']),
+    'getPublicVendorsByServices' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(Vendor)],
+        ['query'],
+      ),
+    'getPublishedEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
+    'getPublishedVendors' : IDL.Func([], [IDL.Vec(Vendor)], ['query']),
+    'getUpcomingEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
     'getUser' : IDL.Func([IDL.Nat], [IDL.Opt(User)], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
+    'getUsersByRole' : IDL.Func([UserRole], [IDL.Vec(User)], ['query']),
     'getVendor' : IDL.Func([IDL.Nat], [IDL.Opt(Vendor)], ['query']),
+    'getVendorApplication' : IDL.Func(
+        [IDL.Nat],
+        [IDL.Opt(VendorApplication)],
+        ['query'],
+      ),
+    'getVendorsByCity' : IDL.Func([IDL.Text], [IDL.Vec(Vendor)], ['query']),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'reviewVendorApplication' : IDL.Func([IDL.Nat, ApplicationStatus], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'submitVendorApplication' : IDL.Func(
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Vec(IDL.Text),
+        ],
+        [IDL.Nat],
+        [],
+      ),
     'updateBookingStatus' : IDL.Func([IDL.Nat, BookingStatus], [], []),
     'updateEvent' : IDL.Func(
         [
@@ -438,6 +805,21 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'updateListingStatus' : IDL.Func([IDL.Nat, ListingStatus], [], []),
+    'updateMyVendorApplication' : IDL.Func(
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Vec(IDL.Text),
+        ],
+        [],
+        [],
+      ),
+    'updateServiceListing' : IDL.Func([IDL.Nat, ServiceListingInput], [], []),
     'updateUser' : IDL.Func(
         [IDL.Nat, IDL.Text, IDL.Text, IDL.Text, UserRole],
         [],
@@ -458,7 +840,13 @@ export const idlFactory = ({ IDL }) => {
         [],
         [],
       ),
+    'updateVendorApplicationStatus' : IDL.Func(
+        [IDL.Nat, ApplicationStatus],
+        [],
+        [],
+      ),
     'updateVendorStatus' : IDL.Func([IDL.Nat, VendorStatus], [], []),
+    'uploadPortfolioImage' : IDL.Func([PortfolioImageInput], [IDL.Nat], []),
   });
 };
 

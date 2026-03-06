@@ -18,6 +18,9 @@ export interface Analytics {
   'recentBookings' : Array<Booking>,
   'totalVendors' : bigint,
 }
+export type ApplicationStatus = { 'pending' : null } |
+  { 'approved' : null } |
+  { 'rejected' : null };
 export interface Booking {
   'id' : bigint,
   'status' : BookingStatus,
@@ -52,6 +55,7 @@ export interface Event {
   'bannerUrl' : string,
   'ageLimit' : bigint,
 }
+export type ExternalBlob = Uint8Array;
 export interface Listing {
   'id' : bigint,
   'status' : ListingStatus,
@@ -67,6 +71,32 @@ export interface Listing {
 export type ListingStatus = { 'pending' : null } |
   { 'approved' : null } |
   { 'rejected' : null };
+export interface PortfolioImageInput {
+  'title' : [] | [string],
+  'file' : ExternalBlob,
+  'size' : bigint,
+  'vendorPrincipal' : [] | [Principal],
+  'mimeType' : string,
+  'description' : [] | [string],
+  'filename' : string,
+  'vendorId' : [] | [bigint],
+  'category' : string,
+}
+export interface ServiceListing {
+  'id' : bigint,
+  'title' : string,
+  'createdAt' : bigint,
+  'vendorPrincipal' : Principal,
+  'description' : string,
+  'category' : string,
+  'price' : bigint,
+}
+export interface ServiceListingInput {
+  'title' : string,
+  'description' : string,
+  'category' : string,
+  'price' : bigint,
+}
 export type Status = { 'cancelled' : null } |
   { 'published' : null } |
   { 'draft' : null };
@@ -104,12 +134,54 @@ export interface Vendor {
   'phone' : string,
   'services' : string,
 }
+export interface VendorApplication {
+  'id' : bigint,
+  'status' : ApplicationStatus,
+  'serviceCategory' : string,
+  'principal' : Principal,
+  'ownerName' : string,
+  'city' : string,
+  'businessName' : string,
+  'submittedAt' : bigint,
+  'description' : string,
+  'reviewedAt' : [] | [bigint],
+  'email' : string,
+  'phone' : string,
+  'portfolioImages' : Array<string>,
+}
 export type VendorStatus = { 'pending' : null } |
   { 'approved' : null } |
   { 'rejected' : null } |
   { 'suspended' : null };
+export interface _CaffeineStorageCreateCertificateResult {
+  'method' : string,
+  'blob_hash' : string,
+}
+export interface _CaffeineStorageRefillInformation {
+  'proposed_top_up_amount' : [] | [bigint],
+}
+export interface _CaffeineStorageRefillResult {
+  'success' : [] | [boolean],
+  'topped_up_amount' : [] | [bigint],
+}
 export interface _SERVICE {
+  '_caffeineStorageBlobIsLive' : ActorMethod<[Uint8Array], boolean>,
+  '_caffeineStorageBlobsToDelete' : ActorMethod<[], Array<Uint8Array>>,
+  '_caffeineStorageConfirmBlobDeletion' : ActorMethod<
+    [Array<Uint8Array>],
+    undefined
+  >,
+  '_caffeineStorageCreateCertificate' : ActorMethod<
+    [string],
+    _CaffeineStorageCreateCertificateResult
+  >,
+  '_caffeineStorageRefillCashier' : ActorMethod<
+    [[] | [_CaffeineStorageRefillInformation]],
+    _CaffeineStorageRefillResult
+  >,
+  '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
+  'addServiceListing' : ActorMethod<[ServiceListingInput], bigint>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole__1], undefined>,
   'createBookingRequest' : ActorMethod<
     [string, string, string, string, bigint, string],
@@ -145,22 +217,57 @@ export interface _SERVICE {
     bigint
   >,
   'deleteEvent' : ActorMethod<[bigint], undefined>,
+  'deletePortfolioImage' : ActorMethod<[bigint], undefined>,
+  'deleteServiceListing' : ActorMethod<[bigint], undefined>,
   'getAllBookings' : ActorMethod<[], Array<Booking>>,
   'getAllEvents' : ActorMethod<[], Array<Event>>,
   'getAllListings' : ActorMethod<[], Array<Listing>>,
+  'getAllServiceListings' : ActorMethod<[], Array<ServiceListing>>,
   'getAllUsers' : ActorMethod<[], Array<User>>,
+  'getAllVendorApplications' : ActorMethod<[], Array<VendorApplication>>,
   'getAllVendors' : ActorMethod<[], Array<Vendor>>,
   'getAnalytics' : ActorMethod<[], Analytics>,
+  'getApprovedVendors' : ActorMethod<[], Array<VendorApplication>>,
   'getBooking' : ActorMethod<[bigint], [] | [Booking]>,
+  'getBookingsByCity' : ActorMethod<[string], Array<Booking>>,
+  'getBookingsByDateRange' : ActorMethod<[bigint, bigint], Array<Booking>>,
+  'getBookingsByServiceType' : ActorMethod<[string], Array<Booking>>,
+  'getBookingsByStatus' : ActorMethod<[BookingStatus], Array<Booking>>,
+  'getBookingsForMyVendor' : ActorMethod<[], Array<Booking>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole__1>,
+  'getConfirmedBookings' : ActorMethod<[], Array<Booking>>,
   'getEvent' : ActorMethod<[bigint], [] | [Event]>,
   'getListing' : ActorMethod<[bigint], [] | [Listing]>,
+  'getListingsByCategory' : ActorMethod<[string], Array<Listing>>,
+  'getListingsByCity' : ActorMethod<[string], Array<Listing>>,
+  'getMyServiceListings' : ActorMethod<[], Array<ServiceListing>>,
+  'getMyVendorApplication' : ActorMethod<[], [] | [VendorApplication]>,
+  'getNewBookings' : ActorMethod<[], Array<Booking>>,
+  'getPublicApprovedVendors' : ActorMethod<[], Array<VendorApplication>>,
+  'getPublicEventsByCategory' : ActorMethod<[string], Array<Event>>,
+  'getPublicEventsBySubCategory' : ActorMethod<[string], Array<Event>>,
+  'getPublicListings' : ActorMethod<[], Array<Listing>>,
+  'getPublicVendorsByServices' : ActorMethod<[string], Array<Vendor>>,
+  'getPublishedEvents' : ActorMethod<[], Array<Event>>,
+  'getPublishedVendors' : ActorMethod<[], Array<Vendor>>,
+  'getUpcomingEvents' : ActorMethod<[], Array<Event>>,
   'getUser' : ActorMethod<[bigint], [] | [User]>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'getUsersByRole' : ActorMethod<[UserRole], Array<User>>,
   'getVendor' : ActorMethod<[bigint], [] | [Vendor]>,
+  'getVendorApplication' : ActorMethod<[bigint], [] | [VendorApplication]>,
+  'getVendorsByCity' : ActorMethod<[string], Array<Vendor>>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'reviewVendorApplication' : ActorMethod<
+    [bigint, ApplicationStatus],
+    undefined
+  >,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'submitVendorApplication' : ActorMethod<
+    [string, string, string, string, string, string, string, Array<string>],
+    bigint
+  >,
   'updateBookingStatus' : ActorMethod<[bigint, BookingStatus], undefined>,
   'updateEvent' : ActorMethod<
     [
@@ -184,6 +291,14 @@ export interface _SERVICE {
     undefined
   >,
   'updateListingStatus' : ActorMethod<[bigint, ListingStatus], undefined>,
+  'updateMyVendorApplication' : ActorMethod<
+    [string, string, string, string, string, string, string, Array<string>],
+    undefined
+  >,
+  'updateServiceListing' : ActorMethod<
+    [bigint, ServiceListingInput],
+    undefined
+  >,
   'updateUser' : ActorMethod<
     [bigint, string, string, string, UserRole],
     undefined
@@ -193,7 +308,12 @@ export interface _SERVICE {
     [bigint, string, string, string, string, bigint, string, string],
     undefined
   >,
+  'updateVendorApplicationStatus' : ActorMethod<
+    [bigint, ApplicationStatus],
+    undefined
+  >,
   'updateVendorStatus' : ActorMethod<[bigint, VendorStatus], undefined>,
+  'uploadPortfolioImage' : ActorMethod<[PortfolioImageInput], bigint>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

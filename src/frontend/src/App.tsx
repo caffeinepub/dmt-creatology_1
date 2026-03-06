@@ -20,6 +20,9 @@ import HotelsPage from "./pages/HotelsPage";
 import RankingsPage from "./pages/RankingsPage";
 import StaffJobsPage from "./pages/StaffJobsPage";
 import TransportPage from "./pages/TransportPage";
+import VendorDashboardPage from "./pages/VendorDashboardPage";
+import VendorLoginPage from "./pages/VendorLoginPage";
+import VendorRegisterPage from "./pages/VendorRegisterPage";
 import VendorsPage from "./pages/VendorsPage";
 import VenuesPage from "./pages/VenuesPage";
 import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
@@ -115,6 +118,13 @@ const contactRoute = createRoute({
   component: ContactPage,
 });
 
+// ── Vendor Register (public layout with Navbar + Footer) ───────────────────
+const vendorRegisterPublicRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/vendor/register",
+  component: VendorRegisterPage,
+});
+
 // ── Admin Root (no Navbar/Footer) ──────────────────────────────────────────
 const adminRootRoute = createRootRoute({
   component: () => <Outlet />,
@@ -181,6 +191,23 @@ adminLayoutRoute.addChildren([
   adminAnalyticsRoute,
 ]);
 
+// ── Vendor Root (no Navbar/Footer) ─────────────────────────────────────────
+const vendorRootRoute = createRootRoute({
+  component: () => <Outlet />,
+});
+
+const vendorLoginRoute = createRoute({
+  getParentRoute: () => vendorRootRoute,
+  path: "/vendor/login",
+  component: VendorLoginPage,
+});
+
+const vendorDashboardRoute = createRoute({
+  getParentRoute: () => vendorRootRoute,
+  path: "/vendor/dashboard",
+  component: VendorDashboardPage,
+});
+
 // Public route tree
 const publicRouteTree = rootRoute.addChildren([
   indexRoute,
@@ -197,6 +224,7 @@ const publicRouteTree = rootRoute.addChildren([
   rankingsRoute,
   advertiseRoute,
   contactRoute,
+  vendorRegisterPublicRoute,
 ]);
 
 // Admin route tree
@@ -205,9 +233,16 @@ const adminRouteTree = adminRootRoute.addChildren([
   adminLayoutRoute,
 ]);
 
+// Vendor route tree
+const vendorRouteTree = vendorRootRoute.addChildren([
+  vendorLoginRoute,
+  vendorDashboardRoute,
+]);
+
 // Build routers
 const publicRouter = createRouter({ routeTree: publicRouteTree });
 const adminRouter = createRouter({ routeTree: adminRouteTree });
+const vendorRouter = createRouter({ routeTree: vendorRouteTree });
 
 declare module "@tanstack/react-router" {
   interface Register {
@@ -220,10 +255,21 @@ function isAdminPath(pathname: string) {
   return pathname.startsWith("/admin");
 }
 
+function isVendorOnlyPath(pathname: string) {
+  // Only standalone vendor paths — /vendor/register uses public layout
+  return (
+    pathname.startsWith("/vendor/login") ||
+    pathname.startsWith("/vendor/dashboard")
+  );
+}
+
 export default function App() {
   const pathname = window.location.pathname;
   if (isAdminPath(pathname)) {
     return <RouterProvider router={adminRouter} />;
+  }
+  if (isVendorOnlyPath(pathname)) {
+    return <RouterProvider router={vendorRouter} />;
   }
   return <RouterProvider router={publicRouter} />;
 }

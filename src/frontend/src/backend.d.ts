@@ -7,6 +7,13 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
+export class ExternalBlob {
+    getBytes(): Promise<Uint8Array<ArrayBuffer>>;
+    getDirectURL(): string;
+    static fromURL(url: string): ExternalBlob;
+    static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
+    withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
+}
 export interface Listing {
     id: bigint;
     status: ListingStatus;
@@ -28,6 +35,17 @@ export interface User {
     email: string;
     phone: string;
 }
+export interface PortfolioImageInput {
+    title?: string;
+    file: ExternalBlob;
+    size: bigint;
+    vendorPrincipal?: Principal;
+    mimeType: string;
+    description?: string;
+    filename: string;
+    vendorId?: bigint;
+    category: string;
+}
 export interface Event {
     id: bigint;
     status: Status;
@@ -46,6 +64,36 @@ export interface Event {
     category: string;
     bannerUrl: string;
     ageLimit: bigint;
+}
+export interface ServiceListingInput {
+    title: string;
+    description: string;
+    category: string;
+    price: bigint;
+}
+export interface VendorApplication {
+    id: bigint;
+    status: ApplicationStatus;
+    serviceCategory: string;
+    principal: Principal;
+    ownerName: string;
+    city: string;
+    businessName: string;
+    submittedAt: bigint;
+    description: string;
+    reviewedAt?: bigint;
+    email: string;
+    phone: string;
+    portfolioImages: Array<string>;
+}
+export interface ServiceListing {
+    id: bigint;
+    title: string;
+    createdAt: bigint;
+    vendorPrincipal: Principal;
+    description: string;
+    category: string;
+    price: bigint;
 }
 export interface Analytics {
     totalEvents: bigint;
@@ -120,6 +168,7 @@ export enum VendorStatus {
     suspended = "suspended"
 }
 export interface backendInterface {
+    addServiceListing(input: ServiceListingInput): Promise<bigint>;
     assignCallerUserRole(user: Principal, role: UserRole__1): Promise<void>;
     createBookingRequest(name: string, phone: string, serviceType: string, city: string, date: bigint, message: string): Promise<bigint>;
     createEvent(name: string, category: string, subCategory: string, venue: string, city: string, state: string, country: string, date: bigint, time: string, duration: string, ageLimit: bigint, description: string, posterUrl: string, bannerUrl: string, status: Status): Promise<bigint>;
@@ -127,27 +176,60 @@ export interface backendInterface {
     createUser(name: string, phone: string, email: string, role: UserRole): Promise<bigint>;
     createVendor(name: string, businessName: string, city: string, services: string, experience: bigint, phone: string, email: string): Promise<bigint>;
     deleteEvent(id: bigint): Promise<void>;
+    deletePortfolioImage(id: bigint): Promise<void>;
+    deleteServiceListing(id: bigint): Promise<void>;
     getAllBookings(): Promise<Array<Booking>>;
     getAllEvents(): Promise<Array<Event>>;
     getAllListings(): Promise<Array<Listing>>;
+    getAllServiceListings(): Promise<Array<ServiceListing>>;
     getAllUsers(): Promise<Array<User>>;
+    getAllVendorApplications(): Promise<Array<VendorApplication>>;
     getAllVendors(): Promise<Array<Vendor>>;
     getAnalytics(): Promise<Analytics>;
+    getApprovedVendors(): Promise<Array<VendorApplication>>;
     getBooking(id: bigint): Promise<Booking | null>;
+    getBookingsByCity(city: string): Promise<Array<Booking>>;
+    getBookingsByDateRange(start: bigint, end: bigint): Promise<Array<Booking>>;
+    getBookingsByServiceType(serviceType: string): Promise<Array<Booking>>;
+    getBookingsByStatus(status: BookingStatus): Promise<Array<Booking>>;
+    getBookingsForMyVendor(): Promise<Array<Booking>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole__1>;
+    getConfirmedBookings(): Promise<Array<Booking>>;
     getEvent(id: bigint): Promise<Event | null>;
     getListing(id: bigint): Promise<Listing | null>;
+    getListingsByCategory(category: string): Promise<Array<Listing>>;
+    getListingsByCity(city: string): Promise<Array<Listing>>;
+    getMyServiceListings(): Promise<Array<ServiceListing>>;
+    getMyVendorApplication(): Promise<VendorApplication | null>;
+    getNewBookings(): Promise<Array<Booking>>;
+    getPublicApprovedVendors(): Promise<Array<VendorApplication>>;
+    getPublicEventsByCategory(category: string): Promise<Array<Event>>;
+    getPublicEventsBySubCategory(subCategory: string): Promise<Array<Event>>;
+    getPublicListings(): Promise<Array<Listing>>;
+    getPublicVendorsByServices(services: string): Promise<Array<Vendor>>;
+    getPublishedEvents(): Promise<Array<Event>>;
+    getPublishedVendors(): Promise<Array<Vendor>>;
+    getUpcomingEvents(): Promise<Array<Event>>;
     getUser(id: bigint): Promise<User | null>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
+    getUsersByRole(role: UserRole): Promise<Array<User>>;
     getVendor(id: bigint): Promise<Vendor | null>;
+    getVendorApplication(id: bigint): Promise<VendorApplication | null>;
+    getVendorsByCity(city: string): Promise<Array<Vendor>>;
     isCallerAdmin(): Promise<boolean>;
+    reviewVendorApplication(id: bigint, status: ApplicationStatus): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    submitVendorApplication(businessName: string, ownerName: string, city: string, serviceCategory: string, description: string, phone: string, email: string, portfolioImages: Array<string>): Promise<bigint>;
     updateBookingStatus(id: bigint, status: BookingStatus): Promise<void>;
     updateEvent(id: bigint, name: string, category: string, subCategory: string, venue: string, city: string, state: string, country: string, date: bigint, time: string, duration: string, ageLimit: bigint, description: string, posterUrl: string, bannerUrl: string, status: Status): Promise<void>;
     updateListingStatus(id: bigint, status: ListingStatus): Promise<void>;
+    updateMyVendorApplication(businessName: string, ownerName: string, city: string, serviceCategory: string, description: string, phone: string, email: string, portfolioImages: Array<string>): Promise<void>;
+    updateServiceListing(id: bigint, input: ServiceListingInput): Promise<void>;
     updateUser(id: bigint, name: string, phone: string, email: string, role: UserRole): Promise<void>;
     updateUserStatus(id: bigint, status: UserStatus): Promise<void>;
     updateVendor(id: bigint, name: string, businessName: string, city: string, services: string, experience: bigint, phone: string, email: string): Promise<void>;
+    updateVendorApplicationStatus(id: bigint, status: ApplicationStatus): Promise<void>;
     updateVendorStatus(id: bigint, status: VendorStatus): Promise<void>;
+    uploadPortfolioImage(input: PortfolioImageInput): Promise<bigint>;
 }
