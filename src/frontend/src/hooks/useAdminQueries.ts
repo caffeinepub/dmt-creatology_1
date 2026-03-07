@@ -3,9 +3,11 @@ import type {
   BookingStatus,
   ListingStatus,
   Status,
-  UserStatus,
   VendorStatus,
 } from "../backend.d";
+
+// UserStatus is used in the backend interface but not exported as an enum
+type UserStatus = "active" | "inactive";
 import { useActor } from "./useActor";
 
 // ── Analytics ──────────────────────────────────────────────────────────────

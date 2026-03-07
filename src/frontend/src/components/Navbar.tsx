@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Menu, X } from "lucide-react";
+import { Menu, QrCode, X } from "lucide-react";
 import { useState } from "react";
 
 const navLinks = [
@@ -75,6 +75,17 @@ export default function Navbar() {
             ))}
           </nav>
 
+          {/* Staff Scan button (desktop) */}
+          <Link
+            to="/scan"
+            className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium text-muted-foreground hover:text-gold hover:bg-gold/10 transition-colors duration-200 shrink-0 border border-border/40 hover:border-gold/40"
+            title="Staff Entry Scan"
+            data-ocid="nav.scan_link"
+          >
+            <QrCode className="h-3.5 w-3.5" />
+            Staff Scan
+          </Link>
+
           {/* Mobile hamburger */}
           <Button
             variant="ghost"
@@ -112,6 +123,20 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+            {/* Staff Scan link in mobile menu */}
+            <Link
+              to="/scan"
+              className={`px-3 py-2 rounded text-sm font-medium transition-colors duration-200 flex items-center gap-1.5 col-span-2 border border-border/30 mt-1 ${
+                isActive("/scan")
+                  ? "text-gold bg-gold/10"
+                  : "text-muted-foreground hover:text-gold hover:bg-gold/5"
+              }`}
+              onClick={() => setMobileOpen(false)}
+              data-ocid="nav.scan_link"
+            >
+              <QrCode className="h-3.5 w-3.5" />
+              Staff Entry Scan
+            </Link>
           </nav>
         </div>
       )}

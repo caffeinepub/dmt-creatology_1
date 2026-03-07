@@ -1,5 +1,5 @@
-import Runtime "mo:core/Runtime";
 import Maps "mo:core/Map";
+import Runtime "mo:core/Runtime";
 import List "mo:core/List";
 import Iter "mo:core/Iter";
 import Nat "mo:core/Nat";
@@ -10,9 +10,7 @@ import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
-import Migration "migration";
 
-(with migration = Migration.run)
 actor {
   include MixinStorage();
 
@@ -188,6 +186,59 @@ actor {
     size : Nat;
   };
 
+  /** TICKET SYSTEM **/
+  public type TicketCategory = {
+    id : Nat;
+    eventId : Nat;
+    name : Text;
+    price : Nat;
+    availableQty : Nat;
+  };
+
+  public type EventBooking = {
+    id : Nat;
+    eventId : Nat;
+    eventName : Text;
+    ticketCategory : Text;
+    name : Text;
+    phone : Text;
+    city : Text;
+    quantity : Nat;
+    message : Text;
+    status : BookingStatus;
+    createdAt : Int;
+  };
+
+  /** STAFF AUTHENTICATION SYSTEM **/
+  public type StaffRole = {
+    #gateStaff;
+    #eventManager;
+    #admin;
+  };
+  public type StaffStatus = {
+    #active;
+    #inactive;
+  };
+  public type StaffAccount = {
+    id : Nat;
+    username : Text;
+    passwordHash : Text;
+    role : StaffRole;
+    status : StaffStatus;
+    createdAt : Int;
+  };
+
+  public type StaffSession = {
+    staffId : Nat;
+    username : Text;
+    role : StaffRole;
+  };
+
+  public type StaffLoginResult = {
+    #ok : StaffSession;
+    #err : Text;
+  };
+
   ////////////////////////////////////////////////////////
   // State
   ////////////////////////////////////////////////////////
@@ -206,6 +257,7 @@ actor {
   var imageId = 0;
   var ticketCategoryId = 0;
   var eventBookingId = 0;
+  var staffAccountId = 0;
 
   // Data stores
   let events = Maps.empty<Nat, Event>();
@@ -219,33 +271,11 @@ actor {
   let portfolioImages = Maps.empty<Nat, ImageMetadata>();
   let ticketCategories = Maps.empty<Nat, TicketCategory>();
   let eventBookings = Maps.empty<Nat, EventBooking>();
+  let staffAccounts = Maps.empty<Nat, StaffAccount>();
 
-  /** TICKET SYSTEM **/
-  // Type for ticket categories
-  public type TicketCategory = {
-    id : Nat;
-    eventId : Nat;
-    name : Text;
-    price : Nat;
-    availableQty : Nat;
-  };
-
-  // Type for event bookings (tickets)
-  public type EventBooking = {
-    id : Nat;
-    eventId : Nat;
-    eventName : Text;
-    ticketCategory : Text;
-    name : Text;
-    phone : Text;
-    city : Text;
-    quantity : Nat;
-    message : Text;
-    status : BookingStatus;
-    createdAt : Int;
-  };
-
-  // Add a ticket category (admin only)
+  ////////////////////////////////////////////////////////
+  // TICKET SYSTEM FUNCTIONS
+  ////////////////////////////////////////////////////////
   public shared ({ caller }) func addTicketCategory(eventId : Nat, name : Text, price : Nat, availableQty : Nat) : async Nat {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admin can add ticket categories");
@@ -257,7 +287,6 @@ actor {
     id;
   };
 
-  // Get ticket categories for a specific event
   public query func getTicketCategoriesByEvent(eventId : Nat) : async [TicketCategory] {
     let result = List.empty<TicketCategory>();
     for ((id, tc) in ticketCategories.entries()) {
@@ -268,18 +297,16 @@ actor {
     result.toArray();
   };
 
-  // Delete a ticket category (admin only)
   public shared ({ caller }) func deleteTicketCategory(id : Nat) : async () {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admin can delete ticket categories");
     };
     switch (ticketCategories.get(id)) {
       case (null) { Runtime.trap("Ticket category not found") };
-      case (?_) { ticketCategories.remove(id) };
+      case (?_) { ticketCategories.remove(id); };
     };
   };
 
-  // Create an event booking (buy tickets) - requires authenticated user
   public shared ({ caller }) func createEventBooking(eventId : Nat, eventName : Text, ticketCategory : Text, name : Text, phone : Text, city : Text, quantity : Nat, message : Text) : async Nat {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can create event bookings");
@@ -303,7 +330,6 @@ actor {
     id;
   };
 
-  // Get all event bookings (admin only - contains PII)
   public query ({ caller }) func getAllEventBookings() : async [EventBooking] {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admin can view all event bookings");
@@ -311,7 +337,6 @@ actor {
     eventBookings.values().toArray();
   };
 
-  // Update event booking status (admin only)
   public shared ({ caller }) func updateEventBookingStatus(id : Nat, status : BookingStatus) : async () {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admin can update event booking status");
@@ -325,7 +350,6 @@ actor {
     };
   };
 
-  // Get bookings for a specific event (admin only - contains PII)
   public query ({ caller }) func getEventBookingsByEvent(eventId : Nat) : async [EventBooking] {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admin can view event bookings");
@@ -429,9 +453,7 @@ actor {
     };
     switch (events.get(id)) {
       case (null) { Runtime.trap("Event not found") };
-      case (?_) {
-        events.remove(id);
-      };
+      case (?_) { events.remove(id) };
     };
   };
 
@@ -542,9 +564,7 @@ actor {
     switch (vendors.get(id)) {
       case (null) { Runtime.trap("Vendor not found") };
       case (?existing) {
-        let updated : Vendor = {
-          existing with status
-        };
+        let updated : Vendor = { existing with status };
         vendors.add(id, updated);
       };
     };
@@ -616,9 +636,7 @@ actor {
     switch (bookings.get(id)) {
       case (null) { Runtime.trap("Booking not found") };
       case (?existing) {
-        let updated : Booking = {
-          existing with status
-        };
+        let updated : Booking = { existing with status };
         bookings.add(id, updated);
       };
     };
@@ -742,9 +760,7 @@ actor {
     switch (users.get(id)) {
       case (null) { Runtime.trap("User not found") };
       case (?existing) {
-        let updated : User = {
-          existing with status
-        };
+        let updated : User = { existing with status };
         users.add(id, updated);
       };
     };
@@ -807,9 +823,7 @@ actor {
     switch (listings.get(id)) {
       case (null) { Runtime.trap("Listing not found") };
       case (?existing) {
-        let updated : Listing = {
-          existing with status
-        };
+        let updated : Listing = { existing with status };
         listings.add(id, updated);
       };
     };
@@ -1158,6 +1172,154 @@ actor {
         portfolioImages.remove(id);
       };
     };
+  };
+
+  ////////////////////////////////////////////////////////
+  // STAFF AUTHENTICATION SYSTEM
+  ////////////////////////////////////////////////////////
+  module PasswordHelper {
+    // Improved password hash function with multiplication
+    public func hash(password : Text) : Text {
+      var hashValue = 5381 : Nat;
+      password.chars().forEach(
+        func(character) {
+          hashValue := hashValue * 33 + character.toNat32().toNat();
+        }
+      );
+      let shiftedHash = (hashValue * 2654435769) % 4294967296;
+      ((shiftedHash % 1000000007).toText()) # (hashValue % 1000000007).toText();
+    };
+  };
+
+  public shared ({ caller }) func createStaffAccount(username : Text, password : Text, role : StaffRole) : async Nat {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can create staff accounts");
+    };
+
+    // Check if username is already taken (case-insensitive)
+    switch (findStaffAccountByUsername(username)) {
+      case (?_) { Runtime.trap("Username already taken, choose another") };
+      case (null) { () };
+    };
+
+    let id = staffAccountId;
+    let passwordHash = PasswordHelper.hash(password);
+    let staffAccount : StaffAccount = {
+      id;
+      username;
+      passwordHash;
+      role;
+      status = #active;
+      createdAt = Time.now();
+    };
+    staffAccounts.add(id, staffAccount);
+    staffAccountId += 1;
+    id;
+  };
+
+  public shared ({ caller }) func updateStaffAccountRole(id : Nat, role : StaffRole) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can update staff roles");
+    };
+
+    switch (staffAccounts.get(id)) {
+      case (null) { Runtime.trap("Staff account not found") };
+      case (?existing) {
+        let updated : StaffAccount = { existing with role };
+        staffAccounts.add(id, updated);
+      };
+    };
+  };
+
+  public shared ({ caller }) func updateStaffAccountStatus(id : Nat, status : StaffStatus) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can update staff account status");
+    };
+
+    switch (staffAccounts.get(id)) {
+      case (null) { Runtime.trap("Staff account not found") };
+      case (?existing) {
+        let updated : StaffAccount = {
+          existing with status;
+        };
+        staffAccounts.add(id, updated);
+      };
+    };
+  };
+
+  public shared ({ caller }) func deleteStaffAccount(id : Nat) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can delete staff accounts");
+    };
+    if (not staffAccounts.containsKey(id)) {
+      Runtime.trap("Staff account not found");
+    };
+    staffAccounts.remove(id);
+  };
+
+  public query ({ caller }) func getAllStaffAccounts() : async [StaffAccount] {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can view staff accounts");
+    };
+    staffAccounts.values().toArray();
+  };
+
+  public shared ({ caller }) func staffLogin(username : Text, password : Text) : async StaffLoginResult {
+    let passwordHash = PasswordHelper.hash(password);
+    switch (findStaffAccountByUsername(username)) {
+      case (null) {
+        #err("Invalid credentials or account inactive");
+      };
+      case (?account) {
+        if (account.passwordHash != passwordHash) {
+          #err("Invalid credentials or account inactive");
+        } else if (account.status != #active) {
+          #err("Account is inactive");
+        } else {
+          #ok({
+            staffId = account.id;
+            username = account.username;
+            role = account.role;
+          });
+        };
+      };
+    };
+  };
+
+  public shared ({ caller }) func initDefaultStaffAccount() : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can initialize default staff accounts");
+    };
+
+    // Check if staff accounts already exist
+    if (not staffAccounts.isEmpty()) {
+      Runtime.trap("Default staff account cannot be initialized if accounts already exist");
+    };
+
+    // Add legacy gatestaff
+    let id = staffAccountId;
+    let passwordHash = PasswordHelper.hash("Staff@123");
+    let staffAccount : StaffAccount = {
+      id;
+      username = "gatestaff";
+      passwordHash;
+      role = #gateStaff;
+      status = #active;
+      createdAt = Time.now();
+    };
+    staffAccounts.add(id, staffAccount);
+    staffAccountId += 1 : Nat;
+  };
+
+  // Helper to find staff account by username
+  func findStaffAccountByUsername(username : Text) : ?StaffAccount {
+    var found : ?StaffAccount = null;
+    for ((id, account) in staffAccounts.entries()) {
+      if (Text.equal(account.username, username)) {
+        found := ?account;
+      };
+    };
+    found;
   };
 
   ////////////////////////////////////////////////////////

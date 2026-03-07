@@ -35,6 +35,11 @@ export const Status = IDL.Variant({
   'published' : IDL.Null,
   'draft' : IDL.Null,
 });
+export const StaffRole = IDL.Variant({
+  'admin' : IDL.Null,
+  'eventManager' : IDL.Null,
+  'gateStaff' : IDL.Null,
+});
 export const UserRole = IDL.Variant({
   'customer' : IDL.Null,
   'staff' : IDL.Null,
@@ -115,6 +120,18 @@ export const ServiceListing = IDL.Record({
   'category' : IDL.Text,
   'price' : IDL.Nat,
 });
+export const StaffStatus = IDL.Variant({
+  'active' : IDL.Null,
+  'inactive' : IDL.Null,
+});
+export const StaffAccount = IDL.Record({
+  'id' : IDL.Nat,
+  'status' : StaffStatus,
+  'username' : IDL.Text,
+  'createdAt' : IDL.Int,
+  'role' : StaffRole,
+  'passwordHash' : IDL.Text,
+});
 export const UserStatus = IDL.Variant({
   'active' : IDL.Null,
   'inactive' : IDL.Null,
@@ -185,6 +202,15 @@ export const TicketCategory = IDL.Record({
   'availableQty' : IDL.Nat,
   'name' : IDL.Text,
   'price' : IDL.Nat,
+});
+export const StaffSession = IDL.Record({
+  'username' : IDL.Text,
+  'staffId' : IDL.Nat,
+  'role' : StaffRole,
+});
+export const StaffLoginResult = IDL.Variant({
+  'ok' : StaffSession,
+  'err' : IDL.Text,
 });
 export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const PortfolioImageInput = IDL.Record({
@@ -279,6 +305,11 @@ export const idlService = IDL.Service({
       [IDL.Nat],
       [],
     ),
+  'createStaffAccount' : IDL.Func(
+      [IDL.Text, IDL.Text, StaffRole],
+      [IDL.Nat],
+      [],
+    ),
   'createUser' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Text, UserRole],
       [IDL.Nat],
@@ -292,12 +323,14 @@ export const idlService = IDL.Service({
   'deleteEvent' : IDL.Func([IDL.Nat], [], []),
   'deletePortfolioImage' : IDL.Func([IDL.Nat], [], []),
   'deleteServiceListing' : IDL.Func([IDL.Nat], [], []),
+  'deleteStaffAccount' : IDL.Func([IDL.Nat], [], []),
   'deleteTicketCategory' : IDL.Func([IDL.Nat], [], []),
   'getAllBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
   'getAllEventBookings' : IDL.Func([], [IDL.Vec(EventBooking)], ['query']),
   'getAllEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
   'getAllListings' : IDL.Func([], [IDL.Vec(Listing)], ['query']),
   'getAllServiceListings' : IDL.Func([], [IDL.Vec(ServiceListing)], ['query']),
+  'getAllStaffAccounts' : IDL.Func([], [IDL.Vec(StaffAccount)], ['query']),
   'getAllUsers' : IDL.Func([], [IDL.Vec(User)], ['query']),
   'getAllVendorApplications' : IDL.Func(
       [],
@@ -387,9 +420,11 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'getVendorsByCity' : IDL.Func([IDL.Text], [IDL.Vec(Vendor)], ['query']),
+  'initDefaultStaffAccount' : IDL.Func([], [], []),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'reviewVendorApplication' : IDL.Func([IDL.Nat, ApplicationStatus], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'staffLogin' : IDL.Func([IDL.Text, IDL.Text], [StaffLoginResult], []),
   'submitVendorApplication' : IDL.Func(
       [
         IDL.Text,
@@ -444,6 +479,8 @@ export const idlService = IDL.Service({
       [],
     ),
   'updateServiceListing' : IDL.Func([IDL.Nat, ServiceListingInput], [], []),
+  'updateStaffAccountRole' : IDL.Func([IDL.Nat, StaffRole], [], []),
+  'updateStaffAccountStatus' : IDL.Func([IDL.Nat, StaffStatus], [], []),
   'updateUser' : IDL.Func(
       [IDL.Nat, IDL.Text, IDL.Text, IDL.Text, UserRole],
       [],
@@ -502,6 +539,11 @@ export const idlFactory = ({ IDL }) => {
     'cancelled' : IDL.Null,
     'published' : IDL.Null,
     'draft' : IDL.Null,
+  });
+  const StaffRole = IDL.Variant({
+    'admin' : IDL.Null,
+    'eventManager' : IDL.Null,
+    'gateStaff' : IDL.Null,
   });
   const UserRole = IDL.Variant({
     'customer' : IDL.Null,
@@ -583,6 +625,18 @@ export const idlFactory = ({ IDL }) => {
     'category' : IDL.Text,
     'price' : IDL.Nat,
   });
+  const StaffStatus = IDL.Variant({
+    'active' : IDL.Null,
+    'inactive' : IDL.Null,
+  });
+  const StaffAccount = IDL.Record({
+    'id' : IDL.Nat,
+    'status' : StaffStatus,
+    'username' : IDL.Text,
+    'createdAt' : IDL.Int,
+    'role' : StaffRole,
+    'passwordHash' : IDL.Text,
+  });
   const UserStatus = IDL.Variant({
     'active' : IDL.Null,
     'inactive' : IDL.Null,
@@ -653,6 +707,15 @@ export const idlFactory = ({ IDL }) => {
     'availableQty' : IDL.Nat,
     'name' : IDL.Text,
     'price' : IDL.Nat,
+  });
+  const StaffSession = IDL.Record({
+    'username' : IDL.Text,
+    'staffId' : IDL.Nat,
+    'role' : StaffRole,
+  });
+  const StaffLoginResult = IDL.Variant({
+    'ok' : StaffSession,
+    'err' : IDL.Text,
   });
   const ExternalBlob = IDL.Vec(IDL.Nat8);
   const PortfolioImageInput = IDL.Record({
@@ -747,6 +810,11 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Nat],
         [],
       ),
+    'createStaffAccount' : IDL.Func(
+        [IDL.Text, IDL.Text, StaffRole],
+        [IDL.Nat],
+        [],
+      ),
     'createUser' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text, UserRole],
         [IDL.Nat],
@@ -760,6 +828,7 @@ export const idlFactory = ({ IDL }) => {
     'deleteEvent' : IDL.Func([IDL.Nat], [], []),
     'deletePortfolioImage' : IDL.Func([IDL.Nat], [], []),
     'deleteServiceListing' : IDL.Func([IDL.Nat], [], []),
+    'deleteStaffAccount' : IDL.Func([IDL.Nat], [], []),
     'deleteTicketCategory' : IDL.Func([IDL.Nat], [], []),
     'getAllBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
     'getAllEventBookings' : IDL.Func([], [IDL.Vec(EventBooking)], ['query']),
@@ -770,6 +839,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(ServiceListing)],
         ['query'],
       ),
+    'getAllStaffAccounts' : IDL.Func([], [IDL.Vec(StaffAccount)], ['query']),
     'getAllUsers' : IDL.Func([], [IDL.Vec(User)], ['query']),
     'getAllVendorApplications' : IDL.Func(
         [],
@@ -867,9 +937,11 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getVendorsByCity' : IDL.Func([IDL.Text], [IDL.Vec(Vendor)], ['query']),
+    'initDefaultStaffAccount' : IDL.Func([], [], []),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'reviewVendorApplication' : IDL.Func([IDL.Nat, ApplicationStatus], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'staffLogin' : IDL.Func([IDL.Text, IDL.Text], [StaffLoginResult], []),
     'submitVendorApplication' : IDL.Func(
         [
           IDL.Text,
@@ -924,6 +996,8 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'updateServiceListing' : IDL.Func([IDL.Nat, ServiceListingInput], [], []),
+    'updateStaffAccountRole' : IDL.Func([IDL.Nat, StaffRole], [], []),
+    'updateStaffAccountStatus' : IDL.Func([IDL.Nat, StaffStatus], [], []),
     'updateUser' : IDL.Func(
         [IDL.Nat, IDL.Text, IDL.Text, IDL.Text, UserRole],
         [],

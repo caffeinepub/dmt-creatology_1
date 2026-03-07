@@ -110,6 +110,26 @@ export interface ServiceListingInput {
   'category' : string,
   'price' : bigint,
 }
+export interface StaffAccount {
+  'id' : bigint,
+  'status' : StaffStatus,
+  'username' : string,
+  'createdAt' : bigint,
+  'role' : StaffRole,
+  'passwordHash' : string,
+}
+export type StaffLoginResult = { 'ok' : StaffSession } |
+  { 'err' : string };
+export type StaffRole = { 'admin' : null } |
+  { 'eventManager' : null } |
+  { 'gateStaff' : null };
+export interface StaffSession {
+  'username' : string,
+  'staffId' : bigint,
+  'role' : StaffRole,
+}
+export type StaffStatus = { 'active' : null } |
+  { 'inactive' : null };
 export type Status = { 'cancelled' : null } |
   { 'published' : null } |
   { 'draft' : null };
@@ -236,6 +256,7 @@ export interface _SERVICE {
     [string, string, string, string, bigint, string, string],
     bigint
   >,
+  'createStaffAccount' : ActorMethod<[string, string, StaffRole], bigint>,
   'createUser' : ActorMethod<[string, string, string, UserRole], bigint>,
   'createVendor' : ActorMethod<
     [string, string, string, string, bigint, string, string],
@@ -244,12 +265,14 @@ export interface _SERVICE {
   'deleteEvent' : ActorMethod<[bigint], undefined>,
   'deletePortfolioImage' : ActorMethod<[bigint], undefined>,
   'deleteServiceListing' : ActorMethod<[bigint], undefined>,
+  'deleteStaffAccount' : ActorMethod<[bigint], undefined>,
   'deleteTicketCategory' : ActorMethod<[bigint], undefined>,
   'getAllBookings' : ActorMethod<[], Array<Booking>>,
   'getAllEventBookings' : ActorMethod<[], Array<EventBooking>>,
   'getAllEvents' : ActorMethod<[], Array<Event>>,
   'getAllListings' : ActorMethod<[], Array<Listing>>,
   'getAllServiceListings' : ActorMethod<[], Array<ServiceListing>>,
+  'getAllStaffAccounts' : ActorMethod<[], Array<StaffAccount>>,
   'getAllUsers' : ActorMethod<[], Array<User>>,
   'getAllVendorApplications' : ActorMethod<[], Array<VendorApplication>>,
   'getAllVendors' : ActorMethod<[], Array<Vendor>>,
@@ -287,12 +310,14 @@ export interface _SERVICE {
   'getVendor' : ActorMethod<[bigint], [] | [Vendor]>,
   'getVendorApplication' : ActorMethod<[bigint], [] | [VendorApplication]>,
   'getVendorsByCity' : ActorMethod<[string], Array<Vendor>>,
+  'initDefaultStaffAccount' : ActorMethod<[], undefined>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'reviewVendorApplication' : ActorMethod<
     [bigint, ApplicationStatus],
     undefined
   >,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'staffLogin' : ActorMethod<[string, string], StaffLoginResult>,
   'submitVendorApplication' : ActorMethod<
     [string, string, string, string, string, string, string, Array<string>],
     bigint
@@ -329,6 +354,8 @@ export interface _SERVICE {
     [bigint, ServiceListingInput],
     undefined
   >,
+  'updateStaffAccountRole' : ActorMethod<[bigint, StaffRole], undefined>,
+  'updateStaffAccountStatus' : ActorMethod<[bigint, StaffStatus], undefined>,
   'updateUser' : ActorMethod<
     [bigint, string, string, string, UserRole],
     undefined

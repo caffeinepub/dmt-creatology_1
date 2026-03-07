@@ -14,24 +14,8 @@ export class ExternalBlob {
     static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
     withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
 }
-export interface Listing {
-    id: bigint;
-    status: ListingStatus;
-    title: string;
-    city: string;
-    createdAt: bigint;
-    submittedBy: string;
-    description: string;
-    category: string;
-    price: bigint;
-    contactPhone: string;
-}
-export interface User {
-    id: bigint;
-    status: UserStatus;
+export interface UserProfile {
     name: string;
-    createdAt: bigint;
-    role: UserRole;
     email: string;
     phone: string;
 }
@@ -46,36 +30,19 @@ export interface PortfolioImageInput {
     vendorId?: bigint;
     category: string;
 }
-export interface Event {
+export interface StaffAccount {
     id: bigint;
-    status: Status;
-    subCategory: string;
-    duration: string;
-    country: string;
-    venue: string;
-    city: string;
-    date: bigint;
-    name: string;
+    status: StaffStatus;
+    username: string;
     createdAt: bigint;
-    time: string;
-    description: string;
-    state: string;
-    posterUrl: string;
-    category: string;
-    bannerUrl: string;
-    ageLimit: bigint;
+    role: StaffRole;
+    passwordHash: string;
 }
 export interface TicketCategory {
     id: bigint;
     eventId: bigint;
     availableQty: bigint;
     name: string;
-    price: bigint;
-}
-export interface ServiceListingInput {
-    title: string;
-    description: string;
-    category: string;
     price: bigint;
 }
 export interface VendorApplication {
@@ -92,28 +59,6 @@ export interface VendorApplication {
     email: string;
     phone: string;
     portfolioImages: Array<string>;
-}
-export interface EventBooking {
-    id: bigint;
-    status: BookingStatus;
-    eventId: bigint;
-    ticketCategory: string;
-    city: string;
-    name: string;
-    createdAt: bigint;
-    message: string;
-    quantity: bigint;
-    phone: string;
-    eventName: string;
-}
-export interface ServiceListing {
-    id: bigint;
-    title: string;
-    createdAt: bigint;
-    vendorPrincipal: Principal;
-    description: string;
-    category: string;
-    price: bigint;
 }
 export interface Analytics {
     totalEvents: bigint;
@@ -146,10 +91,85 @@ export interface Vendor {
     phone: string;
     services: string;
 }
-export interface UserProfile {
+export interface Listing {
+    id: bigint;
+    status: ListingStatus;
+    title: string;
+    city: string;
+    createdAt: bigint;
+    submittedBy: string;
+    description: string;
+    category: string;
+    price: bigint;
+    contactPhone: string;
+}
+export interface User {
+    id: bigint;
+    status: UserStatus;
     name: string;
+    createdAt: bigint;
+    role: UserRole;
     email: string;
     phone: string;
+}
+export interface Event {
+    id: bigint;
+    status: Status;
+    subCategory: string;
+    duration: string;
+    country: string;
+    venue: string;
+    city: string;
+    date: bigint;
+    name: string;
+    createdAt: bigint;
+    time: string;
+    description: string;
+    state: string;
+    posterUrl: string;
+    category: string;
+    bannerUrl: string;
+    ageLimit: bigint;
+}
+export type StaffLoginResult = {
+    __kind__: "ok";
+    ok: StaffSession;
+} | {
+    __kind__: "err";
+    err: string;
+};
+export interface ServiceListingInput {
+    title: string;
+    description: string;
+    category: string;
+    price: bigint;
+}
+export interface EventBooking {
+    id: bigint;
+    status: BookingStatus;
+    eventId: bigint;
+    ticketCategory: string;
+    city: string;
+    name: string;
+    createdAt: bigint;
+    message: string;
+    quantity: bigint;
+    phone: string;
+    eventName: string;
+}
+export interface ServiceListing {
+    id: bigint;
+    title: string;
+    createdAt: bigint;
+    vendorPrincipal: Principal;
+    description: string;
+    category: string;
+    price: bigint;
+}
+export interface StaffSession {
+    username: string;
+    staffId: bigint;
+    role: StaffRole;
 }
 export enum BookingStatus {
     new_ = "new",
@@ -161,6 +181,15 @@ export enum ListingStatus {
     pending = "pending",
     approved = "approved",
     rejected = "rejected"
+}
+export enum StaffRole {
+    admin = "admin",
+    eventManager = "eventManager",
+    gateStaff = "gateStaff"
+}
+export enum StaffStatus {
+    active = "active",
+    inactive = "inactive"
 }
 export enum Status {
     cancelled = "cancelled",
@@ -177,10 +206,6 @@ export enum UserRole__1 {
     user = "user",
     guest = "guest"
 }
-export enum UserStatus {
-    active = "active",
-    inactive = "inactive"
-}
 export enum VendorStatus {
     pending = "pending",
     approved = "approved",
@@ -195,17 +220,20 @@ export interface backendInterface {
     createEvent(name: string, category: string, subCategory: string, venue: string, city: string, state: string, country: string, date: bigint, time: string, duration: string, ageLimit: bigint, description: string, posterUrl: string, bannerUrl: string, status: Status): Promise<bigint>;
     createEventBooking(eventId: bigint, eventName: string, ticketCategory: string, name: string, phone: string, city: string, quantity: bigint, message: string): Promise<bigint>;
     createListing(title: string, category: string, description: string, city: string, price: bigint, contactPhone: string, submittedBy: string): Promise<bigint>;
+    createStaffAccount(username: string, password: string, role: StaffRole): Promise<bigint>;
     createUser(name: string, phone: string, email: string, role: UserRole): Promise<bigint>;
     createVendor(name: string, businessName: string, city: string, services: string, experience: bigint, phone: string, email: string): Promise<bigint>;
     deleteEvent(id: bigint): Promise<void>;
     deletePortfolioImage(id: bigint): Promise<void>;
     deleteServiceListing(id: bigint): Promise<void>;
+    deleteStaffAccount(id: bigint): Promise<void>;
     deleteTicketCategory(id: bigint): Promise<void>;
     getAllBookings(): Promise<Array<Booking>>;
     getAllEventBookings(): Promise<Array<EventBooking>>;
     getAllEvents(): Promise<Array<Event>>;
     getAllListings(): Promise<Array<Listing>>;
     getAllServiceListings(): Promise<Array<ServiceListing>>;
+    getAllStaffAccounts(): Promise<Array<StaffAccount>>;
     getAllUsers(): Promise<Array<User>>;
     getAllVendorApplications(): Promise<Array<VendorApplication>>;
     getAllVendors(): Promise<Array<Vendor>>;
@@ -243,9 +271,11 @@ export interface backendInterface {
     getVendor(id: bigint): Promise<Vendor | null>;
     getVendorApplication(id: bigint): Promise<VendorApplication | null>;
     getVendorsByCity(city: string): Promise<Array<Vendor>>;
+    initDefaultStaffAccount(): Promise<void>;
     isCallerAdmin(): Promise<boolean>;
     reviewVendorApplication(id: bigint, status: ApplicationStatus): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    staffLogin(username: string, password: string): Promise<StaffLoginResult>;
     submitVendorApplication(businessName: string, ownerName: string, city: string, serviceCategory: string, description: string, phone: string, email: string, portfolioImages: Array<string>): Promise<bigint>;
     updateBookingStatus(id: bigint, status: BookingStatus): Promise<void>;
     updateEvent(id: bigint, name: string, category: string, subCategory: string, venue: string, city: string, state: string, country: string, date: bigint, time: string, duration: string, ageLimit: bigint, description: string, posterUrl: string, bannerUrl: string, status: Status): Promise<void>;
@@ -253,6 +283,8 @@ export interface backendInterface {
     updateListingStatus(id: bigint, status: ListingStatus): Promise<void>;
     updateMyVendorApplication(businessName: string, ownerName: string, city: string, serviceCategory: string, description: string, phone: string, email: string, portfolioImages: Array<string>): Promise<void>;
     updateServiceListing(id: bigint, input: ServiceListingInput): Promise<void>;
+    updateStaffAccountRole(id: bigint, role: StaffRole): Promise<void>;
+    updateStaffAccountStatus(id: bigint, status: StaffStatus): Promise<void>;
     updateUser(id: bigint, name: string, phone: string, email: string, role: UserRole): Promise<void>;
     updateUserStatus(id: bigint, status: UserStatus): Promise<void>;
     updateVendor(id: bigint, name: string, businessName: string, city: string, services: string, experience: bigint, phone: string, email: string): Promise<void>;

@@ -12,6 +12,7 @@ import {
   LogOut,
   Menu,
   Store,
+  UserCog,
   Users,
   X,
 } from "lucide-react";
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
   { label: "Vendors", href: "/admin/vendors", icon: Store },
   { label: "Bookings", href: "/admin/bookings", icon: BookOpen },
   { label: "Users", href: "/admin/users", icon: Users },
+  { label: "Staff", href: "/admin/staff", icon: UserCog },
   { label: "Listings", href: "/admin/listings", icon: List },
   { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
 ];

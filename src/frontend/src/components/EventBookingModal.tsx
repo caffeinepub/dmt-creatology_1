@@ -74,7 +74,7 @@ export default function EventBookingModal({
     if (!event) return;
 
     try {
-      await createEventBooking.mutateAsync({
+      const bookingId = await createEventBooking.mutateAsync({
         eventId: event.id,
         eventName: event.name,
         ticketCategory: form.ticketCategory,
@@ -85,30 +85,27 @@ export default function EventBookingModal({
         message: form.message,
       });
 
-      toast.success("Booking submitted!");
-
-      const selectedTicket = ticketCategories?.find(
-        (t) => t.name === form.ticketCategory,
+      // Store ticket data in localStorage for the ticket page
+      localStorage.setItem(
+        `ticket-${bookingId}`,
+        JSON.stringify({
+          bookingId: String(bookingId),
+          eventName: event.name,
+          ticketCategory: form.ticketCategory,
+          customerName: form.name,
+          quantity: form.quantity,
+          timestamp: Date.now(),
+        }),
       );
-      const price = selectedTicket
-        ? `₹${Number(selectedTicket.price).toLocaleString("en-IN")}`
-        : "—";
 
-      const waMessage = `*Event Booking — DMT CREATOLOGY*
-Event: ${event.name}
-Ticket: ${form.ticketCategory} (${price})
-Qty: ${form.quantity}
-Name: ${form.name}
-Phone: ${form.phone}
-City: ${form.city}
-Message: ${form.message || "—"}`;
-
-      window.open(
-        `https://wa.me/919821432904?text=${encodeURIComponent(waMessage)}`,
-        "_blank",
-      );
+      toast.success("Booking confirmed! Redirecting to your ticket...");
 
       handleClose();
+
+      // Redirect to ticket page after short delay
+      setTimeout(() => {
+        window.location.href = `/ticket/${bookingId}`;
+      }, 1000);
     } catch {
       toast.error("Failed to submit booking. Please try again.");
     }

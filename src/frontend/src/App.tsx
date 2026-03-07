@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
+import StaffProtectedRoute from "./components/StaffProtectedRoute";
 import AdminLayout from "./components/admin/AdminLayout";
 import AdvertisePage from "./pages/AdvertisePage";
 import ArtistsPage from "./pages/ArtistsPage";
@@ -18,7 +19,10 @@ import FoodPage from "./pages/FoodPage";
 import HomePage from "./pages/HomePage";
 import HotelsPage from "./pages/HotelsPage";
 import RankingsPage from "./pages/RankingsPage";
+import ScanPage from "./pages/ScanPage";
 import StaffJobsPage from "./pages/StaffJobsPage";
+import StaffLoginPage from "./pages/StaffLoginPage";
+import TicketPage from "./pages/TicketPage";
 import TransportPage from "./pages/TransportPage";
 import VendorDashboardPage from "./pages/VendorDashboardPage";
 import VendorLoginPage from "./pages/VendorLoginPage";
@@ -31,8 +35,18 @@ import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminEventsPage from "./pages/admin/AdminEventsPage";
 import AdminListingsPage from "./pages/admin/AdminListingsPage";
 import AdminLoginPage from "./pages/admin/AdminLoginPage";
+import AdminStaffPage from "./pages/admin/AdminStaffPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminVendorsPage from "./pages/admin/AdminVendorsPage";
+
+// Protected scan page wrapper
+function ProtectedScanPage() {
+  return (
+    <StaffProtectedRoute>
+      <ScanPage />
+    </StaffProtectedRoute>
+  );
+}
 
 // ── Public Root Layout ─────────────────────────────────────────────────────
 const rootRoute = createRootRoute({
@@ -125,6 +139,20 @@ const vendorRegisterPublicRoute = createRoute({
   component: VendorRegisterPage,
 });
 
+// ── Ticket page (public layout with Navbar + Footer) ───────────────────────
+const ticketRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/ticket/$bookingId",
+  component: TicketPage,
+});
+
+// ── Staff scan page (protected) with Navbar + Footer ───────────────────────
+const scanRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/scan",
+  component: ProtectedScanPage,
+});
+
 // ── Admin Root (no Navbar/Footer) ──────────────────────────────────────────
 const adminRootRoute = createRootRoute({
   component: () => <Outlet />,
@@ -179,6 +207,11 @@ const adminAnalyticsRoute = createRoute({
   path: "/analytics",
   component: AdminAnalyticsPage,
 });
+const adminStaffRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/staff",
+  component: AdminStaffPage,
+});
 
 // Wire admin layout children
 adminLayoutRoute.addChildren([
@@ -189,6 +222,7 @@ adminLayoutRoute.addChildren([
   adminUsersRoute,
   adminListingsRoute,
   adminAnalyticsRoute,
+  adminStaffRoute,
 ]);
 
 // ── Vendor Root (no Navbar/Footer) ─────────────────────────────────────────
@@ -208,6 +242,17 @@ const vendorDashboardRoute = createRoute({
   component: VendorDashboardPage,
 });
 
+// ── Staff Auth Root (no Navbar/Footer) ─────────────────────────────────────
+const staffAuthRootRoute = createRootRoute({
+  component: () => <Outlet />,
+});
+
+const staffLoginRoute = createRoute({
+  getParentRoute: () => staffAuthRootRoute,
+  path: "/staff/login",
+  component: StaffLoginPage,
+});
+
 // Public route tree
 const publicRouteTree = rootRoute.addChildren([
   indexRoute,
@@ -225,6 +270,8 @@ const publicRouteTree = rootRoute.addChildren([
   advertiseRoute,
   contactRoute,
   vendorRegisterPublicRoute,
+  ticketRoute,
+  scanRoute,
 ]);
 
 // Admin route tree
@@ -239,10 +286,14 @@ const vendorRouteTree = vendorRootRoute.addChildren([
   vendorDashboardRoute,
 ]);
 
+// Staff auth route tree
+const staffAuthRouteTree = staffAuthRootRoute.addChildren([staffLoginRoute]);
+
 // Build routers
 const publicRouter = createRouter({ routeTree: publicRouteTree });
 const adminRouter = createRouter({ routeTree: adminRouteTree });
 const vendorRouter = createRouter({ routeTree: vendorRouteTree });
+const staffAuthRouter = createRouter({ routeTree: staffAuthRouteTree });
 
 declare module "@tanstack/react-router" {
   interface Register {
@@ -263,6 +314,10 @@ function isVendorOnlyPath(pathname: string) {
   );
 }
 
+function isStaffAuthPath(pathname: string) {
+  return pathname.startsWith("/staff/login");
+}
+
 export default function App() {
   const pathname = window.location.pathname;
   if (isAdminPath(pathname)) {
@@ -270,6 +325,9 @@ export default function App() {
   }
   if (isVendorOnlyPath(pathname)) {
     return <RouterProvider router={vendorRouter} />;
+  }
+  if (isStaffAuthPath(pathname)) {
+    return <RouterProvider router={staffAuthRouter} />;
   }
   return <RouterProvider router={publicRouter} />;
 }
