@@ -31,10 +31,13 @@ import VendorsPage from "./pages/VendorsPage";
 import VenuesPage from "./pages/VenuesPage";
 import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
 import AdminBookingsPage from "./pages/admin/AdminBookingsPage";
+import AdminConfigPage from "./pages/admin/AdminConfigPage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminEventsPage from "./pages/admin/AdminEventsPage";
+import AdminHotelsPage from "./pages/admin/AdminHotelsPage";
 import AdminListingsPage from "./pages/admin/AdminListingsPage";
 import AdminLoginPage from "./pages/admin/AdminLoginPage";
+import AdminPaymentsPage from "./pages/admin/AdminPaymentsPage";
 import AdminStaffPage from "./pages/admin/AdminStaffPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminVendorsPage from "./pages/admin/AdminVendorsPage";
@@ -182,6 +185,11 @@ const adminEventsRoute = createRoute({
   path: "/events",
   component: AdminEventsPage,
 });
+const adminHotelsRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/hotels",
+  component: AdminHotelsPage,
+});
 const adminVendorsRoute = createRoute({
   getParentRoute: () => adminLayoutRoute,
   path: "/vendors",
@@ -213,16 +221,31 @@ const adminStaffRoute = createRoute({
   component: AdminStaffPage,
 });
 
+const adminPaymentsRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/payments",
+  component: AdminPaymentsPage,
+});
+
+const adminConfigRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/config",
+  component: AdminConfigPage,
+});
+
 // Wire admin layout children
 adminLayoutRoute.addChildren([
   adminDashboardRoute,
   adminEventsRoute,
+  adminHotelsRoute,
   adminVendorsRoute,
   adminBookingsRoute,
+  adminPaymentsRoute,
   adminUsersRoute,
   adminListingsRoute,
   adminAnalyticsRoute,
   adminStaffRoute,
+  adminConfigRoute,
 ]);
 
 // ── Vendor Root (no Navbar/Footer) ─────────────────────────────────────────

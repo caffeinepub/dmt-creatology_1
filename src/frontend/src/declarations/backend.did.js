@@ -35,6 +35,15 @@ export const Status = IDL.Variant({
   'published' : IDL.Null,
   'draft' : IDL.Null,
 });
+export const RoomType = IDL.Record({
+  'pricePerNight' : IDL.Nat,
+  'name' : IDL.Text,
+});
+export const TransactionStatus = IDL.Variant({
+  'pending' : IDL.Null,
+  'completed' : IDL.Null,
+  'failed' : IDL.Null,
+});
 export const StaffRole = IDL.Variant({
   'admin' : IDL.Null,
   'eventManager' : IDL.Null,
@@ -94,6 +103,17 @@ export const Event = IDL.Record({
   'bannerUrl' : IDL.Text,
   'ageLimit' : IDL.Nat,
 });
+export const Hotel = IDL.Record({
+  'id' : IDL.Nat,
+  'roomTypes' : IDL.Vec(RoomType),
+  'photoUrls' : IDL.Vec(IDL.Text),
+  'city' : IDL.Text,
+  'name' : IDL.Text,
+  'createdAt' : IDL.Int,
+  'description' : IDL.Text,
+  'amenities' : IDL.Vec(IDL.Text),
+  'address' : IDL.Text,
+});
 export const ListingStatus = IDL.Variant({
   'pending' : IDL.Null,
   'approved' : IDL.Null,
@@ -110,6 +130,15 @@ export const Listing = IDL.Record({
   'category' : IDL.Text,
   'price' : IDL.Nat,
   'contactPhone' : IDL.Text,
+});
+export const PaymentTransaction = IDL.Record({
+  'id' : IDL.Nat,
+  'status' : TransactionStatus,
+  'paymentMethod' : IDL.Text,
+  'bookingId' : IDL.Nat,
+  'timestamp' : IDL.Int,
+  'amount' : IDL.Nat,
+  'transactionId' : IDL.Text,
 });
 export const ServiceListing = IDL.Record({
   'id' : IDL.Nat,
@@ -300,8 +329,26 @@ export const idlService = IDL.Service({
       [IDL.Nat],
       [],
     ),
+  'createHotel' : IDL.Func(
+      [
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Vec(RoomType),
+        IDL.Vec(IDL.Text),
+        IDL.Vec(IDL.Text),
+      ],
+      [IDL.Nat],
+      [],
+    ),
   'createListing' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Text, IDL.Text],
+      [IDL.Nat],
+      [],
+    ),
+  'createPaymentTransaction' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Nat, IDL.Nat, TransactionStatus],
       [IDL.Nat],
       [],
     ),
@@ -321,6 +368,7 @@ export const idlService = IDL.Service({
       [],
     ),
   'deleteEvent' : IDL.Func([IDL.Nat], [], []),
+  'deleteHotel' : IDL.Func([IDL.Nat], [], []),
   'deletePortfolioImage' : IDL.Func([IDL.Nat], [], []),
   'deleteServiceListing' : IDL.Func([IDL.Nat], [], []),
   'deleteStaffAccount' : IDL.Func([IDL.Nat], [], []),
@@ -328,7 +376,13 @@ export const idlService = IDL.Service({
   'getAllBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
   'getAllEventBookings' : IDL.Func([], [IDL.Vec(EventBooking)], ['query']),
   'getAllEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
+  'getAllHotels' : IDL.Func([], [IDL.Vec(Hotel)], ['query']),
   'getAllListings' : IDL.Func([], [IDL.Vec(Listing)], ['query']),
+  'getAllPaymentTransactions' : IDL.Func(
+      [],
+      [IDL.Vec(PaymentTransaction)],
+      ['query'],
+    ),
   'getAllServiceListings' : IDL.Func([], [IDL.Vec(ServiceListing)], ['query']),
   'getAllStaffAccounts' : IDL.Func([], [IDL.Vec(StaffAccount)], ['query']),
   'getAllUsers' : IDL.Func([], [IDL.Vec(User)], ['query']),
@@ -339,7 +393,6 @@ export const idlService = IDL.Service({
     ),
   'getAllVendors' : IDL.Func([], [IDL.Vec(Vendor)], ['query']),
   'getAnalytics' : IDL.Func([], [Analytics], ['query']),
-  'getApprovedVendors' : IDL.Func([], [IDL.Vec(VendorApplication)], ['query']),
   'getBooking' : IDL.Func([IDL.Nat], [IDL.Opt(Booking)], ['query']),
   'getBookingsByCity' : IDL.Func([IDL.Text], [IDL.Vec(Booking)], ['query']),
   'getBookingsByDateRange' : IDL.Func(
@@ -367,6 +420,7 @@ export const idlService = IDL.Service({
       [IDL.Vec(EventBooking)],
       ['query'],
     ),
+  'getHotel' : IDL.Func([IDL.Nat], [IDL.Opt(Hotel)], ['query']),
   'getListing' : IDL.Func([IDL.Nat], [IDL.Opt(Listing)], ['query']),
   'getListingsByCategory' : IDL.Func([IDL.Text], [IDL.Vec(Listing)], ['query']),
   'getListingsByCity' : IDL.Func([IDL.Text], [IDL.Vec(Listing)], ['query']),
@@ -377,6 +431,11 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'getNewBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
+  'getPaymentTransactionByBookingId' : IDL.Func(
+      [IDL.Nat],
+      [IDL.Opt(PaymentTransaction)],
+      ['query'],
+    ),
   'getPublicApprovedVendors' : IDL.Func(
       [],
       [IDL.Vec(VendorApplication)],
@@ -463,6 +522,20 @@ export const idlService = IDL.Service({
       [],
     ),
   'updateEventBookingStatus' : IDL.Func([IDL.Nat, BookingStatus], [], []),
+  'updateHotel' : IDL.Func(
+      [
+        IDL.Nat,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Vec(RoomType),
+        IDL.Vec(IDL.Text),
+        IDL.Vec(IDL.Text),
+      ],
+      [],
+      [],
+    ),
   'updateListingStatus' : IDL.Func([IDL.Nat, ListingStatus], [], []),
   'updateMyVendorApplication' : IDL.Func(
       [
@@ -540,6 +613,12 @@ export const idlFactory = ({ IDL }) => {
     'published' : IDL.Null,
     'draft' : IDL.Null,
   });
+  const RoomType = IDL.Record({ 'pricePerNight' : IDL.Nat, 'name' : IDL.Text });
+  const TransactionStatus = IDL.Variant({
+    'pending' : IDL.Null,
+    'completed' : IDL.Null,
+    'failed' : IDL.Null,
+  });
   const StaffRole = IDL.Variant({
     'admin' : IDL.Null,
     'eventManager' : IDL.Null,
@@ -599,6 +678,17 @@ export const idlFactory = ({ IDL }) => {
     'bannerUrl' : IDL.Text,
     'ageLimit' : IDL.Nat,
   });
+  const Hotel = IDL.Record({
+    'id' : IDL.Nat,
+    'roomTypes' : IDL.Vec(RoomType),
+    'photoUrls' : IDL.Vec(IDL.Text),
+    'city' : IDL.Text,
+    'name' : IDL.Text,
+    'createdAt' : IDL.Int,
+    'description' : IDL.Text,
+    'amenities' : IDL.Vec(IDL.Text),
+    'address' : IDL.Text,
+  });
   const ListingStatus = IDL.Variant({
     'pending' : IDL.Null,
     'approved' : IDL.Null,
@@ -615,6 +705,15 @@ export const idlFactory = ({ IDL }) => {
     'category' : IDL.Text,
     'price' : IDL.Nat,
     'contactPhone' : IDL.Text,
+  });
+  const PaymentTransaction = IDL.Record({
+    'id' : IDL.Nat,
+    'status' : TransactionStatus,
+    'paymentMethod' : IDL.Text,
+    'bookingId' : IDL.Nat,
+    'timestamp' : IDL.Int,
+    'amount' : IDL.Nat,
+    'transactionId' : IDL.Text,
   });
   const ServiceListing = IDL.Record({
     'id' : IDL.Nat,
@@ -805,8 +904,26 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Nat],
         [],
       ),
+    'createHotel' : IDL.Func(
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Vec(RoomType),
+          IDL.Vec(IDL.Text),
+          IDL.Vec(IDL.Text),
+        ],
+        [IDL.Nat],
+        [],
+      ),
     'createListing' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Text, IDL.Text],
+        [IDL.Nat],
+        [],
+      ),
+    'createPaymentTransaction' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Nat, IDL.Nat, TransactionStatus],
         [IDL.Nat],
         [],
       ),
@@ -826,6 +943,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'deleteEvent' : IDL.Func([IDL.Nat], [], []),
+    'deleteHotel' : IDL.Func([IDL.Nat], [], []),
     'deletePortfolioImage' : IDL.Func([IDL.Nat], [], []),
     'deleteServiceListing' : IDL.Func([IDL.Nat], [], []),
     'deleteStaffAccount' : IDL.Func([IDL.Nat], [], []),
@@ -833,7 +951,13 @@ export const idlFactory = ({ IDL }) => {
     'getAllBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
     'getAllEventBookings' : IDL.Func([], [IDL.Vec(EventBooking)], ['query']),
     'getAllEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
+    'getAllHotels' : IDL.Func([], [IDL.Vec(Hotel)], ['query']),
     'getAllListings' : IDL.Func([], [IDL.Vec(Listing)], ['query']),
+    'getAllPaymentTransactions' : IDL.Func(
+        [],
+        [IDL.Vec(PaymentTransaction)],
+        ['query'],
+      ),
     'getAllServiceListings' : IDL.Func(
         [],
         [IDL.Vec(ServiceListing)],
@@ -848,11 +972,6 @@ export const idlFactory = ({ IDL }) => {
       ),
     'getAllVendors' : IDL.Func([], [IDL.Vec(Vendor)], ['query']),
     'getAnalytics' : IDL.Func([], [Analytics], ['query']),
-    'getApprovedVendors' : IDL.Func(
-        [],
-        [IDL.Vec(VendorApplication)],
-        ['query'],
-      ),
     'getBooking' : IDL.Func([IDL.Nat], [IDL.Opt(Booking)], ['query']),
     'getBookingsByCity' : IDL.Func([IDL.Text], [IDL.Vec(Booking)], ['query']),
     'getBookingsByDateRange' : IDL.Func(
@@ -880,6 +999,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(EventBooking)],
         ['query'],
       ),
+    'getHotel' : IDL.Func([IDL.Nat], [IDL.Opt(Hotel)], ['query']),
     'getListing' : IDL.Func([IDL.Nat], [IDL.Opt(Listing)], ['query']),
     'getListingsByCategory' : IDL.Func(
         [IDL.Text],
@@ -894,6 +1014,11 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getNewBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
+    'getPaymentTransactionByBookingId' : IDL.Func(
+        [IDL.Nat],
+        [IDL.Opt(PaymentTransaction)],
+        ['query'],
+      ),
     'getPublicApprovedVendors' : IDL.Func(
         [],
         [IDL.Vec(VendorApplication)],
@@ -980,6 +1105,20 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'updateEventBookingStatus' : IDL.Func([IDL.Nat, BookingStatus], [], []),
+    'updateHotel' : IDL.Func(
+        [
+          IDL.Nat,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Vec(RoomType),
+          IDL.Vec(IDL.Text),
+          IDL.Vec(IDL.Text),
+        ],
+        [],
+        [],
+      ),
     'updateListingStatus' : IDL.Func([IDL.Nat, ListingStatus], [], []),
     'updateMyVendorApplication' : IDL.Func(
         [

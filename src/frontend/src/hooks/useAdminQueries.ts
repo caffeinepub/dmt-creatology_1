@@ -3,11 +3,10 @@ import type {
   BookingStatus,
   ListingStatus,
   Status,
+  TransactionStatus,
+  UserStatus,
   VendorStatus,
 } from "../backend.d";
-
-// UserStatus is used in the backend interface but not exported as an enum
-type UserStatus = "active" | "inactive";
 import { useActor } from "./useActor";
 
 // ── Analytics ──────────────────────────────────────────────────────────────
@@ -386,5 +385,170 @@ export function useUpdateEventBookingStatus() {
       return actor.updateEventBookingStatus(id, status);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["eventBookings"] }),
+  });
+}
+
+// ── Payment Transactions ────────────────────────────────────────────────────
+
+export function useCreatePaymentTransaction() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      transactionId: string;
+      paymentMethod: string;
+      amount: bigint;
+      bookingId: bigint;
+      status: TransactionStatus;
+    }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.createPaymentTransaction(
+        data.transactionId,
+        data.paymentMethod,
+        data.amount,
+        data.bookingId,
+        data.status,
+      );
+    },
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["paymentTransactions"] }),
+  });
+}
+
+export function useAllPaymentTransactions() {
+  const { actor, isFetching } = useActor();
+  return useQuery({
+    queryKey: ["paymentTransactions"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllPaymentTransactions();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+// ── Hotels ──────────────────────────────────────────────────────────────────
+
+import type { RoomType } from "../backend.d";
+
+export function useAllHotels() {
+  const { actor, isFetching } = useActor();
+  return useQuery({
+    queryKey: ["hotels"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllHotels();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useCreateHotel() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      name: string;
+      city: string;
+      address: string;
+      description: string;
+      roomTypes: Array<RoomType>;
+      amenities: Array<string>;
+      photoUrls: Array<string>;
+    }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.createHotel(
+        data.name,
+        data.city,
+        data.address,
+        data.description,
+        data.roomTypes,
+        data.amenities,
+        data.photoUrls,
+      );
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["hotels"] }),
+  });
+}
+
+export function useUpdateHotel() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      id: bigint;
+      name: string;
+      city: string;
+      address: string;
+      description: string;
+      roomTypes: Array<RoomType>;
+      amenities: Array<string>;
+      photoUrls: Array<string>;
+    }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.updateHotel(
+        data.id,
+        data.name,
+        data.city,
+        data.address,
+        data.description,
+        data.roomTypes,
+        data.amenities,
+        data.photoUrls,
+      );
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["hotels"] }),
+  });
+}
+
+export function useDeleteHotel() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.deleteHotel(id);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["hotels"] }),
+  });
+}
+
+// ── Razorpay Config ─────────────────────────────────────────────────────────
+
+export function useGetRazorpayConfig() {
+  const { actor, isFetching } = useActor();
+  return useQuery({
+    queryKey: ["razorpayConfig"],
+    queryFn: async () => {
+      if (!actor) return null;
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return await (actor as any).getRazorpayConfig();
+      } catch {
+        return null;
+      }
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useUpdateRazorpayConfig() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      keyId: string;
+      keySecret: string;
+      testMode: boolean;
+    }) => {
+      if (!actor) throw new Error("Actor not available");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (actor as any).updateRazorpayConfig(
+        data.keyId,
+        data.keySecret,
+        data.testMode,
+      );
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["razorpayConfig"] }),
   });
 }

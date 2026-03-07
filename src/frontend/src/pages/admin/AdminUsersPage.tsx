@@ -12,14 +12,7 @@ import {
 import { useAllUsers, useUpdateUserStatus } from "@/hooks/useAdminQueries";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { UserRole } from "../../backend.d";
-
-// UserStatus is used in backend interface but not exported as an enum
-type UserStatus = "active" | "inactive";
-const UserStatus = {
-  active: "active" as UserStatus,
-  inactive: "inactive" as UserStatus,
-};
+import { UserRole, UserStatus } from "../../backend.d";
 
 function formatNanoDate(ns: bigint): string {
   return new Date(Number(ns) / 1_000_000).toLocaleDateString("en-IN", {

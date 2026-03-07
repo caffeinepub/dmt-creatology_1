@@ -69,6 +69,17 @@ export interface EventBooking {
   'eventName' : string,
 }
 export type ExternalBlob = Uint8Array;
+export interface Hotel {
+  'id' : bigint,
+  'roomTypes' : Array<RoomType>,
+  'photoUrls' : Array<string>,
+  'city' : string,
+  'name' : string,
+  'createdAt' : bigint,
+  'description' : string,
+  'amenities' : Array<string>,
+  'address' : string,
+}
 export interface Listing {
   'id' : bigint,
   'status' : ListingStatus,
@@ -84,6 +95,15 @@ export interface Listing {
 export type ListingStatus = { 'pending' : null } |
   { 'approved' : null } |
   { 'rejected' : null };
+export interface PaymentTransaction {
+  'id' : bigint,
+  'status' : TransactionStatus,
+  'paymentMethod' : string,
+  'bookingId' : bigint,
+  'timestamp' : bigint,
+  'amount' : bigint,
+  'transactionId' : string,
+}
 export interface PortfolioImageInput {
   'title' : [] | [string],
   'file' : ExternalBlob,
@@ -95,6 +115,7 @@ export interface PortfolioImageInput {
   'vendorId' : [] | [bigint],
   'category' : string,
 }
+export interface RoomType { 'pricePerNight' : bigint, 'name' : string }
 export interface ServiceListing {
   'id' : bigint,
   'title' : string,
@@ -140,6 +161,9 @@ export interface TicketCategory {
   'name' : string,
   'price' : bigint,
 }
+export type TransactionStatus = { 'pending' : null } |
+  { 'completed' : null } |
+  { 'failed' : null };
 export interface User {
   'id' : bigint,
   'status' : UserStatus,
@@ -252,8 +276,24 @@ export interface _SERVICE {
     [bigint, string, string, string, string, string, bigint, string],
     bigint
   >,
+  'createHotel' : ActorMethod<
+    [
+      string,
+      string,
+      string,
+      string,
+      Array<RoomType>,
+      Array<string>,
+      Array<string>,
+    ],
+    bigint
+  >,
   'createListing' : ActorMethod<
     [string, string, string, string, bigint, string, string],
+    bigint
+  >,
+  'createPaymentTransaction' : ActorMethod<
+    [string, string, bigint, bigint, TransactionStatus],
     bigint
   >,
   'createStaffAccount' : ActorMethod<[string, string, StaffRole], bigint>,
@@ -263,6 +303,7 @@ export interface _SERVICE {
     bigint
   >,
   'deleteEvent' : ActorMethod<[bigint], undefined>,
+  'deleteHotel' : ActorMethod<[bigint], undefined>,
   'deletePortfolioImage' : ActorMethod<[bigint], undefined>,
   'deleteServiceListing' : ActorMethod<[bigint], undefined>,
   'deleteStaffAccount' : ActorMethod<[bigint], undefined>,
@@ -270,14 +311,15 @@ export interface _SERVICE {
   'getAllBookings' : ActorMethod<[], Array<Booking>>,
   'getAllEventBookings' : ActorMethod<[], Array<EventBooking>>,
   'getAllEvents' : ActorMethod<[], Array<Event>>,
+  'getAllHotels' : ActorMethod<[], Array<Hotel>>,
   'getAllListings' : ActorMethod<[], Array<Listing>>,
+  'getAllPaymentTransactions' : ActorMethod<[], Array<PaymentTransaction>>,
   'getAllServiceListings' : ActorMethod<[], Array<ServiceListing>>,
   'getAllStaffAccounts' : ActorMethod<[], Array<StaffAccount>>,
   'getAllUsers' : ActorMethod<[], Array<User>>,
   'getAllVendorApplications' : ActorMethod<[], Array<VendorApplication>>,
   'getAllVendors' : ActorMethod<[], Array<Vendor>>,
   'getAnalytics' : ActorMethod<[], Analytics>,
-  'getApprovedVendors' : ActorMethod<[], Array<VendorApplication>>,
   'getBooking' : ActorMethod<[bigint], [] | [Booking]>,
   'getBookingsByCity' : ActorMethod<[string], Array<Booking>>,
   'getBookingsByDateRange' : ActorMethod<[bigint, bigint], Array<Booking>>,
@@ -289,12 +331,17 @@ export interface _SERVICE {
   'getConfirmedBookings' : ActorMethod<[], Array<Booking>>,
   'getEvent' : ActorMethod<[bigint], [] | [Event]>,
   'getEventBookingsByEvent' : ActorMethod<[bigint], Array<EventBooking>>,
+  'getHotel' : ActorMethod<[bigint], [] | [Hotel]>,
   'getListing' : ActorMethod<[bigint], [] | [Listing]>,
   'getListingsByCategory' : ActorMethod<[string], Array<Listing>>,
   'getListingsByCity' : ActorMethod<[string], Array<Listing>>,
   'getMyServiceListings' : ActorMethod<[], Array<ServiceListing>>,
   'getMyVendorApplication' : ActorMethod<[], [] | [VendorApplication]>,
   'getNewBookings' : ActorMethod<[], Array<Booking>>,
+  'getPaymentTransactionByBookingId' : ActorMethod<
+    [bigint],
+    [] | [PaymentTransaction]
+  >,
   'getPublicApprovedVendors' : ActorMethod<[], Array<VendorApplication>>,
   'getPublicEventsByCategory' : ActorMethod<[string], Array<Event>>,
   'getPublicEventsBySubCategory' : ActorMethod<[string], Array<Event>>,
@@ -345,6 +392,19 @@ export interface _SERVICE {
     undefined
   >,
   'updateEventBookingStatus' : ActorMethod<[bigint, BookingStatus], undefined>,
+  'updateHotel' : ActorMethod<
+    [
+      bigint,
+      string,
+      string,
+      string,
+      string,
+      Array<RoomType>,
+      Array<string>,
+      Array<string>,
+    ],
+    undefined
+  >,
   'updateListingStatus' : ActorMethod<[bigint, ListingStatus], undefined>,
   'updateMyVendorApplication' : ActorMethod<
     [string, string, string, string, string, string, string, Array<string>],

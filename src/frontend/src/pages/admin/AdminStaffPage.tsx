@@ -31,7 +31,14 @@ import { Loader2, RefreshCw, Trash2, UserPlus, Users } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import type { StaffAccount } from "../../backend.d";
-import { StaffRole, StaffStatus } from "../../backend.d";
+import { StaffRole } from "../../backend.d";
+
+// StaffStatus is not exported as an enum from backend.d — define it locally
+const StaffStatus = {
+  active: "active" as const,
+  inactive: "inactive" as const,
+} as const;
+type StaffStatus = (typeof StaffStatus)[keyof typeof StaffStatus];
 
 function getRoleBadge(role: StaffRole | string) {
   switch (role) {

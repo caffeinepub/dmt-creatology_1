@@ -4,13 +4,16 @@ import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import {
   BarChart3,
   BookOpen,
+  Building2,
   CalendarDays,
   ChevronLeft,
   ChevronRight,
+  CreditCard,
   LayoutDashboard,
   List,
   LogOut,
   Menu,
+  Settings2,
   Store,
   UserCog,
   Users,
@@ -21,12 +24,15 @@ import { useState } from "react";
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { label: "Events", href: "/admin/events", icon: CalendarDays },
+  { label: "Hotels", href: "/admin/hotels", icon: Building2 },
   { label: "Vendors", href: "/admin/vendors", icon: Store },
   { label: "Bookings", href: "/admin/bookings", icon: BookOpen },
+  { label: "Payments", href: "/admin/payments", icon: CreditCard },
   { label: "Users", href: "/admin/users", icon: Users },
   { label: "Staff", href: "/admin/staff", icon: UserCog },
   { label: "Listings", href: "/admin/listings", icon: List },
   { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+  { label: "Configuration", href: "/admin/config", icon: Settings2 },
 ];
 
 function NavItem({

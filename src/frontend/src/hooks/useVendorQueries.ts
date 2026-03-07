@@ -13,7 +13,7 @@ export function useApprovedVendors() {
     queryKey: ["approvedVendors"],
     queryFn: async () => {
       if (!actor) return [];
-      return actor.getApprovedVendors();
+      return actor.getPublicApprovedVendors();
     },
     enabled: !!actor && !isFetching,
   });

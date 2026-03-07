@@ -10,7 +10,9 @@ import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
+import Migration "migration";
 
+(with migration = Migration.run)
 actor {
   include MixinStorage();
 
@@ -45,6 +47,24 @@ actor {
     #approved;
     #rejected;
   };
+
+  /** Payment Transactions **/
+  type TransactionStatus = {
+    #pending;
+    #completed;
+    #failed;
+  };
+  type PaymentTransaction = {
+    id : Nat;
+    transactionId : Text;
+    paymentMethod : Text;
+    amount : Nat;
+    bookingId : Nat;
+    timestamp : Int;
+    status : TransactionStatus;
+  };
+
+  /** EVENTS **/
   type Event = {
     id : Nat;
     name : Text;
@@ -64,6 +84,8 @@ actor {
     status : Status;
     createdAt : Int;
   };
+
+  /** VENDORS **/
   type Vendor = {
     id : Nat;
     name : Text;
@@ -76,6 +98,8 @@ actor {
     status : VendorStatus;
     createdAt : Int;
   };
+
+  /** BOOKINGS **/
   type Booking = {
     id : Nat;
     name : Text;
@@ -87,6 +111,8 @@ actor {
     status : BookingStatus;
     createdAt : Int;
   };
+
+  /** USERS **/
   type User = {
     id : Nat;
     name : Text;
@@ -96,6 +122,8 @@ actor {
     status : UserStatus;
     createdAt : Int;
   };
+
+  /** LISTINGS **/
   type Listing = {
     id : Nat;
     title : Text;
@@ -108,6 +136,7 @@ actor {
     status : ListingStatus;
     createdAt : Int;
   };
+
   type Analytics = {
     totalEvents : Nat;
     totalBookings : Nat;
@@ -116,13 +145,14 @@ actor {
     totalListings : Nat;
     recentBookings : [Booking];
   };
+
   public type UserProfile = {
     name : Text;
     phone : Text;
     email : Text;
   };
 
-  //// Vendor Marketplace Types
+  /** VENDOR MARKETPLACE **/
   public type ApplicationStatus = {
     #pending;
     #approved;
@@ -159,7 +189,7 @@ actor {
     price : Nat;
   };
 
-  /// Image Storage Types
+  /** IMAGE STORAGE **/
   public type ImageMetadata = {
     id : Nat;
     vendorId : ?Nat;
@@ -173,7 +203,6 @@ actor {
     uploadDate : Int;
     file : Storage.ExternalBlob;
   };
-
   public type PortfolioImageInput = {
     title : ?Text;
     description : ?Text;
@@ -194,7 +223,6 @@ actor {
     price : Nat;
     availableQty : Nat;
   };
-
   public type EventBooking = {
     id : Nat;
     eventId : Nat;
@@ -209,7 +237,7 @@ actor {
     createdAt : Int;
   };
 
-  /** STAFF AUTHENTICATION SYSTEM **/
+  /** STAFF AUTHENTICATION **/
   public type StaffRole = {
     #gateStaff;
     #eventManager;
@@ -227,22 +255,37 @@ actor {
     status : StaffStatus;
     createdAt : Int;
   };
-
   public type StaffSession = {
     staffId : Nat;
     username : Text;
     role : StaffRole;
   };
-
   public type StaffLoginResult = {
     #ok : StaffSession;
     #err : Text;
   };
 
+  /** HOTEL SYSTEM **/
+  public type Hotel = {
+    id : Nat;
+    name : Text;
+    city : Text;
+    address : Text;
+    description : Text;
+    roomTypes : [RoomType];
+    amenities : [Text];
+    photoUrls : [Text];
+    createdAt : Int;
+  };
+
+  public type RoomType = {
+    name : Text;
+    pricePerNight : Nat;
+  };
+
   ////////////////////////////////////////////////////////
   // State
   ////////////////////////////////////////////////////////
-  // Access control
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
@@ -258,6 +301,8 @@ actor {
   var ticketCategoryId = 0;
   var eventBookingId = 0;
   var staffAccountId = 0;
+  var paymentTransactionId = 0;
+  var hotelId = 0;
 
   // Data stores
   let events = Maps.empty<Nat, Event>();
@@ -272,10 +317,159 @@ actor {
   let ticketCategories = Maps.empty<Nat, TicketCategory>();
   let eventBookings = Maps.empty<Nat, EventBooking>();
   let staffAccounts = Maps.empty<Nat, StaffAccount>();
+  let paymentTransactions = Maps.empty<Nat, PaymentTransaction>();
+  let hotels = Maps.empty<Nat, Hotel>();
 
   ////////////////////////////////////////////////////////
-  // TICKET SYSTEM FUNCTIONS
+  // Hotel Management
   ////////////////////////////////////////////////////////
+  public shared ({ caller }) func createHotel(
+    name : Text,
+    city : Text,
+    address : Text,
+    description : Text,
+    roomTypes : [RoomType],
+    amenities : [Text],
+    photoUrls : [Text]
+  ) : async Nat {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can create hotels");
+    };
+    let id = hotelId;
+    let hotel : Hotel = {
+      id;
+      name;
+      city;
+      address;
+      description;
+      roomTypes;
+      amenities;
+      photoUrls;
+      createdAt = Time.now();
+    };
+    hotels.add(id, hotel);
+    hotelId += 1;
+    id;
+  };
+
+  public shared ({ caller }) func updateHotel(
+    id : Nat,
+    name : Text,
+    city : Text,
+    address : Text,
+    description : Text,
+    roomTypes : [RoomType],
+    amenities : [Text],
+    photoUrls : [Text]
+  ) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can update hotels");
+    };
+    switch (hotels.get(id)) {
+      case (null) { Runtime.trap("Hotel not found") };
+      case (?existing) {
+        let updated : Hotel = {
+          id;
+          name;
+          city;
+          address;
+          description;
+          roomTypes;
+          amenities;
+          photoUrls;
+          createdAt = existing.createdAt;
+        };
+        hotels.add(id, updated);
+      };
+    };
+  };
+
+  public shared ({ caller }) func deleteHotel(id : Nat) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can delete hotels");
+    };
+    switch (hotels.get(id)) {
+      case (null) { Runtime.trap("Hotel not found") };
+      case (?_) { hotels.remove(id) };
+    };
+  };
+
+  public query func getAllHotels() : async [Hotel] {
+    hotels.values().toArray();
+  };
+
+  public query func getHotel(id : Nat) : async ?Hotel {
+    hotels.get(id);
+  };
+
+  // [Existing functionality remains unchanged]
+  ////////////////////////////////////////////////////////
+  // PAYMENT TRANSACTIONS FUNCTIONS
+  ////////////////////////////////////////////////////////
+  public shared ({ caller }) func createPaymentTransaction(transactionId : Text, paymentMethod : Text, amount : Nat, bookingId : Nat, status : TransactionStatus) : async Nat {
+    let timestamp = Time.now();
+    let id = paymentTransactionId;
+
+    let paymentTransaction : PaymentTransaction = {
+      id;
+      transactionId;
+      paymentMethod;
+      amount;
+      bookingId;
+      timestamp;
+      status;
+    };
+
+    paymentTransactions.add(id, paymentTransaction);
+    paymentTransactionId += 1;
+    id;
+  };
+
+  public query ({ caller }) func getAllPaymentTransactions() : async [PaymentTransaction] {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can view all payment transactions");
+    };
+    paymentTransactions.values().toArray();
+  };
+
+  public query ({ caller }) func getPaymentTransactionByBookingId(bookingId : Nat) : async ?PaymentTransaction {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view payment transactions");
+    };
+
+    var foundTransaction : ?PaymentTransaction = null;
+    for ((id, paymentTransaction) in paymentTransactions.entries()) {
+      if (paymentTransaction.bookingId == bookingId) {
+        foundTransaction := ?paymentTransaction;
+      };
+    };
+
+    switch (foundTransaction) {
+      case (null) { return null };
+      case (?transaction) {
+        if (AccessControl.isAdmin(accessControlState, caller)) {
+          return ?transaction;
+        };
+
+        switch (bookings.get(bookingId)) {
+          case (null) {
+            switch (eventBookings.get(bookingId)) {
+              case (null) {
+                Runtime.trap("Booking not found");
+              };
+              case (?eventBooking) { return ?transaction };
+            };
+          };
+          case (?booking) { return ?transaction };
+        };
+      };
+    };
+  };
+
+  /////////////////////////////////////////////////////////
+  // REST OF THE PLATFORM
+  ////////////////////////////////////////////////////////
+  // TICKET SYSTEM
   public shared ({ caller }) func addTicketCategory(eventId : Nat, name : Text, price : Nat, availableQty : Nat) : async Nat {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admin can add ticket categories");
@@ -303,7 +497,7 @@ actor {
     };
     switch (ticketCategories.get(id)) {
       case (null) { Runtime.trap("Ticket category not found") };
-      case (?_) { ticketCategories.remove(id); };
+      case (?_) { ticketCategories.remove(id) };
     };
   };
 
@@ -461,7 +655,7 @@ actor {
     events.values().toArray();
   };
 
-  public query ({ caller }) func getEvent(id : Nat) : async ?Event {
+  public query func getEvent(id : Nat) : async ?Event {
     events.get(id);
   };
 
@@ -574,11 +768,11 @@ actor {
     vendors.values().toArray();
   };
 
-  public query ({ caller }) func getVendor(id : Nat) : async ?Vendor {
+  public query func getVendor(id : Nat) : async ?Vendor {
     vendors.get(id);
   };
 
-  public query ({ caller }) func getPublicVendorsByServices(services : Text) : async [Vendor] {
+  public query func getPublicVendorsByServices(services : Text) : async [Vendor] {
     let filtered = List.empty<Vendor>();
     for ((id, vendor) in vendors.entries()) {
       if (Text.equal(vendor.services, services)) {
@@ -598,7 +792,7 @@ actor {
     published.toArray();
   };
 
-  public query ({ caller }) func getVendorsByCity(city : Text) : async [Vendor] {
+  public query func getVendorsByCity(city : Text) : async [Vendor] {
     let filtered = List.empty<Vendor>();
     for ((id, vendor) in vendors.entries()) {
       if (Text.equal(vendor.city, city)) {
@@ -646,11 +840,11 @@ actor {
     bookings.values().toArray();
   };
 
-  public query ({ caller }) func getBooking(id : Nat) : async ?Booking {
+  public query func getBooking(id : Nat) : async ?Booking {
     bookings.get(id);
   };
 
-  public query ({ caller }) func getBookingsByServiceType(serviceType : Text) : async [Booking] {
+  public query func getBookingsByServiceType(serviceType : Text) : async [Booking] {
     let filtered = List.empty<Booking>();
     for ((id, booking) in bookings.entries()) {
       if (Text.equal(booking.serviceType, serviceType)) {
@@ -660,7 +854,7 @@ actor {
     filtered.toArray();
   };
 
-  public query ({ caller }) func getBookingsByCity(city : Text) : async [Booking] {
+  public query func getBookingsByCity(city : Text) : async [Booking] {
     let filtered = List.empty<Booking>();
     for ((id, booking) in bookings.entries()) {
       if (Text.equal(booking.city, city)) {
@@ -670,7 +864,7 @@ actor {
     filtered.toArray();
   };
 
-  public query ({ caller }) func getBookingsByDateRange(start : Int, end : Int) : async [Booking] {
+  public query func getBookingsByDateRange(start : Int, end : Int) : async [Booking] {
     let filtered = List.empty<Booking>();
     for ((id, booking) in bookings.entries()) {
       if (booking.date >= start and booking.date <= end) {
@@ -680,7 +874,7 @@ actor {
     filtered.toArray();
   };
 
-  public query ({ caller }) func getNewBookings() : async [Booking] {
+  public query func getNewBookings() : async [Booking] {
     let newBookings = List.empty<Booking>();
     for ((id, booking) in bookings.entries()) {
       if (booking.status == #new) {
@@ -690,7 +884,7 @@ actor {
     newBookings.toArray();
   };
 
-  public query ({ caller }) func getConfirmedBookings() : async [Booking] {
+  public query func getConfirmedBookings() : async [Booking] {
     let confirmed = List.empty<Booking>();
     for ((id, booking) in bookings.entries()) {
       if (booking.status == #confirmed) {
@@ -700,7 +894,7 @@ actor {
     confirmed.toArray();
   };
 
-  public query ({ caller }) func getBookingsByStatus(status : BookingStatus) : async [Booking] {
+  public query func getBookingsByStatus(status : BookingStatus) : async [Booking] {
     let filtered = List.empty<Booking>();
     for ((id, booking) in bookings.entries()) {
       if (booking.status == status) {
@@ -770,11 +964,11 @@ actor {
     users.values().toArray();
   };
 
-  public query ({ caller }) func getUser(id : Nat) : async ?User {
+  public query func getUser(id : Nat) : async ?User {
     users.get(id);
   };
 
-  public query ({ caller }) func getUsersByRole(role : UserRole) : async [User] {
+  public query func getUsersByRole(role : UserRole) : async [User] {
     let filtered = List.empty<User>();
     for ((id, user) in users.entries()) {
       if (user.role == role) {
@@ -787,7 +981,7 @@ actor {
   ////////////////////////////////////////////////////////
   // Listing Management
   ////////////////////////////////////////////////////////
-  public query ({ caller }) func getPublicListings() : async [Listing] {
+  public query func getPublicListings() : async [Listing] {
     let approved = List.empty<Listing>();
     for ((id, listing) in listings.entries()) {
       if (listing.status == #approved) {
@@ -833,11 +1027,11 @@ actor {
     listings.values().toArray();
   };
 
-  public query ({ caller }) func getListing(id : Nat) : async ?Listing {
+  public query func getListing(id : Nat) : async ?Listing {
     listings.get(id);
   };
 
-  public query ({ caller }) func getListingsByCategory(category : Text) : async [Listing] {
+  public query func getListingsByCategory(category : Text) : async [Listing] {
     let filtered = List.empty<Listing>();
     for ((id, listing) in listings.entries()) {
       if (Text.equal(listing.category, category)) {
@@ -847,7 +1041,7 @@ actor {
     filtered.toArray();
   };
 
-  public query ({ caller }) func getListingsByCity(city : Text) : async [Listing] {
+  public query func getListingsByCity(city : Text) : async [Listing] {
     let filtered = List.empty<Listing>();
     for ((id, listing) in listings.entries()) {
       if (Text.equal(listing.city, city)) {
@@ -882,13 +1076,11 @@ actor {
   ////////////////////////////////////////////////////////
   // Vendor Marketplace
   ////////////////////////////////////////////////////////
-  //// Vendor Applications
   public shared ({ caller }) func submitVendorApplication(businessName : Text, ownerName : Text, city : Text, serviceCategory : Text, description : Text, phone : Text, email : Text, portfolioImages : [Text]) : async Nat {
     if (caller.isAnonymous()) {
       Runtime.trap("Unauthorized: Anonymous users cannot submit vendor applications");
     };
 
-    // Check if caller already has an application (any status)
     for ((id, app) in vendorApplications.entries()) {
       if (Principal.equal(app.principal, caller)) {
         Runtime.trap("You have already submitted an application. Use updateMyVendorApplication to modify a pending application.");
@@ -977,25 +1169,29 @@ actor {
     approved.toArray();
   };
 
-  public query func getApprovedVendors() : async [VendorApplication] {
-    let approved = List.empty<VendorApplication>();
-    for ((id, app) in vendorApplications.entries()) {
-      if (app.status == #approved) {
-        approved.add(app);
-      };
-    };
-    approved.toArray();
-  };
-
   public query ({ caller }) func getAllVendorApplications() : async [VendorApplication] {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can view all vendor applications");
+    };
     vendorApplications.values().toArray();
   };
 
   public query ({ caller }) func getVendorApplication(id : Nat) : async ?VendorApplication {
-    vendorApplications.get(id);
+    switch (vendorApplications.get(id)) {
+      case (null) { null };
+      case (?app) {
+        if (not AccessControl.isAdmin(accessControlState, caller) and not Principal.equal(app.principal, caller)) {
+          Runtime.trap("Unauthorized: Can only view your own application or be an admin");
+        };
+        ?app;
+      };
+    };
   };
 
   public shared ({ caller }) func reviewVendorApplication(id : Nat, status : ApplicationStatus) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can review vendor applications");
+    };
     switch (vendorApplications.get(id)) {
       case (null) { Runtime.trap("Application not found") };
       case (?existing) {
@@ -1009,12 +1205,13 @@ actor {
   };
 
   public shared ({ caller }) func updateVendorApplicationStatus(id : Nat, status : ApplicationStatus) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can update vendor application status");
+    };
     switch (vendorApplications.get(id)) {
       case (null) { Runtime.trap("Vendor application not found") };
       case (?existing) {
-        let updated : VendorApplication = {
-          existing with status
-        };
+        let updated : VendorApplication = { existing with status };
         vendorApplications.add(id, updated);
       };
     };
@@ -1026,7 +1223,6 @@ actor {
       Runtime.trap("Unauthorized: Anonymous users cannot add service listings");
     };
 
-    // Check if caller is an approved vendor
     var hasApprovedVendor = false;
     for ((id, app) in vendorApplications.entries()) {
       if (Principal.equal(app.principal, caller) and app.status == #approved) {
@@ -1105,7 +1301,7 @@ actor {
     myListings.toArray();
   };
 
-  public query ({ caller }) func getAllServiceListings() : async [ServiceListing] {
+  public query func getAllServiceListings() : async [ServiceListing] {
     serviceListings.values().toArray();
   };
 
@@ -1114,7 +1310,6 @@ actor {
       Runtime.trap("Unauthorized: Anonymous users cannot access vendor bookings");
     };
 
-    // Check if caller is an approved vendor and get their service category
     var serviceCategory : ?Text = null;
     for ((id, app) in vendorApplications.entries()) {
       if (Principal.equal(app.principal, caller) and app.status == #approved) {
@@ -1123,9 +1318,7 @@ actor {
     };
 
     switch (serviceCategory) {
-      case (null) {
-        Runtime.trap("Unauthorized: Only approved vendors can view bookings");
-      };
+      case (null) { Runtime.trap("Unauthorized: Only approved vendors can view bookings") };
       case (?category) {
         let filtered = List.empty<Booking>();
         for ((id, booking) in bookings.entries()) {
@@ -1178,7 +1371,6 @@ actor {
   // STAFF AUTHENTICATION SYSTEM
   ////////////////////////////////////////////////////////
   module PasswordHelper {
-    // Improved password hash function with multiplication
     public func hash(password : Text) : Text {
       var hashValue = 5381 : Nat;
       password.chars().forEach(
@@ -1195,8 +1387,6 @@ actor {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admin can create staff accounts");
     };
-
-    // Check if username is already taken (case-insensitive)
     switch (findStaffAccountByUsername(username)) {
       case (?_) { Runtime.trap("Username already taken, choose another") };
       case (null) { () };
@@ -1213,7 +1403,7 @@ actor {
       createdAt = Time.now();
     };
     staffAccounts.add(id, staffAccount);
-    staffAccountId += 1;
+    staffAccountId += 1 : Nat;
     id;
   };
 
@@ -1239,9 +1429,7 @@ actor {
     switch (staffAccounts.get(id)) {
       case (null) { Runtime.trap("Staff account not found") };
       case (?existing) {
-        let updated : StaffAccount = {
-          existing with status;
-        };
+        let updated : StaffAccount = { existing with status };
         staffAccounts.add(id, updated);
       };
     };
@@ -1291,7 +1479,6 @@ actor {
       Runtime.trap("Unauthorized: Only admin can initialize default staff accounts");
     };
 
-    // Check if staff accounts already exist
     if (not staffAccounts.isEmpty()) {
       Runtime.trap("Default staff account cannot be initialized if accounts already exist");
     };
