@@ -123,6 +123,23 @@ export interface Listing {
     price: bigint;
     contactPhone: string;
 }
+export interface HotelBooking {
+    id: bigint;
+    status: BookingStatus;
+    paymentStatus: TransactionStatus;
+    hotelName: string;
+    pricePerNight: bigint;
+    createdAt: bigint;
+    hotelId: bigint;
+    checkInDate: bigint;
+    guestName: string;
+    guestEmail: string;
+    totalAmount: bigint;
+    checkOutDate: bigint;
+    guestPhone: string;
+    numberOfNights: bigint;
+    roomType: string;
+}
 export interface User {
     id: bigint;
     status: UserStatus;
@@ -249,6 +266,7 @@ export interface backendInterface {
     createEvent(name: string, category: string, subCategory: string, venue: string, city: string, state: string, country: string, date: bigint, time: string, duration: string, ageLimit: bigint, description: string, posterUrl: string, bannerUrl: string, status: Status): Promise<bigint>;
     createEventBooking(eventId: bigint, eventName: string, ticketCategory: string, name: string, phone: string, city: string, quantity: bigint, message: string): Promise<bigint>;
     createHotel(name: string, city: string, address: string, description: string, roomTypes: Array<RoomType>, amenities: Array<string>, photoUrls: Array<string>): Promise<bigint>;
+    createHotelBooking(hotelId: bigint, hotelName: string, roomType: string, pricePerNight: bigint, guestName: string, guestPhone: string, guestEmail: string, checkInDate: bigint, checkOutDate: bigint, numberOfNights: bigint, totalAmount: bigint): Promise<bigint>;
     createListing(title: string, category: string, description: string, city: string, price: bigint, contactPhone: string, submittedBy: string): Promise<bigint>;
     createPaymentTransaction(transactionId: string, paymentMethod: string, amount: bigint, bookingId: bigint, status: TransactionStatus): Promise<bigint>;
     createStaffAccount(username: string, password: string, role: StaffRole): Promise<bigint>;
@@ -263,6 +281,7 @@ export interface backendInterface {
     getAllBookings(): Promise<Array<Booking>>;
     getAllEventBookings(): Promise<Array<EventBooking>>;
     getAllEvents(): Promise<Array<Event>>;
+    getAllHotelBookings(): Promise<Array<HotelBooking>>;
     getAllHotels(): Promise<Array<Hotel>>;
     getAllListings(): Promise<Array<Listing>>;
     getAllPaymentTransactions(): Promise<Array<PaymentTransaction>>;
@@ -284,6 +303,7 @@ export interface backendInterface {
     getEvent(id: bigint): Promise<Event | null>;
     getEventBookingsByEvent(eventId: bigint): Promise<Array<EventBooking>>;
     getHotel(id: bigint): Promise<Hotel | null>;
+    getHotelBooking(id: bigint): Promise<HotelBooking | null>;
     getListing(id: bigint): Promise<Listing | null>;
     getListingsByCategory(category: string): Promise<Array<Listing>>;
     getListingsByCity(city: string): Promise<Array<Listing>>;
@@ -316,6 +336,8 @@ export interface backendInterface {
     updateEvent(id: bigint, name: string, category: string, subCategory: string, venue: string, city: string, state: string, country: string, date: bigint, time: string, duration: string, ageLimit: bigint, description: string, posterUrl: string, bannerUrl: string, status: Status): Promise<void>;
     updateEventBookingStatus(id: bigint, status: BookingStatus): Promise<void>;
     updateHotel(id: bigint, name: string, city: string, address: string, description: string, roomTypes: Array<RoomType>, amenities: Array<string>, photoUrls: Array<string>): Promise<void>;
+    updateHotelBookingPaymentStatus(id: bigint, paymentStatus: TransactionStatus): Promise<void>;
+    updateHotelBookingStatus(id: bigint, status: BookingStatus): Promise<void>;
     updateListingStatus(id: bigint, status: ListingStatus): Promise<void>;
     updateMyVendorApplication(businessName: string, ownerName: string, city: string, serviceCategory: string, description: string, phone: string, email: string, portfolioImages: Array<string>): Promise<void>;
     updateServiceListing(id: bigint, input: ServiceListingInput): Promise<void>;

@@ -80,6 +80,23 @@ export interface Hotel {
   'amenities' : Array<string>,
   'address' : string,
 }
+export interface HotelBooking {
+  'id' : bigint,
+  'status' : BookingStatus,
+  'paymentStatus' : TransactionStatus,
+  'hotelName' : string,
+  'pricePerNight' : bigint,
+  'createdAt' : bigint,
+  'hotelId' : bigint,
+  'checkInDate' : bigint,
+  'guestName' : string,
+  'guestEmail' : string,
+  'totalAmount' : bigint,
+  'checkOutDate' : bigint,
+  'guestPhone' : string,
+  'numberOfNights' : bigint,
+  'roomType' : string,
+}
 export interface Listing {
   'id' : bigint,
   'status' : ListingStatus,
@@ -288,6 +305,22 @@ export interface _SERVICE {
     ],
     bigint
   >,
+  'createHotelBooking' : ActorMethod<
+    [
+      bigint,
+      string,
+      string,
+      bigint,
+      string,
+      string,
+      string,
+      bigint,
+      bigint,
+      bigint,
+      bigint,
+    ],
+    bigint
+  >,
   'createListing' : ActorMethod<
     [string, string, string, string, bigint, string, string],
     bigint
@@ -311,6 +344,7 @@ export interface _SERVICE {
   'getAllBookings' : ActorMethod<[], Array<Booking>>,
   'getAllEventBookings' : ActorMethod<[], Array<EventBooking>>,
   'getAllEvents' : ActorMethod<[], Array<Event>>,
+  'getAllHotelBookings' : ActorMethod<[], Array<HotelBooking>>,
   'getAllHotels' : ActorMethod<[], Array<Hotel>>,
   'getAllListings' : ActorMethod<[], Array<Listing>>,
   'getAllPaymentTransactions' : ActorMethod<[], Array<PaymentTransaction>>,
@@ -332,6 +366,7 @@ export interface _SERVICE {
   'getEvent' : ActorMethod<[bigint], [] | [Event]>,
   'getEventBookingsByEvent' : ActorMethod<[bigint], Array<EventBooking>>,
   'getHotel' : ActorMethod<[bigint], [] | [Hotel]>,
+  'getHotelBooking' : ActorMethod<[bigint], [] | [HotelBooking]>,
   'getListing' : ActorMethod<[bigint], [] | [Listing]>,
   'getListingsByCategory' : ActorMethod<[string], Array<Listing>>,
   'getListingsByCity' : ActorMethod<[string], Array<Listing>>,
@@ -405,6 +440,11 @@ export interface _SERVICE {
     ],
     undefined
   >,
+  'updateHotelBookingPaymentStatus' : ActorMethod<
+    [bigint, TransactionStatus],
+    undefined
+  >,
+  'updateHotelBookingStatus' : ActorMethod<[bigint, BookingStatus], undefined>,
   'updateListingStatus' : ActorMethod<[bigint, ListingStatus], undefined>,
   'updateMyVendorApplication' : ActorMethod<
     [string, string, string, string, string, string, string, Array<string>],

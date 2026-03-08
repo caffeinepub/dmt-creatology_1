@@ -48,7 +48,6 @@ actor {
     #rejected;
   };
 
-  /** Payment Transactions **/
   type TransactionStatus = {
     #pending;
     #completed;
@@ -64,7 +63,6 @@ actor {
     status : TransactionStatus;
   };
 
-  /** EVENTS **/
   type Event = {
     id : Nat;
     name : Text;
@@ -85,7 +83,6 @@ actor {
     createdAt : Int;
   };
 
-  /** VENDORS **/
   type Vendor = {
     id : Nat;
     name : Text;
@@ -99,7 +96,6 @@ actor {
     createdAt : Int;
   };
 
-  /** BOOKINGS **/
   type Booking = {
     id : Nat;
     name : Text;
@@ -112,7 +108,6 @@ actor {
     createdAt : Int;
   };
 
-  /** USERS **/
   type User = {
     id : Nat;
     name : Text;
@@ -123,7 +118,6 @@ actor {
     createdAt : Int;
   };
 
-  /** LISTINGS **/
   type Listing = {
     id : Nat;
     title : Text;
@@ -152,7 +146,6 @@ actor {
     email : Text;
   };
 
-  /** VENDOR MARKETPLACE **/
   public type ApplicationStatus = {
     #pending;
     #approved;
@@ -189,7 +182,6 @@ actor {
     price : Nat;
   };
 
-  /** IMAGE STORAGE **/
   public type ImageMetadata = {
     id : Nat;
     vendorId : ?Nat;
@@ -215,7 +207,6 @@ actor {
     size : Nat;
   };
 
-  /** TICKET SYSTEM **/
   public type TicketCategory = {
     id : Nat;
     eventId : Nat;
@@ -237,7 +228,6 @@ actor {
     createdAt : Int;
   };
 
-  /** STAFF AUTHENTICATION **/
   public type StaffRole = {
     #gateStaff;
     #eventManager;
@@ -265,7 +255,6 @@ actor {
     #err : Text;
   };
 
-  /** HOTEL SYSTEM **/
   public type Hotel = {
     id : Nat;
     name : Text;
@@ -283,13 +272,30 @@ actor {
     pricePerNight : Nat;
   };
 
+  public type HotelBooking = {
+    id : Nat;
+    hotelId : Nat;
+    hotelName : Text;
+    roomType : Text;
+    pricePerNight : Nat;
+    guestName : Text;
+    guestPhone : Text;
+    guestEmail : Text;
+    checkInDate : Int;
+    checkOutDate : Int;
+    numberOfNights : Nat;
+    totalAmount : Nat;
+    status : BookingStatus;
+    paymentStatus : TransactionStatus;
+    createdAt : Int;
+  };
+
   ////////////////////////////////////////////////////////
   // State
   ////////////////////////////////////////////////////////
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
-  // ID counters
   var eventId = 0;
   var vendorId = 0;
   var bookingId = 0;
@@ -303,8 +309,8 @@ actor {
   var staffAccountId = 0;
   var paymentTransactionId = 0;
   var hotelId = 0;
+  var hotelBookingId = 0;
 
-  // Data stores
   let events = Maps.empty<Nat, Event>();
   let vendors = Maps.empty<Nat, Vendor>();
   let bookings = Maps.empty<Nat, Booking>();
@@ -316,12 +322,86 @@ actor {
   let portfolioImages = Maps.empty<Nat, ImageMetadata>();
   let ticketCategories = Maps.empty<Nat, TicketCategory>();
   let eventBookings = Maps.empty<Nat, EventBooking>();
-  let staffAccounts = Maps.empty<Nat, StaffAccount>();
   let paymentTransactions = Maps.empty<Nat, PaymentTransaction>();
+  let staffAccounts = Maps.empty<Nat, StaffAccount>();
   let hotels = Maps.empty<Nat, Hotel>();
+  let hotelBookings = Maps.empty<Nat, HotelBooking>();
 
   ////////////////////////////////////////////////////////
-  // Hotel Management
+  // Hotel Booking System
+  ////////////////////////////////////////////////////////
+  public shared ({ caller }) func createHotelBooking(
+    hotelId : Nat,
+    hotelName : Text,
+    roomType : Text,
+    pricePerNight : Nat,
+    guestName : Text,
+    guestPhone : Text,
+    guestEmail : Text,
+    checkInDate : Int,
+    checkOutDate : Int,
+    numberOfNights : Nat,
+    totalAmount : Nat,
+  ) : async Nat {
+    let id = hotelBookingId;
+    let booking : HotelBooking = {
+      id;
+      hotelId;
+      hotelName;
+      roomType;
+      pricePerNight;
+      guestName;
+      guestPhone;
+      guestEmail;
+      checkInDate;
+      checkOutDate;
+      numberOfNights;
+      totalAmount;
+      status = #new;
+      paymentStatus = #pending;
+      createdAt = Time.now();
+    };
+    hotelBookings.add(id, booking);
+    hotelBookingId += 1;
+    id;
+  };
+
+  public query ({ caller }) func getAllHotelBookings() : async [HotelBooking] {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can view hotel bookings");
+    };
+    hotelBookings.values().toArray();
+  };
+
+  public query ({ caller }) func getHotelBooking(id : Nat) : async ?HotelBooking {
+    hotelBookings.get(id);
+  };
+
+  public shared ({ caller }) func updateHotelBookingStatus(id : Nat, status : BookingStatus) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can update hotel booking status");
+    };
+    switch (hotelBookings.get(id)) {
+      case (null) { Runtime.trap("Hotel booking not found") };
+      case (?existing) {
+        let updated : HotelBooking = { existing with status };
+        hotelBookings.add(id, updated);
+      };
+    };
+  };
+
+  public shared ({ caller }) func updateHotelBookingPaymentStatus(id : Nat, paymentStatus : TransactionStatus) : async () {
+    switch (hotelBookings.get(id)) {
+      case (null) { Runtime.trap("Hotel booking not found") };
+      case (?existing) {
+        let updated : HotelBooking = { existing with paymentStatus };
+        hotelBookings.add(id, updated);
+      };
+    };
+  };
+
+  ////////////////////////////////////////////////////////
+  // Existing Functionality
   ////////////////////////////////////////////////////////
   public shared ({ caller }) func createHotel(
     name : Text,
@@ -402,14 +482,9 @@ actor {
     hotels.get(id);
   };
 
-  // [Existing functionality remains unchanged]
-  ////////////////////////////////////////////////////////
-  // PAYMENT TRANSACTIONS FUNCTIONS
-  ////////////////////////////////////////////////////////
   public shared ({ caller }) func createPaymentTransaction(transactionId : Text, paymentMethod : Text, amount : Nat, bookingId : Nat, status : TransactionStatus) : async Nat {
     let timestamp = Time.now();
     let id = paymentTransactionId;
-
     let paymentTransaction : PaymentTransaction = {
       id;
       transactionId;
@@ -419,7 +494,6 @@ actor {
       timestamp;
       status;
     };
-
     paymentTransactions.add(id, paymentTransaction);
     paymentTransactionId += 1;
     id;
@@ -436,27 +510,22 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can view payment transactions");
     };
-
     var foundTransaction : ?PaymentTransaction = null;
     for ((id, paymentTransaction) in paymentTransactions.entries()) {
       if (paymentTransaction.bookingId == bookingId) {
         foundTransaction := ?paymentTransaction;
       };
     };
-
     switch (foundTransaction) {
       case (null) { return null };
       case (?transaction) {
         if (AccessControl.isAdmin(accessControlState, caller)) {
           return ?transaction;
         };
-
         switch (bookings.get(bookingId)) {
           case (null) {
             switch (eventBookings.get(bookingId)) {
-              case (null) {
-                Runtime.trap("Booking not found");
-              };
+              case (null) { Runtime.trap("Booking not found") };
               case (?eventBooking) { return ?transaction };
             };
           };
@@ -466,10 +535,6 @@ actor {
     };
   };
 
-  /////////////////////////////////////////////////////////
-  // REST OF THE PLATFORM
-  ////////////////////////////////////////////////////////
-  // TICKET SYSTEM
   public shared ({ caller }) func addTicketCategory(eventId : Nat, name : Text, price : Nat, availableQty : Nat) : async Nat {
     if (not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Only admin can add ticket categories");
@@ -1060,9 +1125,7 @@ actor {
     let totalVendors = vendors.size();
     let totalUsers = users.size();
     let totalListings = listings.size();
-
     let recentBookings = bookings.values().toArray();
-
     {
       totalEvents;
       totalBookings;
@@ -1080,13 +1143,11 @@ actor {
     if (caller.isAnonymous()) {
       Runtime.trap("Unauthorized: Anonymous users cannot submit vendor applications");
     };
-
     for ((id, app) in vendorApplications.entries()) {
       if (Principal.equal(app.principal, caller)) {
         Runtime.trap("You have already submitted an application. Use updateMyVendorApplication to modify a pending application.");
       };
     };
-
     let id = vendorApplicationId;
     let application : VendorApplication = {
       id;
@@ -1112,7 +1173,6 @@ actor {
     if (caller.isAnonymous()) {
       Runtime.trap("Unauthorized: Anonymous users cannot access vendor applications");
     };
-
     for ((id, app) in vendorApplications.entries()) {
       if (Principal.equal(app.principal, caller)) {
         return ?app;
@@ -1125,7 +1185,6 @@ actor {
     if (caller.isAnonymous()) {
       Runtime.trap("Unauthorized: Anonymous users cannot update vendor applications");
     };
-
     var foundId : ?Nat = null;
     for ((id, app) in vendorApplications.entries()) {
       if (Principal.equal(app.principal, caller)) {
@@ -1135,7 +1194,6 @@ actor {
         foundId := ?id;
       };
     };
-
     switch (foundId) {
       case (null) { Runtime.trap("No pending application found") };
       case (?id) {
@@ -1217,23 +1275,19 @@ actor {
     };
   };
 
-  //// Service Listings
   public shared ({ caller }) func addServiceListing(input : ServiceListingInput) : async Nat {
     if (caller.isAnonymous()) {
       Runtime.trap("Unauthorized: Anonymous users cannot add service listings");
     };
-
     var hasApprovedVendor = false;
     for ((id, app) in vendorApplications.entries()) {
       if (Principal.equal(app.principal, caller) and app.status == #approved) {
         hasApprovedVendor := true;
       };
     };
-
     if (not hasApprovedVendor) {
       Runtime.trap("Unauthorized: Only approved vendors can add service listings");
     };
-
     let id = serviceListingId;
     let listing : ServiceListing = {
       id;
@@ -1253,7 +1307,6 @@ actor {
     if (caller.isAnonymous()) {
       Runtime.trap("Unauthorized: Anonymous users cannot update service listings");
     };
-
     switch (serviceListings.get(id)) {
       case (null) { Runtime.trap("Listing not found") };
       case (?existing) {
@@ -1275,7 +1328,6 @@ actor {
     if (caller.isAnonymous()) {
       Runtime.trap("Unauthorized: Anonymous users cannot delete service listings");
     };
-
     switch (serviceListings.get(id)) {
       case (null) { Runtime.trap("Listing not found") };
       case (?existing) {
@@ -1291,7 +1343,6 @@ actor {
     if (caller.isAnonymous()) {
       Runtime.trap("Unauthorized: Anonymous users cannot access service listings");
     };
-
     let myListings = List.empty<ServiceListing>();
     for ((id, listing) in serviceListings.entries()) {
       if (Principal.equal(listing.vendorPrincipal, caller)) {
@@ -1309,14 +1360,12 @@ actor {
     if (caller.isAnonymous()) {
       Runtime.trap("Unauthorized: Anonymous users cannot access vendor bookings");
     };
-
     var serviceCategory : ?Text = null;
     for ((id, app) in vendorApplications.entries()) {
       if (Principal.equal(app.principal, caller) and app.status == #approved) {
         serviceCategory := ?app.serviceCategory;
       };
     };
-
     switch (serviceCategory) {
       case (null) { Runtime.trap("Unauthorized: Only approved vendors can view bookings") };
       case (?category) {
@@ -1331,7 +1380,6 @@ actor {
     };
   };
 
-  //// Image Management
   public shared ({ caller }) func uploadPortfolioImage(input : PortfolioImageInput) : async Nat {
     if (caller.isAnonymous()) {
       Runtime.trap("Unauthorized: Anonymous users cannot upload images");
@@ -1483,7 +1531,6 @@ actor {
       Runtime.trap("Default staff account cannot be initialized if accounts already exist");
     };
 
-    // Add legacy gatestaff
     let id = staffAccountId;
     let passwordHash = PasswordHelper.hash("Staff@123");
     let staffAccount : StaffAccount = {
@@ -1498,7 +1545,6 @@ actor {
     staffAccountId += 1 : Nat;
   };
 
-  // Helper to find staff account by username
   func findStaffAccountByUsername(username : Text) : ?StaffAccount {
     var found : ?StaffAccount = null;
     for ((id, account) in staffAccounts.entries()) {
@@ -1512,7 +1558,6 @@ actor {
   ////////////////////////////////////////////////////////
   // Helper Functions
   ////////////////////////////////////////////////////////
-  // Image Management Helper Module
   module PortfolioImageHelper {
     public func isImageOwner(caller : Principal, image : ImageMetadata) : Bool {
       switch (image.vendorPrincipal) {

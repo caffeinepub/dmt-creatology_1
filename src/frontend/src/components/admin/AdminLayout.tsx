@@ -3,6 +3,7 @@ import { useInternetIdentity } from "@/hooks/useInternetIdentity";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import {
   BarChart3,
+  BedDouble,
   BookOpen,
   Building2,
   CalendarDays,
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { label: "Events", href: "/admin/events", icon: CalendarDays },
   { label: "Hotels", href: "/admin/hotels", icon: Building2 },
+  { label: "Hotel Bookings", href: "/admin/hotel-bookings", icon: BedDouble },
   { label: "Vendors", href: "/admin/vendors", icon: Store },
   { label: "Bookings", href: "/admin/bookings", icon: BookOpen },
   { label: "Payments", href: "/admin/payments", icon: CreditCard },

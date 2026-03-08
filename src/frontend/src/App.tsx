@@ -17,6 +17,7 @@ import DigitalProductsPage from "./pages/DigitalProductsPage";
 import EventsPage from "./pages/EventsPage";
 import FoodPage from "./pages/FoodPage";
 import HomePage from "./pages/HomePage";
+import HotelConfirmationPage from "./pages/HotelConfirmationPage";
 import HotelsPage from "./pages/HotelsPage";
 import RankingsPage from "./pages/RankingsPage";
 import ScanPage from "./pages/ScanPage";
@@ -34,6 +35,7 @@ import AdminBookingsPage from "./pages/admin/AdminBookingsPage";
 import AdminConfigPage from "./pages/admin/AdminConfigPage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminEventsPage from "./pages/admin/AdminEventsPage";
+import AdminHotelBookingsPage from "./pages/admin/AdminHotelBookingsPage";
 import AdminHotelsPage from "./pages/admin/AdminHotelsPage";
 import AdminListingsPage from "./pages/admin/AdminListingsPage";
 import AdminLoginPage from "./pages/admin/AdminLoginPage";
@@ -156,6 +158,13 @@ const scanRoute = createRoute({
   component: ProtectedScanPage,
 });
 
+// ── Hotel confirmation (public layout with Navbar + Footer) ────────────────
+const hotelConfirmationRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/hotel-confirmation/$bookingId",
+  component: HotelConfirmationPage,
+});
+
 // ── Admin Root (no Navbar/Footer) ──────────────────────────────────────────
 const adminRootRoute = createRootRoute({
   component: () => <Outlet />,
@@ -233,6 +242,12 @@ const adminConfigRoute = createRoute({
   component: AdminConfigPage,
 });
 
+const adminHotelBookingsRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/hotel-bookings",
+  component: AdminHotelBookingsPage,
+});
+
 // Wire admin layout children
 adminLayoutRoute.addChildren([
   adminDashboardRoute,
@@ -241,6 +256,7 @@ adminLayoutRoute.addChildren([
   adminVendorsRoute,
   adminBookingsRoute,
   adminPaymentsRoute,
+  adminHotelBookingsRoute,
   adminUsersRoute,
   adminListingsRoute,
   adminAnalyticsRoute,
@@ -294,6 +310,7 @@ const publicRouteTree = rootRoute.addChildren([
   contactRoute,
   vendorRegisterPublicRoute,
   ticketRoute,
+  hotelConfirmationRoute,
   scanRoute,
 ]);
 

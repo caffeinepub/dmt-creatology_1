@@ -1,18 +1,23 @@
+import HotelBookingModal from "@/components/HotelBookingModal";
 import PageHeader from "@/components/PageHeader";
 import ServiceCard from "@/components/ServiceCard";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAllHotels } from "@/hooks/useAdminQueries";
 import {
+  BedDouble,
   Car,
   Coffee,
   Dumbbell,
+  MapPin,
   Star,
   Utensils,
   Waves,
   Wifi,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useState } from "react";
 import type { Hotel } from "../backend.d";
 
 const IMG = "/assets/generated/hotel-luxury.dim_600x400.jpg";
@@ -133,6 +138,7 @@ function getAmenityIcon(name: string): LucideIcon {
 // ── Live hotel card ───────────────────────────────────────────────────────────
 
 function LiveHotelCard({ hotel, index }: { hotel: Hotel; index: number }) {
+  const [modalOpen, setModalOpen] = useState(false);
   const prices = hotel.roomTypes.map((rt) => Number(rt.pricePerNight));
   const minPrice = prices.length ? Math.min(...prices) : null;
   const priceText =
@@ -143,35 +149,103 @@ function LiveHotelCard({ hotel, index }: { hotel: Hotel; index: number }) {
   const coverImage = hotel.photoUrls[0] ?? IMG;
 
   return (
-    <div className="relative">
-      <ServiceCard
-        image={coverImage}
-        title={hotel.name}
-        subtitle={hotel.city}
-        description={hotel.description || "A wonderful place to stay."}
-        details={priceText}
-        service={hotel.name}
-        buttonLabel="Book Hotel"
-        index={index}
-      />
-      {/* Amenity icons */}
-      {hotel.amenities.length > 0 && (
-        <div className="px-4 pb-3 flex gap-2 flex-wrap">
-          {hotel.amenities.slice(0, 6).map((a) => {
-            const Icon = getAmenityIcon(a);
-            return (
-              <div
-                key={a}
-                className="w-6 h-6 bg-muted rounded flex items-center justify-center"
-                title={a}
-              >
-                <Icon className="w-3 h-3 text-muted-foreground" />
-              </div>
-            );
-          })}
+    <>
+      <div
+        className="relative bg-card rounded-2xl overflow-hidden border border-border shadow-md hover:shadow-lg transition-shadow"
+        data-ocid={`hotels.item.${index}`}
+      >
+        {/* Cover image */}
+        <div className="relative h-48 overflow-hidden bg-muted">
+          <img
+            src={coverImage}
+            alt={hotel.name}
+            className="w-full h-full object-cover"
+            loading="lazy"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = IMG;
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+          <div className="absolute bottom-3 left-3">
+            <span className="text-white font-bold text-lg drop-shadow">
+              {priceText}
+            </span>
+          </div>
         </div>
-      )}
-    </div>
+
+        {/* Content */}
+        <div className="p-4 space-y-3">
+          <div>
+            <h3 className="font-display font-bold text-foreground text-lg leading-tight line-clamp-1">
+              {hotel.name}
+            </h3>
+            <p className="text-muted-foreground text-sm flex items-center gap-1 mt-0.5">
+              <MapPin className="w-3 h-3 shrink-0" />
+              {hotel.city}
+            </p>
+          </div>
+
+          {hotel.description && (
+            <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
+              {hotel.description}
+            </p>
+          )}
+
+          {/* Amenity icons */}
+          {hotel.amenities.length > 0 && (
+            <div className="flex gap-2 flex-wrap">
+              {hotel.amenities.slice(0, 6).map((a) => {
+                const Icon = getAmenityIcon(a);
+                return (
+                  <div
+                    key={a}
+                    className="w-7 h-7 bg-muted rounded-lg flex items-center justify-center"
+                    title={a}
+                  >
+                    <Icon className="w-3.5 h-3.5 text-muted-foreground" />
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Room types */}
+          {hotel.roomTypes.length > 0 && (
+            <div className="flex gap-1.5 flex-wrap">
+              {hotel.roomTypes.slice(0, 3).map((rt) => (
+                <span
+                  key={rt.name}
+                  className="text-[10px] font-medium text-gold border border-gold/30 bg-gold/5 px-2 py-0.5 rounded-full"
+                >
+                  {rt.name}
+                </span>
+              ))}
+              {hotel.roomTypes.length > 3 && (
+                <span className="text-[10px] text-muted-foreground px-2 py-0.5">
+                  +{hotel.roomTypes.length - 3} more
+                </span>
+              )}
+            </div>
+          )}
+
+          <Button
+            onClick={() => setModalOpen(true)}
+            className="w-full gradient-gold text-[oklch(0.1_0.01_260)] font-bold hover:opacity-90 flex items-center gap-2 h-10"
+            data-ocid={`hotels.book.${index}`}
+          >
+            <BedDouble className="w-4 h-4" />
+            Book Hotel
+          </Button>
+        </div>
+      </div>
+
+      {/* Hotel Booking Modal */}
+      <HotelBookingModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        hotel={hotel}
+      />
+    </>
   );
 }
 

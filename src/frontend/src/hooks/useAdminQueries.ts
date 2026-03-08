@@ -513,6 +513,86 @@ export function useDeleteHotel() {
   });
 }
 
+// ── Hotel Bookings ──────────────────────────────────────────────────────────
+
+export function useCreateHotelBooking() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      hotelId: bigint;
+      hotelName: string;
+      roomType: string;
+      pricePerNight: bigint;
+      guestName: string;
+      guestPhone: string;
+      guestEmail: string;
+      checkInDate: bigint;
+      checkOutDate: bigint;
+      numberOfNights: bigint;
+      totalAmount: bigint;
+    }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.createHotelBooking(
+        data.hotelId,
+        data.hotelName,
+        data.roomType,
+        data.pricePerNight,
+        data.guestName,
+        data.guestPhone,
+        data.guestEmail,
+        data.checkInDate,
+        data.checkOutDate,
+        data.numberOfNights,
+        data.totalAmount,
+      );
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["hotelBookings"] }),
+  });
+}
+
+export function useAllHotelBookings() {
+  const { actor, isFetching } = useActor();
+  return useQuery({
+    queryKey: ["hotelBookings"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllHotelBookings();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useUpdateHotelBookingStatus() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      status,
+    }: { id: bigint; status: BookingStatus }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.updateHotelBookingStatus(id, status);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["hotelBookings"] }),
+  });
+}
+
+export function useUpdateHotelBookingPaymentStatus() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      paymentStatus,
+    }: { id: bigint; paymentStatus: TransactionStatus }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.updateHotelBookingPaymentStatus(id, paymentStatus);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["hotelBookings"] }),
+  });
+}
+
 // ── Razorpay Config ─────────────────────────────────────────────────────────
 
 export function useGetRazorpayConfig() {
