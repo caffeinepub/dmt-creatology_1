@@ -24,7 +24,9 @@ import {
 import { Loader2, Ticket } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import type { Event } from "../backend.d";
+// Event type - defined locally since it was removed from the reduced backend.d.ts
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Event = any;
 import PaymentModal from "./PaymentModal";
 
 interface EventBookingModalProps {

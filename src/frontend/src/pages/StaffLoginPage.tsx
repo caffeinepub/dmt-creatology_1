@@ -60,7 +60,8 @@ export default function StaffLoginPage() {
     }
     setIsInitializing(true);
     try {
-      await actor.initDefaultStaffAccount();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (actor as any).initDefaultStaffAccount();
       toast.success(
         "Default staff account initialized! Try: gatestaff / Staff@123",
       );

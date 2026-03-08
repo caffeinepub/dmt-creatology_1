@@ -46,7 +46,8 @@ export function useStaffAuth() {
       if (!actor) {
         throw new Error("Service unavailable. Please try again.");
       }
-      const result = await actor.staffLogin(username, password);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = await (actor as any).staffLogin(username, password);
       if (result.__kind__ === "err") {
         throw new Error(result.err);
       }

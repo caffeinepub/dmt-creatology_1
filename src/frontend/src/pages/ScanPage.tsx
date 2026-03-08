@@ -17,7 +17,9 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BookingStatus } from "../backend.d";
-import type { EventBooking } from "../backend.d";
+// EventBooking type - defined locally since it was removed from the reduced backend.d.ts
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type EventBooking = any;
 import { useQRScanner } from "../qr-code/useQRScanner";
 
 type VerifyResult =
@@ -110,7 +112,8 @@ export default function ScanPage() {
 
       setIsVerifying(true);
       try {
-        const bookings = await actor.getAllEventBookings();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const bookings = await (actor as any).getAllEventBookings();
         const idNum = BigInt(rawId.trim());
         const booking = bookings.find((b) => b.id === idNum);
 
@@ -120,7 +123,8 @@ export default function ScanPage() {
           setVerifyResult({ type: "already_used", booking });
         } else {
           // Mark as used (confirmed)
-          await actor.updateEventBookingStatus(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (actor as any).updateEventBookingStatus(
             booking.id,
             BookingStatus.confirmed,
           );

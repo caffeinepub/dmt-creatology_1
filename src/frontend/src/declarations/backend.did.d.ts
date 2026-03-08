@@ -10,65 +10,10 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
-export interface Analytics {
-  'totalEvents' : bigint,
-  'totalBookings' : bigint,
-  'totalListings' : bigint,
-  'totalUsers' : bigint,
-  'recentBookings' : Array<Booking>,
-  'totalVendors' : bigint,
-}
-export type ApplicationStatus = { 'pending' : null } |
-  { 'approved' : null } |
-  { 'rejected' : null };
-export interface Booking {
-  'id' : bigint,
-  'status' : BookingStatus,
-  'serviceType' : string,
-  'city' : string,
-  'date' : bigint,
-  'name' : string,
-  'createdAt' : bigint,
-  'message' : string,
-  'phone' : string,
-}
 export type BookingStatus = { 'new' : null } |
   { 'cancelled' : null } |
   { 'reviewed' : null } |
   { 'confirmed' : null };
-export interface Event {
-  'id' : bigint,
-  'status' : Status,
-  'subCategory' : string,
-  'duration' : string,
-  'country' : string,
-  'venue' : string,
-  'city' : string,
-  'date' : bigint,
-  'name' : string,
-  'createdAt' : bigint,
-  'time' : string,
-  'description' : string,
-  'state' : string,
-  'posterUrl' : string,
-  'category' : string,
-  'bannerUrl' : string,
-  'ageLimit' : bigint,
-}
-export interface EventBooking {
-  'id' : bigint,
-  'status' : BookingStatus,
-  'eventId' : bigint,
-  'ticketCategory' : string,
-  'city' : string,
-  'name' : string,
-  'createdAt' : bigint,
-  'message' : string,
-  'quantity' : bigint,
-  'phone' : string,
-  'eventName' : string,
-}
-export type ExternalBlob = Uint8Array;
 export interface Hotel {
   'id' : bigint,
   'roomTypes' : Array<RoomType>,
@@ -97,21 +42,6 @@ export interface HotelBooking {
   'numberOfNights' : bigint,
   'roomType' : string,
 }
-export interface Listing {
-  'id' : bigint,
-  'status' : ListingStatus,
-  'title' : string,
-  'city' : string,
-  'createdAt' : bigint,
-  'submittedBy' : string,
-  'description' : string,
-  'category' : string,
-  'price' : bigint,
-  'contactPhone' : string,
-}
-export type ListingStatus = { 'pending' : null } |
-  { 'approved' : null } |
-  { 'rejected' : null };
 export interface PaymentTransaction {
   'id' : bigint,
   'status' : TransactionStatus,
@@ -121,119 +51,54 @@ export interface PaymentTransaction {
   'amount' : bigint,
   'transactionId' : string,
 }
-export interface PortfolioImageInput {
-  'title' : [] | [string],
-  'file' : ExternalBlob,
-  'size' : bigint,
-  'vendorPrincipal' : [] | [Principal],
-  'mimeType' : string,
-  'description' : [] | [string],
-  'filename' : string,
-  'vendorId' : [] | [bigint],
-  'category' : string,
-}
 export interface RoomType { 'pricePerNight' : bigint, 'name' : string }
-export interface ServiceListing {
-  'id' : bigint,
-  'title' : string,
-  'createdAt' : bigint,
-  'vendorPrincipal' : Principal,
-  'description' : string,
-  'category' : string,
-  'price' : bigint,
-}
-export interface ServiceListingInput {
-  'title' : string,
-  'description' : string,
-  'category' : string,
-  'price' : bigint,
-}
-export interface StaffAccount {
-  'id' : bigint,
-  'status' : StaffStatus,
-  'username' : string,
-  'createdAt' : bigint,
-  'role' : StaffRole,
-  'passwordHash' : string,
-}
-export type StaffLoginResult = { 'ok' : StaffSession } |
-  { 'err' : string };
-export type StaffRole = { 'admin' : null } |
-  { 'eventManager' : null } |
-  { 'gateStaff' : null };
-export interface StaffSession {
-  'username' : string,
-  'staffId' : bigint,
-  'role' : StaffRole,
-}
-export type StaffStatus = { 'active' : null } |
-  { 'inactive' : null };
-export type Status = { 'cancelled' : null } |
-  { 'published' : null } |
-  { 'draft' : null };
-export interface TicketCategory {
-  'id' : bigint,
-  'eventId' : bigint,
-  'availableQty' : bigint,
-  'name' : string,
-  'price' : bigint,
-}
 export type TransactionStatus = { 'pending' : null } |
   { 'completed' : null } |
   { 'failed' : null };
-export interface User {
+export interface TransportBooking {
   'id' : bigint,
-  'status' : UserStatus,
-  'name' : string,
+  'status' : BookingStatus,
+  'paymentStatus' : TransactionStatus,
+  'bookedBy' : Principal,
+  'transportId' : bigint,
+  'city' : string,
   'createdAt' : bigint,
-  'role' : UserRole,
-  'email' : string,
-  'phone' : string,
+  'operatorName' : string,
+  'passengerName' : string,
+  'seats' : bigint,
+  'passengerEmail' : string,
+  'totalAmount' : bigint,
+  'travelDate' : bigint,
+  'transportName' : string,
+  'transportType' : string,
+  'passengerPhone' : string,
+  'route' : string,
 }
+export interface TransportOption {
+  'id' : bigint,
+  'photoUrls' : Array<string>,
+  'city' : string,
+  'createdAt' : bigint,
+  'operatorName' : string,
+  'availableSeats' : bigint,
+  'transportType' : TransportType,
+  'price' : bigint,
+  'route' : string,
+}
+export type TransportType = { 'bus' : null } |
+  { 'car' : null } |
+  { 'train' : null } |
+  { 'flight' : null } |
+  { 'helicopter' : null } |
+  { 'cruise' : null };
 export interface UserProfile {
   'name' : string,
   'email' : string,
   'phone' : string,
 }
-export type UserRole = { 'customer' : null } |
-  { 'staff' : null } |
-  { 'vendor' : null };
-export type UserRole__1 = { 'admin' : null } |
+export type UserRole = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
-export type UserStatus = { 'active' : null } |
-  { 'inactive' : null };
-export interface Vendor {
-  'id' : bigint,
-  'status' : VendorStatus,
-  'city' : string,
-  'name' : string,
-  'createdAt' : bigint,
-  'businessName' : string,
-  'email' : string,
-  'experience' : bigint,
-  'phone' : string,
-  'services' : string,
-}
-export interface VendorApplication {
-  'id' : bigint,
-  'status' : ApplicationStatus,
-  'serviceCategory' : string,
-  'principal' : Principal,
-  'ownerName' : string,
-  'city' : string,
-  'businessName' : string,
-  'submittedAt' : bigint,
-  'description' : string,
-  'reviewedAt' : [] | [bigint],
-  'email' : string,
-  'phone' : string,
-  'portfolioImages' : Array<string>,
-}
-export type VendorStatus = { 'pending' : null } |
-  { 'approved' : null } |
-  { 'rejected' : null } |
-  { 'suspended' : null };
 export interface _CaffeineStorageCreateCertificateResult {
   'method' : string,
   'blob_hash' : string,
@@ -262,37 +127,7 @@ export interface _SERVICE {
   >,
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
-  'addServiceListing' : ActorMethod<[ServiceListingInput], bigint>,
-  'addTicketCategory' : ActorMethod<[bigint, string, bigint, bigint], bigint>,
-  'assignCallerUserRole' : ActorMethod<[Principal, UserRole__1], undefined>,
-  'createBookingRequest' : ActorMethod<
-    [string, string, string, string, bigint, string],
-    bigint
-  >,
-  'createEvent' : ActorMethod<
-    [
-      string,
-      string,
-      string,
-      string,
-      string,
-      string,
-      string,
-      bigint,
-      string,
-      string,
-      bigint,
-      string,
-      string,
-      string,
-      Status,
-    ],
-    bigint
-  >,
-  'createEventBooking' : ActorMethod<
-    [bigint, string, string, string, string, string, bigint, string],
-    bigint
-  >,
+  'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'createHotel' : ActorMethod<
     [
       string,
@@ -321,91 +156,11 @@ export interface _SERVICE {
     ],
     bigint
   >,
-  'createListing' : ActorMethod<
-    [string, string, string, string, bigint, string, string],
-    bigint
-  >,
   'createPaymentTransaction' : ActorMethod<
     [string, string, bigint, bigint, TransactionStatus],
     bigint
   >,
-  'createStaffAccount' : ActorMethod<[string, string, StaffRole], bigint>,
-  'createUser' : ActorMethod<[string, string, string, UserRole], bigint>,
-  'createVendor' : ActorMethod<
-    [string, string, string, string, bigint, string, string],
-    bigint
-  >,
-  'deleteEvent' : ActorMethod<[bigint], undefined>,
-  'deleteHotel' : ActorMethod<[bigint], undefined>,
-  'deletePortfolioImage' : ActorMethod<[bigint], undefined>,
-  'deleteServiceListing' : ActorMethod<[bigint], undefined>,
-  'deleteStaffAccount' : ActorMethod<[bigint], undefined>,
-  'deleteTicketCategory' : ActorMethod<[bigint], undefined>,
-  'getAllBookings' : ActorMethod<[], Array<Booking>>,
-  'getAllEventBookings' : ActorMethod<[], Array<EventBooking>>,
-  'getAllEvents' : ActorMethod<[], Array<Event>>,
-  'getAllHotelBookings' : ActorMethod<[], Array<HotelBooking>>,
-  'getAllHotels' : ActorMethod<[], Array<Hotel>>,
-  'getAllListings' : ActorMethod<[], Array<Listing>>,
-  'getAllPaymentTransactions' : ActorMethod<[], Array<PaymentTransaction>>,
-  'getAllServiceListings' : ActorMethod<[], Array<ServiceListing>>,
-  'getAllStaffAccounts' : ActorMethod<[], Array<StaffAccount>>,
-  'getAllUsers' : ActorMethod<[], Array<User>>,
-  'getAllVendorApplications' : ActorMethod<[], Array<VendorApplication>>,
-  'getAllVendors' : ActorMethod<[], Array<Vendor>>,
-  'getAnalytics' : ActorMethod<[], Analytics>,
-  'getBooking' : ActorMethod<[bigint], [] | [Booking]>,
-  'getBookingsByCity' : ActorMethod<[string], Array<Booking>>,
-  'getBookingsByDateRange' : ActorMethod<[bigint, bigint], Array<Booking>>,
-  'getBookingsByServiceType' : ActorMethod<[string], Array<Booking>>,
-  'getBookingsByStatus' : ActorMethod<[BookingStatus], Array<Booking>>,
-  'getBookingsForMyVendor' : ActorMethod<[], Array<Booking>>,
-  'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
-  'getCallerUserRole' : ActorMethod<[], UserRole__1>,
-  'getConfirmedBookings' : ActorMethod<[], Array<Booking>>,
-  'getEvent' : ActorMethod<[bigint], [] | [Event]>,
-  'getEventBookingsByEvent' : ActorMethod<[bigint], Array<EventBooking>>,
-  'getHotel' : ActorMethod<[bigint], [] | [Hotel]>,
-  'getHotelBooking' : ActorMethod<[bigint], [] | [HotelBooking]>,
-  'getListing' : ActorMethod<[bigint], [] | [Listing]>,
-  'getListingsByCategory' : ActorMethod<[string], Array<Listing>>,
-  'getListingsByCity' : ActorMethod<[string], Array<Listing>>,
-  'getMyServiceListings' : ActorMethod<[], Array<ServiceListing>>,
-  'getMyVendorApplication' : ActorMethod<[], [] | [VendorApplication]>,
-  'getNewBookings' : ActorMethod<[], Array<Booking>>,
-  'getPaymentTransactionByBookingId' : ActorMethod<
-    [bigint],
-    [] | [PaymentTransaction]
-  >,
-  'getPublicApprovedVendors' : ActorMethod<[], Array<VendorApplication>>,
-  'getPublicEventsByCategory' : ActorMethod<[string], Array<Event>>,
-  'getPublicEventsBySubCategory' : ActorMethod<[string], Array<Event>>,
-  'getPublicListings' : ActorMethod<[], Array<Listing>>,
-  'getPublicVendorsByServices' : ActorMethod<[string], Array<Vendor>>,
-  'getPublishedEvents' : ActorMethod<[], Array<Event>>,
-  'getPublishedVendors' : ActorMethod<[], Array<Vendor>>,
-  'getTicketCategoriesByEvent' : ActorMethod<[bigint], Array<TicketCategory>>,
-  'getUpcomingEvents' : ActorMethod<[], Array<Event>>,
-  'getUser' : ActorMethod<[bigint], [] | [User]>,
-  'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
-  'getUsersByRole' : ActorMethod<[UserRole], Array<User>>,
-  'getVendor' : ActorMethod<[bigint], [] | [Vendor]>,
-  'getVendorApplication' : ActorMethod<[bigint], [] | [VendorApplication]>,
-  'getVendorsByCity' : ActorMethod<[string], Array<Vendor>>,
-  'initDefaultStaffAccount' : ActorMethod<[], undefined>,
-  'isCallerAdmin' : ActorMethod<[], boolean>,
-  'reviewVendorApplication' : ActorMethod<
-    [bigint, ApplicationStatus],
-    undefined
-  >,
-  'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
-  'staffLogin' : ActorMethod<[string, string], StaffLoginResult>,
-  'submitVendorApplication' : ActorMethod<
-    [string, string, string, string, string, string, string, Array<string>],
-    bigint
-  >,
-  'updateBookingStatus' : ActorMethod<[bigint, BookingStatus], undefined>,
-  'updateEvent' : ActorMethod<
+  'createTransportBooking' : ActorMethod<
     [
       bigint,
       string,
@@ -415,18 +170,37 @@ export interface _SERVICE {
       string,
       string,
       string,
-      bigint,
-      string,
       string,
       bigint,
-      string,
-      string,
-      string,
-      Status,
+      bigint,
+      bigint,
     ],
-    undefined
+    bigint
   >,
-  'updateEventBookingStatus' : ActorMethod<[bigint, BookingStatus], undefined>,
+  'createTransportOption' : ActorMethod<
+    [TransportType, string, string, string, bigint, bigint, Array<string>],
+    bigint
+  >,
+  'deleteHotel' : ActorMethod<[bigint], undefined>,
+  'deleteTransportOption' : ActorMethod<[bigint], undefined>,
+  'getAllHotelBookings' : ActorMethod<[], Array<HotelBooking>>,
+  'getAllHotels' : ActorMethod<[], Array<Hotel>>,
+  'getAllPaymentTransactions' : ActorMethod<[], Array<PaymentTransaction>>,
+  'getAllTransportBookings' : ActorMethod<[], Array<TransportBooking>>,
+  'getAllTransportOptions' : ActorMethod<[], Array<TransportOption>>,
+  'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
+  'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getHotel' : ActorMethod<[bigint], [] | [Hotel]>,
+  'getHotelBooking' : ActorMethod<[bigint], [] | [HotelBooking]>,
+  'getPaymentTransactionByBookingId' : ActorMethod<
+    [bigint],
+    [] | [PaymentTransaction]
+  >,
+  'getTransportBooking' : ActorMethod<[bigint], [] | [TransportBooking]>,
+  'getTransportOption' : ActorMethod<[bigint], [] | [TransportOption]>,
+  'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'isCallerAdmin' : ActorMethod<[], boolean>,
+  'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'updateHotel' : ActorMethod<
     [
       bigint,
@@ -445,32 +219,27 @@ export interface _SERVICE {
     undefined
   >,
   'updateHotelBookingStatus' : ActorMethod<[bigint, BookingStatus], undefined>,
-  'updateListingStatus' : ActorMethod<[bigint, ListingStatus], undefined>,
-  'updateMyVendorApplication' : ActorMethod<
-    [string, string, string, string, string, string, string, Array<string>],
+  'updateTransportBookingPaymentStatus' : ActorMethod<
+    [bigint, TransactionStatus],
     undefined
   >,
-  'updateServiceListing' : ActorMethod<
-    [bigint, ServiceListingInput],
+  'updateTransportBookingStatus' : ActorMethod<
+    [bigint, BookingStatus],
     undefined
   >,
-  'updateStaffAccountRole' : ActorMethod<[bigint, StaffRole], undefined>,
-  'updateStaffAccountStatus' : ActorMethod<[bigint, StaffStatus], undefined>,
-  'updateUser' : ActorMethod<
-    [bigint, string, string, string, UserRole],
+  'updateTransportOption' : ActorMethod<
+    [
+      bigint,
+      TransportType,
+      string,
+      string,
+      string,
+      bigint,
+      bigint,
+      Array<string>,
+    ],
     undefined
   >,
-  'updateUserStatus' : ActorMethod<[bigint, UserStatus], undefined>,
-  'updateVendor' : ActorMethod<
-    [bigint, string, string, string, string, bigint, string, string],
-    undefined
-  >,
-  'updateVendorApplicationStatus' : ActorMethod<
-    [bigint, ApplicationStatus],
-    undefined
-  >,
-  'updateVendorStatus' : ActorMethod<[bigint, VendorStatus], undefined>,
-  'uploadPortfolioImage' : ActorMethod<[PortfolioImageInput], bigint>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

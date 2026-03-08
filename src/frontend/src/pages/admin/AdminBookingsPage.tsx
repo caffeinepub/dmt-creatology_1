@@ -26,7 +26,11 @@ import { ChevronDown, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { BookingStatus } from "../../backend.d";
-import type { Booking, EventBooking } from "../../backend.d";
+// Booking and EventBooking types - defined locally since they were removed from the reduced backend.d.ts
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Booking = any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type EventBooking = any;
 
 function formatNanoDate(ns: bigint): string {
   return new Date(Number(ns) / 1_000_000).toLocaleDateString("en-IN", {

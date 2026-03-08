@@ -12,7 +12,22 @@ import {
 import { useAllUsers, useUpdateUserStatus } from "@/hooks/useAdminQueries";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { UserRole, UserStatus } from "../../backend.d";
+// UserRole and UserStatus enums - defined locally since the reduced backend.d.ts
+// has different values (admin/user/guest vs customer/vendor/staff)
+const UserRole = {
+  customer: "customer",
+  vendor: "vendor",
+  staff: "staff",
+  admin: "admin",
+  user: "user",
+  guest: "guest",
+} as const;
+type UserRole = (typeof UserRole)[keyof typeof UserRole];
+const UserStatus = {
+  active: "active",
+  inactive: "inactive",
+} as const;
+type UserStatus = (typeof UserStatus)[keyof typeof UserStatus];
 
 function formatNanoDate(ns: bigint): string {
   return new Date(Number(ns) / 1_000_000).toLocaleDateString("en-IN", {

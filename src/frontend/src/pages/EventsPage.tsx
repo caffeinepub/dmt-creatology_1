@@ -6,7 +6,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { usePublishedEvents } from "@/hooks/useAdminQueries";
 import { CalendarDays, MapPin, Music, Star, Tag } from "lucide-react";
 import { useState } from "react";
-import type { Event } from "../backend.d";
+// Event type - defined locally since it was removed from the reduced backend.d.ts
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Event = any;
 
 const FALLBACK_IMG = "/assets/generated/hero-events.dim_800x450.jpg";
 

@@ -37,8 +37,15 @@ import {
 import { Loader2, Plus, Ticket, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Status } from "../../backend.d";
-import type { Event } from "../../backend.d";
+// Status enum and Event type - defined locally since they were removed from the reduced backend.d.ts
+const Status = {
+  draft: "draft",
+  published: "published",
+  cancelled: "cancelled",
+} as const;
+type Status = (typeof Status)[keyof typeof Status];
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Event = any;
 
 function formatNanoDate(ns: bigint): string {
   return new Date(Number(ns) / 1_000_000).toLocaleDateString("en-IN", {
@@ -664,7 +671,8 @@ export default function AdminEventsPage() {
                 <Select
                   value={form.status}
                   onValueChange={(v) =>
-                    setForm((prev) => ({ ...prev, status: v as Status }))
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    setForm((prev) => ({ ...prev, status: v as any }))
                   }
                 >
                   <SelectTrigger

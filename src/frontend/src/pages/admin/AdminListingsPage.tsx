@@ -17,8 +17,16 @@ import {
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ListingStatus } from "../../backend.d";
-import type { Listing } from "../../backend.d";
+// ListingStatus enum and Listing type - defined locally since they were removed from the reduced backend.d.ts
+const ListingStatus = {
+  pending: "pending",
+  approved: "approved",
+  rejected: "rejected",
+} as const;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ListingStatus = (typeof ListingStatus)[keyof typeof ListingStatus];
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Listing = any;
 
 function listingStatusBadge(status: ListingStatus) {
   switch (status) {

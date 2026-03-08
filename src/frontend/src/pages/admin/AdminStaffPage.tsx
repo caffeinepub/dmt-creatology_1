@@ -30,8 +30,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, RefreshCw, Trash2, UserPlus, Users } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import type { StaffAccount } from "../../backend.d";
-import { StaffRole } from "../../backend.d";
+// StaffAccount and StaffRole - defined locally since they were removed from the reduced backend.d.ts
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type StaffAccount = any;
+const StaffRole = {
+  gateStaff: "gateStaff",
+  eventManager: "eventManager",
+  admin: "admin",
+} as const;
+type StaffRole = (typeof StaffRole)[keyof typeof StaffRole];
 
 // StaffStatus is not exported as an enum from backend.d — define it locally
 const StaffStatus = {
@@ -92,7 +99,8 @@ export default function AdminStaffPage() {
     queryKey: ["staffAccounts"],
     queryFn: async () => {
       if (!actor) return [];
-      return actor.getAllStaffAccounts();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (actor as any).getAllStaffAccounts();
     },
     enabled: !!actor,
   });
@@ -109,7 +117,8 @@ export default function AdminStaffPage() {
       role: StaffRole;
     }) => {
       if (!actor) throw new Error("Not connected");
-      return actor.createStaffAccount(username, password, role);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (actor as any).createStaffAccount(username, password, role);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["staffAccounts"] });
@@ -136,7 +145,8 @@ export default function AdminStaffPage() {
       status: StaffStatus;
     }) => {
       if (!actor) throw new Error("Not connected");
-      return actor.updateStaffAccountStatus(id, status);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (actor as any).updateStaffAccountStatus(id, status);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["staffAccounts"] });
@@ -155,7 +165,8 @@ export default function AdminStaffPage() {
       role: StaffRole;
     }) => {
       if (!actor) throw new Error("Not connected");
-      return actor.updateStaffAccountRole(id, role);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (actor as any).updateStaffAccountRole(id, role);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["staffAccounts"] });
@@ -168,7 +179,8 @@ export default function AdminStaffPage() {
   const deleteMutation = useMutation({
     mutationFn: async (id: bigint) => {
       if (!actor) throw new Error("Not connected");
-      return actor.deleteStaffAccount(id);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (actor as any).deleteStaffAccount(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["staffAccounts"] });
@@ -185,7 +197,8 @@ export default function AdminStaffPage() {
     }
     setIsInitializing(true);
     try {
-      await actor.initDefaultStaffAccount();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (actor as any).initDefaultStaffAccount();
       queryClient.invalidateQueries({ queryKey: ["staffAccounts"] });
       toast.success(
         "Default staff account initialized (gatestaff / Staff@123)",

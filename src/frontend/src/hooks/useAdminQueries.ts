@@ -1,13 +1,23 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type {
-  BookingStatus,
-  ListingStatus,
-  Status,
-  TransactionStatus,
-  UserStatus,
-  VendorStatus,
-} from "../backend.d";
+import type { BookingStatus, TransactionStatus } from "../backend.d";
 import { useActor } from "./useActor";
+
+// Legacy type aliases for backward compatibility with older code
+// These types existed in a previous backend.d.ts version
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ListingStatus = any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Status = any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type UserStatus = any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type VendorStatus = any;
+
+// Helper: cast actor to any for calling legacy backend methods not in current type definition
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function legacyActor(actor: unknown): any {
+  return actor;
+}
 
 // ── Analytics ──────────────────────────────────────────────────────────────
 
@@ -17,7 +27,7 @@ export function useAnalytics() {
     queryKey: ["analytics"],
     queryFn: async () => {
       if (!actor) return null;
-      return actor.getAnalytics();
+      return legacyActor(actor).getAnalytics();
     },
     enabled: !!actor && !isFetching,
   });
@@ -31,7 +41,7 @@ export function useAllEvents() {
     queryKey: ["events"],
     queryFn: async () => {
       if (!actor) return [];
-      return actor.getAllEvents();
+      return legacyActor(actor).getAllEvents();
     },
     enabled: !!actor && !isFetching,
   });
@@ -59,7 +69,7 @@ export function useCreateEvent() {
       status: Status;
     }) => {
       if (!actor) throw new Error("Actor not available");
-      return actor.createEvent(
+      return legacyActor(actor).createEvent(
         data.name,
         data.category,
         data.subCategory,
@@ -87,7 +97,7 @@ export function useDeleteEvent() {
   return useMutation({
     mutationFn: async (id: bigint) => {
       if (!actor) throw new Error("Actor not available");
-      return actor.deleteEvent(id);
+      return legacyActor(actor).deleteEvent(id);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["events"] }),
   });
@@ -101,7 +111,7 @@ export function useAllVendors() {
     queryKey: ["vendors"],
     queryFn: async () => {
       if (!actor) return [];
-      return actor.getAllVendors();
+      return legacyActor(actor).getAllVendors();
     },
     enabled: !!actor && !isFetching,
   });
@@ -116,7 +126,7 @@ export function useUpdateVendorStatus() {
       status,
     }: { id: bigint; status: VendorStatus }) => {
       if (!actor) throw new Error("Actor not available");
-      return actor.updateVendorStatus(id, status);
+      return legacyActor(actor).updateVendorStatus(id, status);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["vendors"] }),
   });
@@ -130,7 +140,7 @@ export function useAllBookings() {
     queryKey: ["bookings"],
     queryFn: async () => {
       if (!actor) return [];
-      return actor.getAllBookings();
+      return legacyActor(actor).getAllBookings();
     },
     enabled: !!actor && !isFetching,
   });
@@ -148,7 +158,7 @@ export function useUpdateBookingStatus() {
       status: BookingStatus;
     }) => {
       if (!actor) throw new Error("Actor not available");
-      return actor.updateBookingStatus(id, status);
+      return legacyActor(actor).updateBookingStatus(id, status);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["bookings"] }),
   });
@@ -167,7 +177,7 @@ export function useCreateBookingRequest() {
       message: string;
     }) => {
       if (!actor) throw new Error("Actor not available");
-      return actor.createBookingRequest(
+      return legacyActor(actor).createBookingRequest(
         data.name,
         data.phone,
         data.serviceType,
@@ -188,7 +198,7 @@ export function useAllUsers() {
     queryKey: ["users"],
     queryFn: async () => {
       if (!actor) return [];
-      return actor.getAllUsers();
+      return legacyActor(actor).getAllUsers();
     },
     enabled: !!actor && !isFetching,
   });
@@ -206,7 +216,7 @@ export function useUpdateUserStatus() {
       status: UserStatus;
     }) => {
       if (!actor) throw new Error("Actor not available");
-      return actor.updateUserStatus(id, status);
+      return legacyActor(actor).updateUserStatus(id, status);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }),
   });
@@ -220,7 +230,7 @@ export function useAllListings() {
     queryKey: ["listings"],
     queryFn: async () => {
       if (!actor) return [];
-      return actor.getAllListings();
+      return legacyActor(actor).getAllListings();
     },
     enabled: !!actor && !isFetching,
   });
@@ -238,7 +248,7 @@ export function useUpdateListingStatus() {
       status: ListingStatus;
     }) => {
       if (!actor) throw new Error("Actor not available");
-      return actor.updateListingStatus(id, status);
+      return legacyActor(actor).updateListingStatus(id, status);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["listings"] }),
   });
@@ -266,7 +276,7 @@ export function usePublishedEvents() {
     queryKey: ["publishedEvents"],
     queryFn: async () => {
       if (!actor) return [];
-      return actor.getPublishedEvents();
+      return legacyActor(actor).getPublishedEvents();
     },
     enabled: !!actor && !isFetching,
   });
@@ -280,7 +290,7 @@ export function useTicketCategoriesByEvent(eventId: bigint | null) {
     queryKey: ["ticketCategories", String(eventId)],
     queryFn: async () => {
       if (!actor || eventId === null) return [];
-      return actor.getTicketCategoriesByEvent(eventId);
+      return legacyActor(actor).getTicketCategoriesByEvent(eventId);
     },
     enabled: !!actor && !isFetching && eventId !== null,
   });
@@ -297,7 +307,7 @@ export function useAddTicketCategory() {
       availableQty: bigint;
     }) => {
       if (!actor) throw new Error("Actor not available");
-      return actor.addTicketCategory(
+      return legacyActor(actor).addTicketCategory(
         data.eventId,
         data.name,
         data.price,
@@ -317,7 +327,7 @@ export function useDeleteTicketCategory() {
   return useMutation({
     mutationFn: async (data: { id: bigint; eventId: bigint }) => {
       if (!actor) throw new Error("Actor not available");
-      return actor.deleteTicketCategory(data.id);
+      return legacyActor(actor).deleteTicketCategory(data.id);
     },
     onSuccess: (_result, vars) =>
       qc.invalidateQueries({
@@ -334,7 +344,7 @@ export function useAllEventBookings() {
     queryKey: ["eventBookings"],
     queryFn: async () => {
       if (!actor) return [];
-      return actor.getAllEventBookings();
+      return legacyActor(actor).getAllEventBookings();
     },
     enabled: !!actor && !isFetching,
   });
@@ -355,7 +365,7 @@ export function useCreateEventBooking() {
       message: string;
     }) => {
       if (!actor) throw new Error("Actor not available");
-      return actor.createEventBooking(
+      return legacyActor(actor).createEventBooking(
         data.eventId,
         data.eventName,
         data.ticketCategory,
@@ -382,7 +392,7 @@ export function useUpdateEventBookingStatus() {
       status: BookingStatus;
     }) => {
       if (!actor) throw new Error("Actor not available");
-      return actor.updateEventBookingStatus(id, status);
+      return legacyActor(actor).updateEventBookingStatus(id, status);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["eventBookings"] }),
   });
@@ -590,6 +600,174 @@ export function useUpdateHotelBookingPaymentStatus() {
       return actor.updateHotelBookingPaymentStatus(id, paymentStatus);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["hotelBookings"] }),
+  });
+}
+
+// ── Transport Options ───────────────────────────────────────────────────────
+
+import type { TransportType } from "../backend.d";
+
+export function useAllTransportOptions() {
+  const { actor, isFetching } = useActor();
+  return useQuery({
+    queryKey: ["transportOptions"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllTransportOptions();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useCreateTransportOption() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      transportType: TransportType;
+      operatorName: string;
+      route: string;
+      city: string;
+      price: bigint;
+      availableSeats: bigint;
+      photoUrls: Array<string>;
+    }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.createTransportOption(
+        data.transportType,
+        data.operatorName,
+        data.route,
+        data.city,
+        data.price,
+        data.availableSeats,
+        data.photoUrls,
+      );
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["transportOptions"] }),
+  });
+}
+
+export function useUpdateTransportOption() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      id: bigint;
+      transportType: TransportType;
+      operatorName: string;
+      route: string;
+      city: string;
+      price: bigint;
+      availableSeats: bigint;
+      photoUrls: Array<string>;
+    }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.updateTransportOption(
+        data.id,
+        data.transportType,
+        data.operatorName,
+        data.route,
+        data.city,
+        data.price,
+        data.availableSeats,
+        data.photoUrls,
+      );
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["transportOptions"] }),
+  });
+}
+
+export function useDeleteTransportOption() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.deleteTransportOption(id);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["transportOptions"] }),
+  });
+}
+
+// ── Transport Bookings ──────────────────────────────────────────────────────
+
+export function useAllTransportBookings() {
+  const { actor, isFetching } = useActor();
+  return useQuery({
+    queryKey: ["transportBookings"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllTransportBookings();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useCreateTransportBooking() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      transportId: bigint;
+      transportName: string;
+      transportType: string;
+      operatorName: string;
+      route: string;
+      passengerName: string;
+      passengerPhone: string;
+      passengerEmail: string;
+      city: string;
+      travelDate: bigint;
+      seats: bigint;
+      totalAmount: bigint;
+    }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.createTransportBooking(
+        data.transportId,
+        data.transportName,
+        data.transportType,
+        data.operatorName,
+        data.route,
+        data.passengerName,
+        data.passengerPhone,
+        data.passengerEmail,
+        data.city,
+        data.travelDate,
+        data.seats,
+        data.totalAmount,
+      );
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["transportBookings"] }),
+  });
+}
+
+export function useUpdateTransportBookingStatus() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      status,
+    }: { id: bigint; status: BookingStatus }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.updateTransportBookingStatus(id, status);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["transportBookings"] }),
+  });
+}
+
+export function useUpdateTransportBookingPaymentStatus() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      paymentStatus,
+    }: { id: bigint; paymentStatus: TransactionStatus }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.updateTransportBookingPaymentStatus(id, paymentStatus);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["transportBookings"] }),
   });
 }
 

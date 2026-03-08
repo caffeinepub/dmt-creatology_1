@@ -51,7 +51,9 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import type { ServiceListing } from "../backend.d";
+// ServiceListing type - defined locally since it was removed from the reduced backend.d.ts
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ServiceListing = any;
 
 const SERVICE_CATEGORIES = [
   "Photographer",

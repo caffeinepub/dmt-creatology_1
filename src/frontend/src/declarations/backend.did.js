@@ -19,21 +19,10 @@ export const _CaffeineStorageRefillResult = IDL.Record({
   'success' : IDL.Opt(IDL.Bool),
   'topped_up_amount' : IDL.Opt(IDL.Nat),
 });
-export const ServiceListingInput = IDL.Record({
-  'title' : IDL.Text,
-  'description' : IDL.Text,
-  'category' : IDL.Text,
-  'price' : IDL.Nat,
-});
-export const UserRole__1 = IDL.Variant({
+export const UserRole = IDL.Variant({
   'admin' : IDL.Null,
   'user' : IDL.Null,
   'guest' : IDL.Null,
-});
-export const Status = IDL.Variant({
-  'cancelled' : IDL.Null,
-  'published' : IDL.Null,
-  'draft' : IDL.Null,
 });
 export const RoomType = IDL.Record({
   'pricePerNight' : IDL.Nat,
@@ -44,64 +33,19 @@ export const TransactionStatus = IDL.Variant({
   'completed' : IDL.Null,
   'failed' : IDL.Null,
 });
-export const StaffRole = IDL.Variant({
-  'admin' : IDL.Null,
-  'eventManager' : IDL.Null,
-  'gateStaff' : IDL.Null,
-});
-export const UserRole = IDL.Variant({
-  'customer' : IDL.Null,
-  'staff' : IDL.Null,
-  'vendor' : IDL.Null,
+export const TransportType = IDL.Variant({
+  'bus' : IDL.Null,
+  'car' : IDL.Null,
+  'train' : IDL.Null,
+  'flight' : IDL.Null,
+  'helicopter' : IDL.Null,
+  'cruise' : IDL.Null,
 });
 export const BookingStatus = IDL.Variant({
   'new' : IDL.Null,
   'cancelled' : IDL.Null,
   'reviewed' : IDL.Null,
   'confirmed' : IDL.Null,
-});
-export const Booking = IDL.Record({
-  'id' : IDL.Nat,
-  'status' : BookingStatus,
-  'serviceType' : IDL.Text,
-  'city' : IDL.Text,
-  'date' : IDL.Int,
-  'name' : IDL.Text,
-  'createdAt' : IDL.Int,
-  'message' : IDL.Text,
-  'phone' : IDL.Text,
-});
-export const EventBooking = IDL.Record({
-  'id' : IDL.Nat,
-  'status' : BookingStatus,
-  'eventId' : IDL.Nat,
-  'ticketCategory' : IDL.Text,
-  'city' : IDL.Text,
-  'name' : IDL.Text,
-  'createdAt' : IDL.Int,
-  'message' : IDL.Text,
-  'quantity' : IDL.Nat,
-  'phone' : IDL.Text,
-  'eventName' : IDL.Text,
-});
-export const Event = IDL.Record({
-  'id' : IDL.Nat,
-  'status' : Status,
-  'subCategory' : IDL.Text,
-  'duration' : IDL.Text,
-  'country' : IDL.Text,
-  'venue' : IDL.Text,
-  'city' : IDL.Text,
-  'date' : IDL.Int,
-  'name' : IDL.Text,
-  'createdAt' : IDL.Int,
-  'time' : IDL.Text,
-  'description' : IDL.Text,
-  'state' : IDL.Text,
-  'posterUrl' : IDL.Text,
-  'category' : IDL.Text,
-  'bannerUrl' : IDL.Text,
-  'ageLimit' : IDL.Nat,
 });
 export const HotelBooking = IDL.Record({
   'id' : IDL.Nat,
@@ -131,23 +75,6 @@ export const Hotel = IDL.Record({
   'amenities' : IDL.Vec(IDL.Text),
   'address' : IDL.Text,
 });
-export const ListingStatus = IDL.Variant({
-  'pending' : IDL.Null,
-  'approved' : IDL.Null,
-  'rejected' : IDL.Null,
-});
-export const Listing = IDL.Record({
-  'id' : IDL.Nat,
-  'status' : ListingStatus,
-  'title' : IDL.Text,
-  'city' : IDL.Text,
-  'createdAt' : IDL.Int,
-  'submittedBy' : IDL.Text,
-  'description' : IDL.Text,
-  'category' : IDL.Text,
-  'price' : IDL.Nat,
-  'contactPhone' : IDL.Text,
-});
 export const PaymentTransaction = IDL.Record({
   'id' : IDL.Nat,
   'status' : TransactionStatus,
@@ -157,118 +84,40 @@ export const PaymentTransaction = IDL.Record({
   'amount' : IDL.Nat,
   'transactionId' : IDL.Text,
 });
-export const ServiceListing = IDL.Record({
+export const TransportBooking = IDL.Record({
   'id' : IDL.Nat,
-  'title' : IDL.Text,
+  'status' : BookingStatus,
+  'paymentStatus' : TransactionStatus,
+  'bookedBy' : IDL.Principal,
+  'transportId' : IDL.Nat,
+  'city' : IDL.Text,
   'createdAt' : IDL.Int,
-  'vendorPrincipal' : IDL.Principal,
-  'description' : IDL.Text,
-  'category' : IDL.Text,
+  'operatorName' : IDL.Text,
+  'passengerName' : IDL.Text,
+  'seats' : IDL.Nat,
+  'passengerEmail' : IDL.Text,
+  'totalAmount' : IDL.Nat,
+  'travelDate' : IDL.Int,
+  'transportName' : IDL.Text,
+  'transportType' : IDL.Text,
+  'passengerPhone' : IDL.Text,
+  'route' : IDL.Text,
+});
+export const TransportOption = IDL.Record({
+  'id' : IDL.Nat,
+  'photoUrls' : IDL.Vec(IDL.Text),
+  'city' : IDL.Text,
+  'createdAt' : IDL.Int,
+  'operatorName' : IDL.Text,
+  'availableSeats' : IDL.Nat,
+  'transportType' : TransportType,
   'price' : IDL.Nat,
-});
-export const StaffStatus = IDL.Variant({
-  'active' : IDL.Null,
-  'inactive' : IDL.Null,
-});
-export const StaffAccount = IDL.Record({
-  'id' : IDL.Nat,
-  'status' : StaffStatus,
-  'username' : IDL.Text,
-  'createdAt' : IDL.Int,
-  'role' : StaffRole,
-  'passwordHash' : IDL.Text,
-});
-export const UserStatus = IDL.Variant({
-  'active' : IDL.Null,
-  'inactive' : IDL.Null,
-});
-export const User = IDL.Record({
-  'id' : IDL.Nat,
-  'status' : UserStatus,
-  'name' : IDL.Text,
-  'createdAt' : IDL.Int,
-  'role' : UserRole,
-  'email' : IDL.Text,
-  'phone' : IDL.Text,
-});
-export const ApplicationStatus = IDL.Variant({
-  'pending' : IDL.Null,
-  'approved' : IDL.Null,
-  'rejected' : IDL.Null,
-});
-export const VendorApplication = IDL.Record({
-  'id' : IDL.Nat,
-  'status' : ApplicationStatus,
-  'serviceCategory' : IDL.Text,
-  'principal' : IDL.Principal,
-  'ownerName' : IDL.Text,
-  'city' : IDL.Text,
-  'businessName' : IDL.Text,
-  'submittedAt' : IDL.Int,
-  'description' : IDL.Text,
-  'reviewedAt' : IDL.Opt(IDL.Int),
-  'email' : IDL.Text,
-  'phone' : IDL.Text,
-  'portfolioImages' : IDL.Vec(IDL.Text),
-});
-export const VendorStatus = IDL.Variant({
-  'pending' : IDL.Null,
-  'approved' : IDL.Null,
-  'rejected' : IDL.Null,
-  'suspended' : IDL.Null,
-});
-export const Vendor = IDL.Record({
-  'id' : IDL.Nat,
-  'status' : VendorStatus,
-  'city' : IDL.Text,
-  'name' : IDL.Text,
-  'createdAt' : IDL.Int,
-  'businessName' : IDL.Text,
-  'email' : IDL.Text,
-  'experience' : IDL.Nat,
-  'phone' : IDL.Text,
-  'services' : IDL.Text,
-});
-export const Analytics = IDL.Record({
-  'totalEvents' : IDL.Nat,
-  'totalBookings' : IDL.Nat,
-  'totalListings' : IDL.Nat,
-  'totalUsers' : IDL.Nat,
-  'recentBookings' : IDL.Vec(Booking),
-  'totalVendors' : IDL.Nat,
+  'route' : IDL.Text,
 });
 export const UserProfile = IDL.Record({
   'name' : IDL.Text,
   'email' : IDL.Text,
   'phone' : IDL.Text,
-});
-export const TicketCategory = IDL.Record({
-  'id' : IDL.Nat,
-  'eventId' : IDL.Nat,
-  'availableQty' : IDL.Nat,
-  'name' : IDL.Text,
-  'price' : IDL.Nat,
-});
-export const StaffSession = IDL.Record({
-  'username' : IDL.Text,
-  'staffId' : IDL.Nat,
-  'role' : StaffRole,
-});
-export const StaffLoginResult = IDL.Variant({
-  'ok' : StaffSession,
-  'err' : IDL.Text,
-});
-export const ExternalBlob = IDL.Vec(IDL.Nat8);
-export const PortfolioImageInput = IDL.Record({
-  'title' : IDL.Opt(IDL.Text),
-  'file' : ExternalBlob,
-  'size' : IDL.Nat,
-  'vendorPrincipal' : IDL.Opt(IDL.Principal),
-  'mimeType' : IDL.Text,
-  'description' : IDL.Opt(IDL.Text),
-  'filename' : IDL.Text,
-  'vendorId' : IDL.Opt(IDL.Nat),
-  'category' : IDL.Text,
 });
 
 export const idlService = IDL.Service({
@@ -299,53 +148,7 @@ export const idlService = IDL.Service({
     ),
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
-  'addServiceListing' : IDL.Func([ServiceListingInput], [IDL.Nat], []),
-  'addTicketCategory' : IDL.Func(
-      [IDL.Nat, IDL.Text, IDL.Nat, IDL.Nat],
-      [IDL.Nat],
-      [],
-    ),
-  'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
-  'createBookingRequest' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Int, IDL.Text],
-      [IDL.Nat],
-      [],
-    ),
-  'createEvent' : IDL.Func(
-      [
-        IDL.Text,
-        IDL.Text,
-        IDL.Text,
-        IDL.Text,
-        IDL.Text,
-        IDL.Text,
-        IDL.Text,
-        IDL.Int,
-        IDL.Text,
-        IDL.Text,
-        IDL.Nat,
-        IDL.Text,
-        IDL.Text,
-        IDL.Text,
-        Status,
-      ],
-      [IDL.Nat],
-      [],
-    ),
-  'createEventBooking' : IDL.Func(
-      [
-        IDL.Nat,
-        IDL.Text,
-        IDL.Text,
-        IDL.Text,
-        IDL.Text,
-        IDL.Text,
-        IDL.Nat,
-        IDL.Text,
-      ],
-      [IDL.Nat],
-      [],
-    ),
+  'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'createHotel' : IDL.Func(
       [
         IDL.Text,
@@ -376,168 +179,15 @@ export const idlService = IDL.Service({
       [IDL.Nat],
       [],
     ),
-  'createListing' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Text, IDL.Text],
-      [IDL.Nat],
-      [],
-    ),
   'createPaymentTransaction' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Nat, IDL.Nat, TransactionStatus],
       [IDL.Nat],
       [],
     ),
-  'createStaffAccount' : IDL.Func(
-      [IDL.Text, IDL.Text, StaffRole],
-      [IDL.Nat],
-      [],
-    ),
-  'createUser' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Text, UserRole],
-      [IDL.Nat],
-      [],
-    ),
-  'createVendor' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Text, IDL.Text],
-      [IDL.Nat],
-      [],
-    ),
-  'deleteEvent' : IDL.Func([IDL.Nat], [], []),
-  'deleteHotel' : IDL.Func([IDL.Nat], [], []),
-  'deletePortfolioImage' : IDL.Func([IDL.Nat], [], []),
-  'deleteServiceListing' : IDL.Func([IDL.Nat], [], []),
-  'deleteStaffAccount' : IDL.Func([IDL.Nat], [], []),
-  'deleteTicketCategory' : IDL.Func([IDL.Nat], [], []),
-  'getAllBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
-  'getAllEventBookings' : IDL.Func([], [IDL.Vec(EventBooking)], ['query']),
-  'getAllEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
-  'getAllHotelBookings' : IDL.Func([], [IDL.Vec(HotelBooking)], ['query']),
-  'getAllHotels' : IDL.Func([], [IDL.Vec(Hotel)], ['query']),
-  'getAllListings' : IDL.Func([], [IDL.Vec(Listing)], ['query']),
-  'getAllPaymentTransactions' : IDL.Func(
-      [],
-      [IDL.Vec(PaymentTransaction)],
-      ['query'],
-    ),
-  'getAllServiceListings' : IDL.Func([], [IDL.Vec(ServiceListing)], ['query']),
-  'getAllStaffAccounts' : IDL.Func([], [IDL.Vec(StaffAccount)], ['query']),
-  'getAllUsers' : IDL.Func([], [IDL.Vec(User)], ['query']),
-  'getAllVendorApplications' : IDL.Func(
-      [],
-      [IDL.Vec(VendorApplication)],
-      ['query'],
-    ),
-  'getAllVendors' : IDL.Func([], [IDL.Vec(Vendor)], ['query']),
-  'getAnalytics' : IDL.Func([], [Analytics], ['query']),
-  'getBooking' : IDL.Func([IDL.Nat], [IDL.Opt(Booking)], ['query']),
-  'getBookingsByCity' : IDL.Func([IDL.Text], [IDL.Vec(Booking)], ['query']),
-  'getBookingsByDateRange' : IDL.Func(
-      [IDL.Int, IDL.Int],
-      [IDL.Vec(Booking)],
-      ['query'],
-    ),
-  'getBookingsByServiceType' : IDL.Func(
-      [IDL.Text],
-      [IDL.Vec(Booking)],
-      ['query'],
-    ),
-  'getBookingsByStatus' : IDL.Func(
-      [BookingStatus],
-      [IDL.Vec(Booking)],
-      ['query'],
-    ),
-  'getBookingsForMyVendor' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
-  'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
-  'getCallerUserRole' : IDL.Func([], [UserRole__1], ['query']),
-  'getConfirmedBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
-  'getEvent' : IDL.Func([IDL.Nat], [IDL.Opt(Event)], ['query']),
-  'getEventBookingsByEvent' : IDL.Func(
-      [IDL.Nat],
-      [IDL.Vec(EventBooking)],
-      ['query'],
-    ),
-  'getHotel' : IDL.Func([IDL.Nat], [IDL.Opt(Hotel)], ['query']),
-  'getHotelBooking' : IDL.Func([IDL.Nat], [IDL.Opt(HotelBooking)], ['query']),
-  'getListing' : IDL.Func([IDL.Nat], [IDL.Opt(Listing)], ['query']),
-  'getListingsByCategory' : IDL.Func([IDL.Text], [IDL.Vec(Listing)], ['query']),
-  'getListingsByCity' : IDL.Func([IDL.Text], [IDL.Vec(Listing)], ['query']),
-  'getMyServiceListings' : IDL.Func([], [IDL.Vec(ServiceListing)], ['query']),
-  'getMyVendorApplication' : IDL.Func(
-      [],
-      [IDL.Opt(VendorApplication)],
-      ['query'],
-    ),
-  'getNewBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
-  'getPaymentTransactionByBookingId' : IDL.Func(
-      [IDL.Nat],
-      [IDL.Opt(PaymentTransaction)],
-      ['query'],
-    ),
-  'getPublicApprovedVendors' : IDL.Func(
-      [],
-      [IDL.Vec(VendorApplication)],
-      ['query'],
-    ),
-  'getPublicEventsByCategory' : IDL.Func(
-      [IDL.Text],
-      [IDL.Vec(Event)],
-      ['query'],
-    ),
-  'getPublicEventsBySubCategory' : IDL.Func(
-      [IDL.Text],
-      [IDL.Vec(Event)],
-      ['query'],
-    ),
-  'getPublicListings' : IDL.Func([], [IDL.Vec(Listing)], ['query']),
-  'getPublicVendorsByServices' : IDL.Func(
-      [IDL.Text],
-      [IDL.Vec(Vendor)],
-      ['query'],
-    ),
-  'getPublishedEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
-  'getPublishedVendors' : IDL.Func([], [IDL.Vec(Vendor)], ['query']),
-  'getTicketCategoriesByEvent' : IDL.Func(
-      [IDL.Nat],
-      [IDL.Vec(TicketCategory)],
-      ['query'],
-    ),
-  'getUpcomingEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
-  'getUser' : IDL.Func([IDL.Nat], [IDL.Opt(User)], ['query']),
-  'getUserProfile' : IDL.Func(
-      [IDL.Principal],
-      [IDL.Opt(UserProfile)],
-      ['query'],
-    ),
-  'getUsersByRole' : IDL.Func([UserRole], [IDL.Vec(User)], ['query']),
-  'getVendor' : IDL.Func([IDL.Nat], [IDL.Opt(Vendor)], ['query']),
-  'getVendorApplication' : IDL.Func(
-      [IDL.Nat],
-      [IDL.Opt(VendorApplication)],
-      ['query'],
-    ),
-  'getVendorsByCity' : IDL.Func([IDL.Text], [IDL.Vec(Vendor)], ['query']),
-  'initDefaultStaffAccount' : IDL.Func([], [], []),
-  'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-  'reviewVendorApplication' : IDL.Func([IDL.Nat, ApplicationStatus], [], []),
-  'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
-  'staffLogin' : IDL.Func([IDL.Text, IDL.Text], [StaffLoginResult], []),
-  'submitVendorApplication' : IDL.Func(
-      [
-        IDL.Text,
-        IDL.Text,
-        IDL.Text,
-        IDL.Text,
-        IDL.Text,
-        IDL.Text,
-        IDL.Text,
-        IDL.Vec(IDL.Text),
-      ],
-      [IDL.Nat],
-      [],
-    ),
-  'updateBookingStatus' : IDL.Func([IDL.Nat, BookingStatus], [], []),
-  'updateEvent' : IDL.Func(
+  'createTransportBooking' : IDL.Func(
       [
         IDL.Nat,
+        IDL.Text,
         IDL.Text,
         IDL.Text,
         IDL.Text,
@@ -546,18 +196,70 @@ export const idlService = IDL.Service({
         IDL.Text,
         IDL.Text,
         IDL.Int,
+        IDL.Nat,
+        IDL.Nat,
+      ],
+      [IDL.Nat],
+      [],
+    ),
+  'createTransportOption' : IDL.Func(
+      [
+        TransportType,
+        IDL.Text,
         IDL.Text,
         IDL.Text,
         IDL.Nat,
-        IDL.Text,
-        IDL.Text,
-        IDL.Text,
-        Status,
+        IDL.Nat,
+        IDL.Vec(IDL.Text),
       ],
-      [],
+      [IDL.Nat],
       [],
     ),
-  'updateEventBookingStatus' : IDL.Func([IDL.Nat, BookingStatus], [], []),
+  'deleteHotel' : IDL.Func([IDL.Nat], [], []),
+  'deleteTransportOption' : IDL.Func([IDL.Nat], [], []),
+  'getAllHotelBookings' : IDL.Func([], [IDL.Vec(HotelBooking)], ['query']),
+  'getAllHotels' : IDL.Func([], [IDL.Vec(Hotel)], ['query']),
+  'getAllPaymentTransactions' : IDL.Func(
+      [],
+      [IDL.Vec(PaymentTransaction)],
+      ['query'],
+    ),
+  'getAllTransportBookings' : IDL.Func(
+      [],
+      [IDL.Vec(TransportBooking)],
+      ['query'],
+    ),
+  'getAllTransportOptions' : IDL.Func(
+      [],
+      [IDL.Vec(TransportOption)],
+      ['query'],
+    ),
+  'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
+  'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getHotel' : IDL.Func([IDL.Nat], [IDL.Opt(Hotel)], ['query']),
+  'getHotelBooking' : IDL.Func([IDL.Nat], [IDL.Opt(HotelBooking)], ['query']),
+  'getPaymentTransactionByBookingId' : IDL.Func(
+      [IDL.Nat],
+      [IDL.Opt(PaymentTransaction)],
+      ['query'],
+    ),
+  'getTransportBooking' : IDL.Func(
+      [IDL.Nat],
+      [IDL.Opt(TransportBooking)],
+      ['query'],
+    ),
+  'getTransportOption' : IDL.Func(
+      [IDL.Nat],
+      [IDL.Opt(TransportOption)],
+      ['query'],
+    ),
+  'getUserProfile' : IDL.Func(
+      [IDL.Principal],
+      [IDL.Opt(UserProfile)],
+      ['query'],
+    ),
+  'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'updateHotel' : IDL.Func(
       [
         IDL.Nat,
@@ -578,51 +280,26 @@ export const idlService = IDL.Service({
       [],
     ),
   'updateHotelBookingStatus' : IDL.Func([IDL.Nat, BookingStatus], [], []),
-  'updateListingStatus' : IDL.Func([IDL.Nat, ListingStatus], [], []),
-  'updateMyVendorApplication' : IDL.Func(
+  'updateTransportBookingPaymentStatus' : IDL.Func(
+      [IDL.Nat, TransactionStatus],
+      [],
+      [],
+    ),
+  'updateTransportBookingStatus' : IDL.Func([IDL.Nat, BookingStatus], [], []),
+  'updateTransportOption' : IDL.Func(
       [
+        IDL.Nat,
+        TransportType,
         IDL.Text,
         IDL.Text,
         IDL.Text,
-        IDL.Text,
-        IDL.Text,
-        IDL.Text,
-        IDL.Text,
+        IDL.Nat,
+        IDL.Nat,
         IDL.Vec(IDL.Text),
       ],
       [],
       [],
     ),
-  'updateServiceListing' : IDL.Func([IDL.Nat, ServiceListingInput], [], []),
-  'updateStaffAccountRole' : IDL.Func([IDL.Nat, StaffRole], [], []),
-  'updateStaffAccountStatus' : IDL.Func([IDL.Nat, StaffStatus], [], []),
-  'updateUser' : IDL.Func(
-      [IDL.Nat, IDL.Text, IDL.Text, IDL.Text, UserRole],
-      [],
-      [],
-    ),
-  'updateUserStatus' : IDL.Func([IDL.Nat, UserStatus], [], []),
-  'updateVendor' : IDL.Func(
-      [
-        IDL.Nat,
-        IDL.Text,
-        IDL.Text,
-        IDL.Text,
-        IDL.Text,
-        IDL.Nat,
-        IDL.Text,
-        IDL.Text,
-      ],
-      [],
-      [],
-    ),
-  'updateVendorApplicationStatus' : IDL.Func(
-      [IDL.Nat, ApplicationStatus],
-      [],
-      [],
-    ),
-  'updateVendorStatus' : IDL.Func([IDL.Nat, VendorStatus], [], []),
-  'uploadPortfolioImage' : IDL.Func([PortfolioImageInput], [IDL.Nat], []),
 });
 
 export const idlInitArgs = [];
@@ -639,21 +316,10 @@ export const idlFactory = ({ IDL }) => {
     'success' : IDL.Opt(IDL.Bool),
     'topped_up_amount' : IDL.Opt(IDL.Nat),
   });
-  const ServiceListingInput = IDL.Record({
-    'title' : IDL.Text,
-    'description' : IDL.Text,
-    'category' : IDL.Text,
-    'price' : IDL.Nat,
-  });
-  const UserRole__1 = IDL.Variant({
+  const UserRole = IDL.Variant({
     'admin' : IDL.Null,
     'user' : IDL.Null,
     'guest' : IDL.Null,
-  });
-  const Status = IDL.Variant({
-    'cancelled' : IDL.Null,
-    'published' : IDL.Null,
-    'draft' : IDL.Null,
   });
   const RoomType = IDL.Record({ 'pricePerNight' : IDL.Nat, 'name' : IDL.Text });
   const TransactionStatus = IDL.Variant({
@@ -661,64 +327,19 @@ export const idlFactory = ({ IDL }) => {
     'completed' : IDL.Null,
     'failed' : IDL.Null,
   });
-  const StaffRole = IDL.Variant({
-    'admin' : IDL.Null,
-    'eventManager' : IDL.Null,
-    'gateStaff' : IDL.Null,
-  });
-  const UserRole = IDL.Variant({
-    'customer' : IDL.Null,
-    'staff' : IDL.Null,
-    'vendor' : IDL.Null,
+  const TransportType = IDL.Variant({
+    'bus' : IDL.Null,
+    'car' : IDL.Null,
+    'train' : IDL.Null,
+    'flight' : IDL.Null,
+    'helicopter' : IDL.Null,
+    'cruise' : IDL.Null,
   });
   const BookingStatus = IDL.Variant({
     'new' : IDL.Null,
     'cancelled' : IDL.Null,
     'reviewed' : IDL.Null,
     'confirmed' : IDL.Null,
-  });
-  const Booking = IDL.Record({
-    'id' : IDL.Nat,
-    'status' : BookingStatus,
-    'serviceType' : IDL.Text,
-    'city' : IDL.Text,
-    'date' : IDL.Int,
-    'name' : IDL.Text,
-    'createdAt' : IDL.Int,
-    'message' : IDL.Text,
-    'phone' : IDL.Text,
-  });
-  const EventBooking = IDL.Record({
-    'id' : IDL.Nat,
-    'status' : BookingStatus,
-    'eventId' : IDL.Nat,
-    'ticketCategory' : IDL.Text,
-    'city' : IDL.Text,
-    'name' : IDL.Text,
-    'createdAt' : IDL.Int,
-    'message' : IDL.Text,
-    'quantity' : IDL.Nat,
-    'phone' : IDL.Text,
-    'eventName' : IDL.Text,
-  });
-  const Event = IDL.Record({
-    'id' : IDL.Nat,
-    'status' : Status,
-    'subCategory' : IDL.Text,
-    'duration' : IDL.Text,
-    'country' : IDL.Text,
-    'venue' : IDL.Text,
-    'city' : IDL.Text,
-    'date' : IDL.Int,
-    'name' : IDL.Text,
-    'createdAt' : IDL.Int,
-    'time' : IDL.Text,
-    'description' : IDL.Text,
-    'state' : IDL.Text,
-    'posterUrl' : IDL.Text,
-    'category' : IDL.Text,
-    'bannerUrl' : IDL.Text,
-    'ageLimit' : IDL.Nat,
   });
   const HotelBooking = IDL.Record({
     'id' : IDL.Nat,
@@ -748,23 +369,6 @@ export const idlFactory = ({ IDL }) => {
     'amenities' : IDL.Vec(IDL.Text),
     'address' : IDL.Text,
   });
-  const ListingStatus = IDL.Variant({
-    'pending' : IDL.Null,
-    'approved' : IDL.Null,
-    'rejected' : IDL.Null,
-  });
-  const Listing = IDL.Record({
-    'id' : IDL.Nat,
-    'status' : ListingStatus,
-    'title' : IDL.Text,
-    'city' : IDL.Text,
-    'createdAt' : IDL.Int,
-    'submittedBy' : IDL.Text,
-    'description' : IDL.Text,
-    'category' : IDL.Text,
-    'price' : IDL.Nat,
-    'contactPhone' : IDL.Text,
-  });
   const PaymentTransaction = IDL.Record({
     'id' : IDL.Nat,
     'status' : TransactionStatus,
@@ -774,118 +378,40 @@ export const idlFactory = ({ IDL }) => {
     'amount' : IDL.Nat,
     'transactionId' : IDL.Text,
   });
-  const ServiceListing = IDL.Record({
+  const TransportBooking = IDL.Record({
     'id' : IDL.Nat,
-    'title' : IDL.Text,
+    'status' : BookingStatus,
+    'paymentStatus' : TransactionStatus,
+    'bookedBy' : IDL.Principal,
+    'transportId' : IDL.Nat,
+    'city' : IDL.Text,
     'createdAt' : IDL.Int,
-    'vendorPrincipal' : IDL.Principal,
-    'description' : IDL.Text,
-    'category' : IDL.Text,
+    'operatorName' : IDL.Text,
+    'passengerName' : IDL.Text,
+    'seats' : IDL.Nat,
+    'passengerEmail' : IDL.Text,
+    'totalAmount' : IDL.Nat,
+    'travelDate' : IDL.Int,
+    'transportName' : IDL.Text,
+    'transportType' : IDL.Text,
+    'passengerPhone' : IDL.Text,
+    'route' : IDL.Text,
+  });
+  const TransportOption = IDL.Record({
+    'id' : IDL.Nat,
+    'photoUrls' : IDL.Vec(IDL.Text),
+    'city' : IDL.Text,
+    'createdAt' : IDL.Int,
+    'operatorName' : IDL.Text,
+    'availableSeats' : IDL.Nat,
+    'transportType' : TransportType,
     'price' : IDL.Nat,
-  });
-  const StaffStatus = IDL.Variant({
-    'active' : IDL.Null,
-    'inactive' : IDL.Null,
-  });
-  const StaffAccount = IDL.Record({
-    'id' : IDL.Nat,
-    'status' : StaffStatus,
-    'username' : IDL.Text,
-    'createdAt' : IDL.Int,
-    'role' : StaffRole,
-    'passwordHash' : IDL.Text,
-  });
-  const UserStatus = IDL.Variant({
-    'active' : IDL.Null,
-    'inactive' : IDL.Null,
-  });
-  const User = IDL.Record({
-    'id' : IDL.Nat,
-    'status' : UserStatus,
-    'name' : IDL.Text,
-    'createdAt' : IDL.Int,
-    'role' : UserRole,
-    'email' : IDL.Text,
-    'phone' : IDL.Text,
-  });
-  const ApplicationStatus = IDL.Variant({
-    'pending' : IDL.Null,
-    'approved' : IDL.Null,
-    'rejected' : IDL.Null,
-  });
-  const VendorApplication = IDL.Record({
-    'id' : IDL.Nat,
-    'status' : ApplicationStatus,
-    'serviceCategory' : IDL.Text,
-    'principal' : IDL.Principal,
-    'ownerName' : IDL.Text,
-    'city' : IDL.Text,
-    'businessName' : IDL.Text,
-    'submittedAt' : IDL.Int,
-    'description' : IDL.Text,
-    'reviewedAt' : IDL.Opt(IDL.Int),
-    'email' : IDL.Text,
-    'phone' : IDL.Text,
-    'portfolioImages' : IDL.Vec(IDL.Text),
-  });
-  const VendorStatus = IDL.Variant({
-    'pending' : IDL.Null,
-    'approved' : IDL.Null,
-    'rejected' : IDL.Null,
-    'suspended' : IDL.Null,
-  });
-  const Vendor = IDL.Record({
-    'id' : IDL.Nat,
-    'status' : VendorStatus,
-    'city' : IDL.Text,
-    'name' : IDL.Text,
-    'createdAt' : IDL.Int,
-    'businessName' : IDL.Text,
-    'email' : IDL.Text,
-    'experience' : IDL.Nat,
-    'phone' : IDL.Text,
-    'services' : IDL.Text,
-  });
-  const Analytics = IDL.Record({
-    'totalEvents' : IDL.Nat,
-    'totalBookings' : IDL.Nat,
-    'totalListings' : IDL.Nat,
-    'totalUsers' : IDL.Nat,
-    'recentBookings' : IDL.Vec(Booking),
-    'totalVendors' : IDL.Nat,
+    'route' : IDL.Text,
   });
   const UserProfile = IDL.Record({
     'name' : IDL.Text,
     'email' : IDL.Text,
     'phone' : IDL.Text,
-  });
-  const TicketCategory = IDL.Record({
-    'id' : IDL.Nat,
-    'eventId' : IDL.Nat,
-    'availableQty' : IDL.Nat,
-    'name' : IDL.Text,
-    'price' : IDL.Nat,
-  });
-  const StaffSession = IDL.Record({
-    'username' : IDL.Text,
-    'staffId' : IDL.Nat,
-    'role' : StaffRole,
-  });
-  const StaffLoginResult = IDL.Variant({
-    'ok' : StaffSession,
-    'err' : IDL.Text,
-  });
-  const ExternalBlob = IDL.Vec(IDL.Nat8);
-  const PortfolioImageInput = IDL.Record({
-    'title' : IDL.Opt(IDL.Text),
-    'file' : ExternalBlob,
-    'size' : IDL.Nat,
-    'vendorPrincipal' : IDL.Opt(IDL.Principal),
-    'mimeType' : IDL.Text,
-    'description' : IDL.Opt(IDL.Text),
-    'filename' : IDL.Text,
-    'vendorId' : IDL.Opt(IDL.Nat),
-    'category' : IDL.Text,
   });
   
   return IDL.Service({
@@ -916,53 +442,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
-    'addServiceListing' : IDL.Func([ServiceListingInput], [IDL.Nat], []),
-    'addTicketCategory' : IDL.Func(
-        [IDL.Nat, IDL.Text, IDL.Nat, IDL.Nat],
-        [IDL.Nat],
-        [],
-      ),
-    'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
-    'createBookingRequest' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Int, IDL.Text],
-        [IDL.Nat],
-        [],
-      ),
-    'createEvent' : IDL.Func(
-        [
-          IDL.Text,
-          IDL.Text,
-          IDL.Text,
-          IDL.Text,
-          IDL.Text,
-          IDL.Text,
-          IDL.Text,
-          IDL.Int,
-          IDL.Text,
-          IDL.Text,
-          IDL.Nat,
-          IDL.Text,
-          IDL.Text,
-          IDL.Text,
-          Status,
-        ],
-        [IDL.Nat],
-        [],
-      ),
-    'createEventBooking' : IDL.Func(
-        [
-          IDL.Nat,
-          IDL.Text,
-          IDL.Text,
-          IDL.Text,
-          IDL.Text,
-          IDL.Text,
-          IDL.Nat,
-          IDL.Text,
-        ],
-        [IDL.Nat],
-        [],
-      ),
+    'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'createHotel' : IDL.Func(
         [
           IDL.Text,
@@ -993,176 +473,15 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Nat],
         [],
       ),
-    'createListing' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Text, IDL.Text],
-        [IDL.Nat],
-        [],
-      ),
     'createPaymentTransaction' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Nat, IDL.Nat, TransactionStatus],
         [IDL.Nat],
         [],
       ),
-    'createStaffAccount' : IDL.Func(
-        [IDL.Text, IDL.Text, StaffRole],
-        [IDL.Nat],
-        [],
-      ),
-    'createUser' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Text, UserRole],
-        [IDL.Nat],
-        [],
-      ),
-    'createVendor' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Text, IDL.Text],
-        [IDL.Nat],
-        [],
-      ),
-    'deleteEvent' : IDL.Func([IDL.Nat], [], []),
-    'deleteHotel' : IDL.Func([IDL.Nat], [], []),
-    'deletePortfolioImage' : IDL.Func([IDL.Nat], [], []),
-    'deleteServiceListing' : IDL.Func([IDL.Nat], [], []),
-    'deleteStaffAccount' : IDL.Func([IDL.Nat], [], []),
-    'deleteTicketCategory' : IDL.Func([IDL.Nat], [], []),
-    'getAllBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
-    'getAllEventBookings' : IDL.Func([], [IDL.Vec(EventBooking)], ['query']),
-    'getAllEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
-    'getAllHotelBookings' : IDL.Func([], [IDL.Vec(HotelBooking)], ['query']),
-    'getAllHotels' : IDL.Func([], [IDL.Vec(Hotel)], ['query']),
-    'getAllListings' : IDL.Func([], [IDL.Vec(Listing)], ['query']),
-    'getAllPaymentTransactions' : IDL.Func(
-        [],
-        [IDL.Vec(PaymentTransaction)],
-        ['query'],
-      ),
-    'getAllServiceListings' : IDL.Func(
-        [],
-        [IDL.Vec(ServiceListing)],
-        ['query'],
-      ),
-    'getAllStaffAccounts' : IDL.Func([], [IDL.Vec(StaffAccount)], ['query']),
-    'getAllUsers' : IDL.Func([], [IDL.Vec(User)], ['query']),
-    'getAllVendorApplications' : IDL.Func(
-        [],
-        [IDL.Vec(VendorApplication)],
-        ['query'],
-      ),
-    'getAllVendors' : IDL.Func([], [IDL.Vec(Vendor)], ['query']),
-    'getAnalytics' : IDL.Func([], [Analytics], ['query']),
-    'getBooking' : IDL.Func([IDL.Nat], [IDL.Opt(Booking)], ['query']),
-    'getBookingsByCity' : IDL.Func([IDL.Text], [IDL.Vec(Booking)], ['query']),
-    'getBookingsByDateRange' : IDL.Func(
-        [IDL.Int, IDL.Int],
-        [IDL.Vec(Booking)],
-        ['query'],
-      ),
-    'getBookingsByServiceType' : IDL.Func(
-        [IDL.Text],
-        [IDL.Vec(Booking)],
-        ['query'],
-      ),
-    'getBookingsByStatus' : IDL.Func(
-        [BookingStatus],
-        [IDL.Vec(Booking)],
-        ['query'],
-      ),
-    'getBookingsForMyVendor' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
-    'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
-    'getCallerUserRole' : IDL.Func([], [UserRole__1], ['query']),
-    'getConfirmedBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
-    'getEvent' : IDL.Func([IDL.Nat], [IDL.Opt(Event)], ['query']),
-    'getEventBookingsByEvent' : IDL.Func(
-        [IDL.Nat],
-        [IDL.Vec(EventBooking)],
-        ['query'],
-      ),
-    'getHotel' : IDL.Func([IDL.Nat], [IDL.Opt(Hotel)], ['query']),
-    'getHotelBooking' : IDL.Func([IDL.Nat], [IDL.Opt(HotelBooking)], ['query']),
-    'getListing' : IDL.Func([IDL.Nat], [IDL.Opt(Listing)], ['query']),
-    'getListingsByCategory' : IDL.Func(
-        [IDL.Text],
-        [IDL.Vec(Listing)],
-        ['query'],
-      ),
-    'getListingsByCity' : IDL.Func([IDL.Text], [IDL.Vec(Listing)], ['query']),
-    'getMyServiceListings' : IDL.Func([], [IDL.Vec(ServiceListing)], ['query']),
-    'getMyVendorApplication' : IDL.Func(
-        [],
-        [IDL.Opt(VendorApplication)],
-        ['query'],
-      ),
-    'getNewBookings' : IDL.Func([], [IDL.Vec(Booking)], ['query']),
-    'getPaymentTransactionByBookingId' : IDL.Func(
-        [IDL.Nat],
-        [IDL.Opt(PaymentTransaction)],
-        ['query'],
-      ),
-    'getPublicApprovedVendors' : IDL.Func(
-        [],
-        [IDL.Vec(VendorApplication)],
-        ['query'],
-      ),
-    'getPublicEventsByCategory' : IDL.Func(
-        [IDL.Text],
-        [IDL.Vec(Event)],
-        ['query'],
-      ),
-    'getPublicEventsBySubCategory' : IDL.Func(
-        [IDL.Text],
-        [IDL.Vec(Event)],
-        ['query'],
-      ),
-    'getPublicListings' : IDL.Func([], [IDL.Vec(Listing)], ['query']),
-    'getPublicVendorsByServices' : IDL.Func(
-        [IDL.Text],
-        [IDL.Vec(Vendor)],
-        ['query'],
-      ),
-    'getPublishedEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
-    'getPublishedVendors' : IDL.Func([], [IDL.Vec(Vendor)], ['query']),
-    'getTicketCategoriesByEvent' : IDL.Func(
-        [IDL.Nat],
-        [IDL.Vec(TicketCategory)],
-        ['query'],
-      ),
-    'getUpcomingEvents' : IDL.Func([], [IDL.Vec(Event)], ['query']),
-    'getUser' : IDL.Func([IDL.Nat], [IDL.Opt(User)], ['query']),
-    'getUserProfile' : IDL.Func(
-        [IDL.Principal],
-        [IDL.Opt(UserProfile)],
-        ['query'],
-      ),
-    'getUsersByRole' : IDL.Func([UserRole], [IDL.Vec(User)], ['query']),
-    'getVendor' : IDL.Func([IDL.Nat], [IDL.Opt(Vendor)], ['query']),
-    'getVendorApplication' : IDL.Func(
-        [IDL.Nat],
-        [IDL.Opt(VendorApplication)],
-        ['query'],
-      ),
-    'getVendorsByCity' : IDL.Func([IDL.Text], [IDL.Vec(Vendor)], ['query']),
-    'initDefaultStaffAccount' : IDL.Func([], [], []),
-    'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-    'reviewVendorApplication' : IDL.Func([IDL.Nat, ApplicationStatus], [], []),
-    'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
-    'staffLogin' : IDL.Func([IDL.Text, IDL.Text], [StaffLoginResult], []),
-    'submitVendorApplication' : IDL.Func(
-        [
-          IDL.Text,
-          IDL.Text,
-          IDL.Text,
-          IDL.Text,
-          IDL.Text,
-          IDL.Text,
-          IDL.Text,
-          IDL.Vec(IDL.Text),
-        ],
-        [IDL.Nat],
-        [],
-      ),
-    'updateBookingStatus' : IDL.Func([IDL.Nat, BookingStatus], [], []),
-    'updateEvent' : IDL.Func(
+    'createTransportBooking' : IDL.Func(
         [
           IDL.Nat,
+          IDL.Text,
           IDL.Text,
           IDL.Text,
           IDL.Text,
@@ -1171,18 +490,70 @@ export const idlFactory = ({ IDL }) => {
           IDL.Text,
           IDL.Text,
           IDL.Int,
+          IDL.Nat,
+          IDL.Nat,
+        ],
+        [IDL.Nat],
+        [],
+      ),
+    'createTransportOption' : IDL.Func(
+        [
+          TransportType,
+          IDL.Text,
           IDL.Text,
           IDL.Text,
           IDL.Nat,
-          IDL.Text,
-          IDL.Text,
-          IDL.Text,
-          Status,
+          IDL.Nat,
+          IDL.Vec(IDL.Text),
         ],
-        [],
+        [IDL.Nat],
         [],
       ),
-    'updateEventBookingStatus' : IDL.Func([IDL.Nat, BookingStatus], [], []),
+    'deleteHotel' : IDL.Func([IDL.Nat], [], []),
+    'deleteTransportOption' : IDL.Func([IDL.Nat], [], []),
+    'getAllHotelBookings' : IDL.Func([], [IDL.Vec(HotelBooking)], ['query']),
+    'getAllHotels' : IDL.Func([], [IDL.Vec(Hotel)], ['query']),
+    'getAllPaymentTransactions' : IDL.Func(
+        [],
+        [IDL.Vec(PaymentTransaction)],
+        ['query'],
+      ),
+    'getAllTransportBookings' : IDL.Func(
+        [],
+        [IDL.Vec(TransportBooking)],
+        ['query'],
+      ),
+    'getAllTransportOptions' : IDL.Func(
+        [],
+        [IDL.Vec(TransportOption)],
+        ['query'],
+      ),
+    'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
+    'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getHotel' : IDL.Func([IDL.Nat], [IDL.Opt(Hotel)], ['query']),
+    'getHotelBooking' : IDL.Func([IDL.Nat], [IDL.Opt(HotelBooking)], ['query']),
+    'getPaymentTransactionByBookingId' : IDL.Func(
+        [IDL.Nat],
+        [IDL.Opt(PaymentTransaction)],
+        ['query'],
+      ),
+    'getTransportBooking' : IDL.Func(
+        [IDL.Nat],
+        [IDL.Opt(TransportBooking)],
+        ['query'],
+      ),
+    'getTransportOption' : IDL.Func(
+        [IDL.Nat],
+        [IDL.Opt(TransportOption)],
+        ['query'],
+      ),
+    'getUserProfile' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Opt(UserProfile)],
+        ['query'],
+      ),
+    'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'updateHotel' : IDL.Func(
         [
           IDL.Nat,
@@ -1203,51 +574,26 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'updateHotelBookingStatus' : IDL.Func([IDL.Nat, BookingStatus], [], []),
-    'updateListingStatus' : IDL.Func([IDL.Nat, ListingStatus], [], []),
-    'updateMyVendorApplication' : IDL.Func(
+    'updateTransportBookingPaymentStatus' : IDL.Func(
+        [IDL.Nat, TransactionStatus],
+        [],
+        [],
+      ),
+    'updateTransportBookingStatus' : IDL.Func([IDL.Nat, BookingStatus], [], []),
+    'updateTransportOption' : IDL.Func(
         [
+          IDL.Nat,
+          TransportType,
           IDL.Text,
           IDL.Text,
           IDL.Text,
-          IDL.Text,
-          IDL.Text,
-          IDL.Text,
-          IDL.Text,
+          IDL.Nat,
+          IDL.Nat,
           IDL.Vec(IDL.Text),
         ],
         [],
         [],
       ),
-    'updateServiceListing' : IDL.Func([IDL.Nat, ServiceListingInput], [], []),
-    'updateStaffAccountRole' : IDL.Func([IDL.Nat, StaffRole], [], []),
-    'updateStaffAccountStatus' : IDL.Func([IDL.Nat, StaffStatus], [], []),
-    'updateUser' : IDL.Func(
-        [IDL.Nat, IDL.Text, IDL.Text, IDL.Text, UserRole],
-        [],
-        [],
-      ),
-    'updateUserStatus' : IDL.Func([IDL.Nat, UserStatus], [], []),
-    'updateVendor' : IDL.Func(
-        [
-          IDL.Nat,
-          IDL.Text,
-          IDL.Text,
-          IDL.Text,
-          IDL.Text,
-          IDL.Nat,
-          IDL.Text,
-          IDL.Text,
-        ],
-        [],
-        [],
-      ),
-    'updateVendorApplicationStatus' : IDL.Func(
-        [IDL.Nat, ApplicationStatus],
-        [],
-        [],
-      ),
-    'updateVendorStatus' : IDL.Func([IDL.Nat, VendorStatus], [], []),
-    'uploadPortfolioImage' : IDL.Func([PortfolioImageInput], [IDL.Nat], []),
   });
 };
 

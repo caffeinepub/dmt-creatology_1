@@ -24,6 +24,7 @@ import ScanPage from "./pages/ScanPage";
 import StaffJobsPage from "./pages/StaffJobsPage";
 import StaffLoginPage from "./pages/StaffLoginPage";
 import TicketPage from "./pages/TicketPage";
+import TransportConfirmationPage from "./pages/TransportConfirmationPage";
 import TransportPage from "./pages/TransportPage";
 import VendorDashboardPage from "./pages/VendorDashboardPage";
 import VendorLoginPage from "./pages/VendorLoginPage";
@@ -41,6 +42,8 @@ import AdminListingsPage from "./pages/admin/AdminListingsPage";
 import AdminLoginPage from "./pages/admin/AdminLoginPage";
 import AdminPaymentsPage from "./pages/admin/AdminPaymentsPage";
 import AdminStaffPage from "./pages/admin/AdminStaffPage";
+import AdminTransportBookingsPage from "./pages/admin/AdminTransportBookingsPage";
+import AdminTransportPage from "./pages/admin/AdminTransportPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminVendorsPage from "./pages/admin/AdminVendorsPage";
 
@@ -248,6 +251,24 @@ const adminHotelBookingsRoute = createRoute({
   component: AdminHotelBookingsPage,
 });
 
+const adminTransportRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/transport",
+  component: AdminTransportPage,
+});
+
+const adminTransportBookingsRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/transport-bookings",
+  component: AdminTransportBookingsPage,
+});
+
+const transportConfirmationRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/transport-confirmation/$bookingId",
+  component: TransportConfirmationPage,
+});
+
 // Wire admin layout children
 adminLayoutRoute.addChildren([
   adminDashboardRoute,
@@ -257,6 +278,8 @@ adminLayoutRoute.addChildren([
   adminBookingsRoute,
   adminPaymentsRoute,
   adminHotelBookingsRoute,
+  adminTransportRoute,
+  adminTransportBookingsRoute,
   adminUsersRoute,
   adminListingsRoute,
   adminAnalyticsRoute,
@@ -311,6 +334,7 @@ const publicRouteTree = rootRoute.addChildren([
   vendorRegisterPublicRoute,
   ticketRoute,
   hotelConfirmationRoute,
+  transportConfirmationRoute,
   scanRoute,
 ]);
 
