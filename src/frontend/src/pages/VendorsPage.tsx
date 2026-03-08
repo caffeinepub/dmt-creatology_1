@@ -3,11 +3,12 @@ import ServiceCard from "@/components/ServiceCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useApprovedVendors } from "@/hooks/useVendorQueries";
+import { FALLBACK_IMAGES } from "@/lib/fallbackImages";
 import { Link } from "@tanstack/react-router";
 import { Store } from "lucide-react";
 import { useState } from "react";
 
-const FALLBACK_IMG = "/assets/generated/vendor-photographer.dim_600x400.jpg";
+const FALLBACK_IMG = FALLBACK_IMAGES.vendor;
 
 const HARDCODED_VENDORS = [
   {
@@ -219,7 +220,12 @@ export default function VendorsPage() {
                     service={vendor.service}
                     badge={vendor.badge}
                     rating={vendor.rating}
-                    image={"image" in vendor ? vendor.image : FALLBACK_IMG}
+                    image={
+                      "image" in vendor
+                        ? vendor.image || FALLBACK_IMG
+                        : FALLBACK_IMG
+                    }
+                    fallbackSrc={FALLBACK_IMG}
                     index={i + 1}
                   />
                 </div>

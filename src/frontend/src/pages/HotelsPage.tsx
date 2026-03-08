@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAllHotels } from "@/hooks/useAdminQueries";
+import { FALLBACK_IMAGES } from "@/lib/fallbackImages";
 import {
   BedDouble,
   Car,
@@ -20,7 +21,7 @@ import type { LucideIcon } from "lucide-react";
 import { useState } from "react";
 import type { Hotel } from "../backend.d";
 
-const IMG = "/assets/generated/hotel-luxury.dim_600x400.jpg";
+const IMG = FALLBACK_IMAGES.hotel;
 
 // ── Static fallback data ──────────────────────────────────────────────────────
 

@@ -1,8 +1,9 @@
 import PageHeader from "@/components/PageHeader";
 import ServiceCard from "@/components/ServiceCard";
 import { Badge } from "@/components/ui/badge";
+import { FALLBACK_IMAGES } from "@/lib/fallbackImages";
 
-const IMG = "/assets/generated/artist-dj.dim_600x400.jpg";
+const IMG = FALLBACK_IMAGES.artist;
 
 const artists = [
   {
@@ -124,7 +125,12 @@ export default function ArtistsPage() {
                     {artist.followers} followers
                   </Badge>
                 </div>
-                <ServiceCard {...artist} image={IMG} index={i + 1} />
+                <ServiceCard
+                  {...artist}
+                  image={IMG}
+                  fallbackSrc={IMG}
+                  index={i + 1}
+                />
               </div>
             ))}
           </div>

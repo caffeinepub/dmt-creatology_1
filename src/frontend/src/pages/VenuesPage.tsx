@@ -1,8 +1,9 @@
 import PageHeader from "@/components/PageHeader";
 import ServiceCard from "@/components/ServiceCard";
 import { Badge } from "@/components/ui/badge";
+import { FALLBACK_IMAGES } from "@/lib/fallbackImages";
 
-const IMG = "/assets/generated/venue-banquet.dim_600x400.jpg";
+const IMG = FALLBACK_IMAGES.venue;
 
 const venues = [
   {
@@ -113,7 +114,12 @@ export default function VenuesPage() {
                     {venue.type}
                   </Badge>
                 </div>
-                <ServiceCard {...venue} image={IMG} index={i + 1} />
+                <ServiceCard
+                  {...venue}
+                  image={IMG}
+                  fallbackSrc={IMG}
+                  index={i + 1}
+                />
               </div>
             ))}
           </div>

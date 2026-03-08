@@ -1,14 +1,15 @@
 import ServiceCard from "@/components/ServiceCard";
 import { Button } from "@/components/ui/button";
+import { FALLBACK_IMAGES } from "@/lib/fallbackImages";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Calendar, MapPin, Star, Users } from "lucide-react";
 
-const HERO_IMG = "/assets/generated/hero-events.dim_800x450.jpg";
-const HOTEL_IMG = "/assets/generated/hotel-luxury.dim_600x400.jpg";
-const FOOD_IMG = "/assets/generated/food-spread.dim_600x400.jpg";
-const VENUE_IMG = "/assets/generated/venue-banquet.dim_600x400.jpg";
-const ARTIST_IMG = "/assets/generated/artist-dj.dim_600x400.jpg";
-const TRANSPORT_IMG = "/assets/generated/transport-luxury.dim_600x400.jpg";
+const HERO_IMG = FALLBACK_IMAGES.event;
+const HOTEL_IMG = FALLBACK_IMAGES.hotel;
+const FOOD_IMG = FALLBACK_IMAGES.food;
+const VENUE_IMG = FALLBACK_IMAGES.venue;
+const ARTIST_IMG = FALLBACK_IMAGES.artist;
+const TRANSPORT_IMG = FALLBACK_IMAGES.transport;
 
 const stats = [
   { icon: Users, label: "Happy Clients", value: "50,000+" },
@@ -325,6 +326,7 @@ export default function HomePage() {
               key={item.title}
               {...item}
               image={HERO_IMG}
+              fallbackSrc={FALLBACK_IMAGES.event}
               index={i + 1}
             />
           ))}
@@ -345,6 +347,7 @@ export default function HomePage() {
               key={item.title}
               {...item}
               image={HOTEL_IMG}
+              fallbackSrc={FALLBACK_IMAGES.hotel}
               index={i + 1}
             />
           ))}
@@ -365,6 +368,7 @@ export default function HomePage() {
               key={item.title}
               {...item}
               image={FOOD_IMG}
+              fallbackSrc={FALLBACK_IMAGES.food}
               index={i + 1}
             />
           ))}
@@ -385,6 +389,7 @@ export default function HomePage() {
               key={item.title}
               {...item}
               image={VENUE_IMG}
+              fallbackSrc={FALLBACK_IMAGES.venue}
               index={i + 1}
             />
           ))}
@@ -405,6 +410,7 @@ export default function HomePage() {
               key={item.title}
               {...item}
               image={ARTIST_IMG}
+              fallbackSrc={FALLBACK_IMAGES.artist}
               index={i + 1}
             />
           ))}
@@ -425,6 +431,7 @@ export default function HomePage() {
               key={item.title}
               {...item}
               image={TRANSPORT_IMG}
+              fallbackSrc={FALLBACK_IMAGES.transport}
               index={i + 1}
             />
           ))}

@@ -1,12 +1,15 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { FALLBACK_IMAGES } from "@/lib/fallbackImages";
 import { MapPin, Star } from "lucide-react";
 import { useState } from "react";
 import BookingModal from "./BookingModal";
 
 interface ServiceCardProps {
   image: string;
+  /** Fallback image src shown when `image` fails to load or is empty */
+  fallbackSrc?: string;
   title: string;
   subtitle?: string;
   description: string;
@@ -20,6 +23,7 @@ interface ServiceCardProps {
 
 export default function ServiceCard({
   image,
+  fallbackSrc = FALLBACK_IMAGES.event,
   title,
   subtitle,
   description,
@@ -32,6 +36,9 @@ export default function ServiceCard({
 }: ServiceCardProps) {
   const [open, setOpen] = useState(false);
 
+  // Resolve image: if empty/missing, use fallback immediately
+  const resolvedSrc = image && image.trim() !== "" ? image : fallbackSrc;
+
   return (
     <>
       <Card
@@ -40,10 +47,13 @@ export default function ServiceCard({
       >
         <div className="relative overflow-hidden h-48">
           <img
-            src={image}
+            src={resolvedSrc}
             alt={title}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = fallbackSrc;
+            }}
           />
           {badge && (
             <Badge className="absolute top-3 left-3 gradient-gold text-[oklch(0.1_0.01_260)] font-bold border-0 text-xs">

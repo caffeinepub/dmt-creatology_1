@@ -5,12 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAllTransportOptions } from "@/hooks/useAdminQueries";
+import { FALLBACK_IMAGES } from "@/lib/fallbackImages";
 import { Bus, Car, MapPin, Plane, Ship, Star, Train } from "lucide-react";
 import { useState } from "react";
 import { TransportType } from "../backend.d";
 import type { TransportOption } from "../backend.d";
 
-const IMG = "/assets/generated/transport-luxury.dim_600x400.jpg";
+const IMG = FALLBACK_IMAGES.transport;
 
 // ── Static fallback data ──────────────────────────────────────────────────────
 
@@ -369,6 +370,7 @@ export default function TransportPage() {
                         key={item.title}
                         {...item}
                         image={IMG}
+                        fallbackSrc={IMG}
                         index={i + 1}
                       />
                     ))}

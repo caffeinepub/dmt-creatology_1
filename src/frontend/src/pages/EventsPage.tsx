@@ -4,13 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePublishedEvents } from "@/hooks/useAdminQueries";
+import { FALLBACK_IMAGES } from "@/lib/fallbackImages";
 import { CalendarDays, MapPin, Music, Star, Tag } from "lucide-react";
 import { useState } from "react";
 // Event type - defined locally since it was removed from the reduced backend.d.ts
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Event = any;
 
-const FALLBACK_IMG = "/assets/generated/hero-events.dim_800x450.jpg";
+const FALLBACK_IMG = FALLBACK_IMAGES.event;
 
 function formatNanoDate(ns: bigint): string {
   return new Date(Number(ns) / 1_000_000).toLocaleDateString("en-IN", {

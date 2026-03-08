@@ -1,8 +1,9 @@
 import PageHeader from "@/components/PageHeader";
 import ServiceCard from "@/components/ServiceCard";
 import { Badge } from "@/components/ui/badge";
+import { FALLBACK_IMAGES } from "@/lib/fallbackImages";
 
-const IMG = "/assets/generated/food-spread.dim_600x400.jpg";
+const IMG = FALLBACK_IMAGES.food;
 
 const categories = [
   "All",
@@ -115,7 +116,12 @@ export default function FoodPage() {
                     {item.category}
                   </Badge>
                 </div>
-                <ServiceCard {...item} image={IMG} index={i + 1} />
+                <ServiceCard
+                  {...item}
+                  image={IMG}
+                  fallbackSrc={IMG}
+                  index={i + 1}
+                />
               </div>
             ))}
           </div>
