@@ -771,6 +771,154 @@ export function useUpdateTransportBookingPaymentStatus() {
   });
 }
 
+// ── Rankings ────────────────────────────────────────────────────────────────
+
+export function useAllRankingProfiles() {
+  const { actor, isFetching } = useActor();
+  return useQuery({
+    queryKey: ["rankingProfiles"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return legacyActor(actor).getAllRankingProfiles();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useCreateRankingProfile() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      name: string;
+      city: string;
+      category: string;
+      photoUrl: string;
+      description: string;
+      rating: bigint;
+      adminScore: bigint;
+      linkedVendorId: bigint | null;
+    }) => {
+      if (!actor) throw new Error("Actor not available");
+      return legacyActor(actor).createRankingProfile(
+        data.name,
+        data.city,
+        data.category,
+        data.photoUrl,
+        data.description,
+        data.rating,
+        data.adminScore,
+        data.linkedVendorId,
+      );
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["rankingProfiles"] }),
+  });
+}
+
+export function useUpdateRankingProfile() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      id: bigint;
+      name: string;
+      city: string;
+      category: string;
+      photoUrl: string;
+      description: string;
+      rating: bigint;
+      adminScore: bigint;
+      linkedVendorId: bigint | null;
+    }) => {
+      if (!actor) throw new Error("Actor not available");
+      return legacyActor(actor).updateRankingProfile(
+        data.id,
+        data.name,
+        data.city,
+        data.category,
+        data.photoUrl,
+        data.description,
+        data.rating,
+        data.adminScore,
+        data.linkedVendorId,
+      );
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["rankingProfiles"] }),
+  });
+}
+
+export function useDeleteRankingProfile() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor) throw new Error("Actor not available");
+      return legacyActor(actor).deleteRankingProfile(id);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["rankingProfiles"] }),
+  });
+}
+
+export function useVoteForProfile() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      profileId: bigint;
+      voterIdentifier: string;
+    }) => {
+      if (!actor) throw new Error("Actor not available");
+      return legacyActor(actor).voteForProfile(
+        data.profileId,
+        data.voterIdentifier,
+      );
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["rankingProfiles"] }),
+  });
+}
+
+export function useGetVoteRecords(profileId: bigint | null) {
+  const { actor, isFetching } = useActor();
+  return useQuery({
+    queryKey: ["voteRecords", String(profileId)],
+    queryFn: async () => {
+      if (!actor || profileId === null) return [];
+      return legacyActor(actor).getVoteRecordsForProfile(profileId);
+    },
+    enabled: !!actor && !isFetching && profileId !== null,
+  });
+}
+
+export function useAdjustAdminScore() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { profileId: bigint; score: bigint }) => {
+      if (!actor) throw new Error("Actor not available");
+      return legacyActor(actor).adjustAdminScore(data.profileId, data.score);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["rankingProfiles"] }),
+  });
+}
+
+export function useLinkVendorToProfile() {
+  const { actor } = useActor();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      profileId: bigint;
+      vendorId: bigint | null;
+    }) => {
+      if (!actor) throw new Error("Actor not available");
+      return legacyActor(actor).linkVendorToProfile(
+        data.profileId,
+        data.vendorId,
+      );
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["rankingProfiles"] }),
+  });
+}
+
 // ── Razorpay Config ─────────────────────────────────────────────────────────
 
 export function useGetRazorpayConfig() {

@@ -51,6 +51,19 @@ export interface PaymentTransaction {
   'amount' : bigint,
   'transactionId' : string,
 }
+export interface RankingProfile {
+  'id' : bigint,
+  'totalVotes' : bigint,
+  'city' : string,
+  'name' : string,
+  'createdAt' : bigint,
+  'description' : string,
+  'photoUrl' : string,
+  'linkedVendorId' : [] | [bigint],
+  'category' : string,
+  'adminScore' : bigint,
+  'rating' : bigint,
+}
 export interface RoomType { 'pricePerNight' : bigint, 'name' : string }
 export type TransactionStatus = { 'pending' : null } |
   { 'completed' : null } |
@@ -99,6 +112,12 @@ export interface UserProfile {
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
+export interface VoteRecord {
+  'id' : bigint,
+  'profileId' : bigint,
+  'votedAt' : bigint,
+  'voterIdentifier' : string,
+}
 export interface _CaffeineStorageCreateCertificateResult {
   'method' : string,
   'blob_hash' : string,
@@ -127,6 +146,7 @@ export interface _SERVICE {
   >,
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
+  'adjustAdminScore' : ActorMethod<[bigint, bigint], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'createHotel' : ActorMethod<
     [
@@ -160,6 +180,10 @@ export interface _SERVICE {
     [string, string, bigint, bigint, TransactionStatus],
     bigint
   >,
+  'createRankingProfile' : ActorMethod<
+    [string, string, string, string, string, bigint, bigint, [] | [bigint]],
+    bigint
+  >,
   'createTransportBooking' : ActorMethod<
     [
       bigint,
@@ -182,10 +206,12 @@ export interface _SERVICE {
     bigint
   >,
   'deleteHotel' : ActorMethod<[bigint], undefined>,
+  'deleteRankingProfile' : ActorMethod<[bigint], undefined>,
   'deleteTransportOption' : ActorMethod<[bigint], undefined>,
   'getAllHotelBookings' : ActorMethod<[], Array<HotelBooking>>,
   'getAllHotels' : ActorMethod<[], Array<Hotel>>,
   'getAllPaymentTransactions' : ActorMethod<[], Array<PaymentTransaction>>,
+  'getAllRankingProfiles' : ActorMethod<[], Array<RankingProfile>>,
   'getAllTransportBookings' : ActorMethod<[], Array<TransportBooking>>,
   'getAllTransportOptions' : ActorMethod<[], Array<TransportOption>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
@@ -196,10 +222,13 @@ export interface _SERVICE {
     [bigint],
     [] | [PaymentTransaction]
   >,
+  'getRankingProfilesByCategory' : ActorMethod<[string], Array<RankingProfile>>,
   'getTransportBooking' : ActorMethod<[bigint], [] | [TransportBooking]>,
   'getTransportOption' : ActorMethod<[bigint], [] | [TransportOption]>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'getVoteRecordsForProfile' : ActorMethod<[bigint], Array<VoteRecord>>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'linkVendorToProfile' : ActorMethod<[bigint, [] | [bigint]], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'updateHotel' : ActorMethod<
     [
@@ -219,6 +248,20 @@ export interface _SERVICE {
     undefined
   >,
   'updateHotelBookingStatus' : ActorMethod<[bigint, BookingStatus], undefined>,
+  'updateRankingProfile' : ActorMethod<
+    [
+      bigint,
+      string,
+      string,
+      string,
+      string,
+      string,
+      bigint,
+      bigint,
+      [] | [bigint],
+    ],
+    undefined
+  >,
   'updateTransportBookingPaymentStatus' : ActorMethod<
     [bigint, TransactionStatus],
     undefined
@@ -239,6 +282,11 @@ export interface _SERVICE {
       Array<string>,
     ],
     undefined
+  >,
+  'voteForProfile' : ActorMethod<
+    [bigint, string],
+    { 'ok' : null } |
+      { 'err' : string }
   >,
 }
 export declare const idlService: IDL.ServiceClass;

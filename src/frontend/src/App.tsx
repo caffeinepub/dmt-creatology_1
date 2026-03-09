@@ -41,6 +41,7 @@ import AdminHotelsPage from "./pages/admin/AdminHotelsPage";
 import AdminListingsPage from "./pages/admin/AdminListingsPage";
 import AdminLoginPage from "./pages/admin/AdminLoginPage";
 import AdminPaymentsPage from "./pages/admin/AdminPaymentsPage";
+import AdminRankingsPage from "./pages/admin/AdminRankingsPage";
 import AdminStaffPage from "./pages/admin/AdminStaffPage";
 import AdminTransportBookingsPage from "./pages/admin/AdminTransportBookingsPage";
 import AdminTransportPage from "./pages/admin/AdminTransportPage";
@@ -263,6 +264,12 @@ const adminTransportBookingsRoute = createRoute({
   component: AdminTransportBookingsPage,
 });
 
+const adminRankingsRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/rankings",
+  component: AdminRankingsPage,
+});
+
 const transportConfirmationRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/transport-confirmation/$bookingId",
@@ -280,6 +287,7 @@ adminLayoutRoute.addChildren([
   adminHotelBookingsRoute,
   adminTransportRoute,
   adminTransportBookingsRoute,
+  adminRankingsRoute,
   adminUsersRoute,
   adminListingsRoute,
   adminAnalyticsRoute,

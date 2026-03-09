@@ -5,6 +5,8 @@ import Time "mo:core/Time";
 import Text "mo:core/Text";
 import Principal "mo:core/Principal";
 import Nat "mo:core/Nat";
+import Order "mo:core/Order";
+import Iter "mo:core/Iter";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import MixinAuthorization "authorization/MixinAuthorization";
@@ -303,6 +305,207 @@ actor {
     status : BookingStatus;
     paymentStatus : TransactionStatus;
     createdAt : Int;
+  };
+
+  ////////////////////////////////////////////////////////
+  // NEW RANKINGS ENGINE
+  ////////////////////////////////////////////////////////
+  public type RankingProfile = {
+    id : Nat;
+    name : Text;
+    city : Text;
+    category : Text;
+    photoUrl : Text;
+    description : Text;
+    rating : Nat;
+    totalVotes : Nat;
+    adminScore : Nat;
+    linkedVendorId : ?Nat;
+    createdAt : Int;
+  };
+
+  public type VoteRecord = {
+    id : Nat;
+    profileId : Nat;
+    voterIdentifier : Text;
+    votedAt : Int;
+  };
+
+  var rankingProfileId = 0 : Nat;
+  var voteRecordId = 0 : Nat;
+  let rankingProfiles = Maps.empty<Nat, RankingProfile>();
+  let voteRecords = Maps.empty<Nat, VoteRecord>();
+
+  public shared ({ caller }) func createRankingProfile(
+    name : Text,
+    city : Text,
+    category : Text,
+    photoUrl : Text,
+    description : Text,
+    rating : Nat,
+    adminScore : Nat,
+    linkedVendorId : ?Nat,
+  ) : async Nat {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can create ranking profiles");
+    };
+    let id = rankingProfileId;
+    let profile : RankingProfile = {
+      id;
+      name;
+      city;
+      category;
+      photoUrl;
+      description;
+      rating;
+      totalVotes = 0;
+      adminScore;
+      linkedVendorId;
+      createdAt = Time.now();
+    };
+    rankingProfiles.add(id, profile);
+    rankingProfileId += 1 : Nat;
+    id;
+  };
+
+  public shared ({ caller }) func updateRankingProfile(
+    id : Nat,
+    name : Text,
+    city : Text,
+    category : Text,
+    photoUrl : Text,
+    description : Text,
+    rating : Nat,
+    adminScore : Nat,
+    linkedVendorId : ?Nat,
+  ) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can update ranking profiles");
+    };
+
+    switch (rankingProfiles.get(id)) {
+      case (?existing) {
+        let updated : RankingProfile = {
+          id;
+          name;
+          city;
+          category;
+          photoUrl;
+          description;
+          rating;
+          totalVotes = existing.totalVotes;
+          adminScore;
+          linkedVendorId;
+          createdAt = existing.createdAt;
+        };
+        rankingProfiles.add(id, updated);
+      };
+      case (null) { Runtime.trap("RANKING_PROFILE_NOT_FOUND") };
+    };
+  };
+
+  public shared ({ caller }) func deleteRankingProfile(id : Nat) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can delete ranking profiles");
+    };
+    switch (rankingProfiles.get(id)) {
+      case (null) { Runtime.trap("RANKING_PROFILE_NOT_FOUND") };
+      case (?_) { rankingProfiles.remove(id) };
+    };
+  };
+
+  func compareRankingProfiles(a : RankingProfile, b : RankingProfile) : Order.Order {
+    let aScore = a.totalVotes * 60 + a.adminScore * 40;
+    let bScore = b.totalVotes * 60 + b.adminScore * 40;
+    if (aScore > bScore) { return #less };
+    if (aScore < bScore) { return #greater };
+    #equal;
+  };
+
+  func compareRankingProfilesDesc(a : RankingProfile, b : RankingProfile) : Order.Order {
+    Nat.compare(b.totalVotes, a.totalVotes);
+  };
+
+  public query func getAllRankingProfiles() : async [RankingProfile] {
+    rankingProfiles.values().toArray().sort(compareRankingProfiles);
+  };
+
+  public query func getRankingProfilesByCategory(category : Text) : async [RankingProfile] {
+    rankingProfiles.values().toArray().filter(
+      func(p) { Text.equal(p.category, category) }
+    ).sort(
+      compareRankingProfilesDesc
+    );
+  };
+
+  public shared ({ caller }) func voteForProfile(
+    profileId : Nat,
+    voterIdentifier : Text,
+  ) : async { #ok; #err : Text } {
+    switch (rankingProfiles.get(profileId)) {
+      case (null) { return #err("RANKING_PROFILE_NOT_FOUND") };
+      case (?profile) {
+        for ((id, vote) in voteRecords.entries()) {
+          if (vote.profileId == profileId and Text.equal(vote.voterIdentifier, voterIdentifier)) {
+            let now = Time.now();
+            let votedAtDay = vote.votedAt / 86_400_000_000_000;
+            let nowDay = now / 86_400_000_000_000;
+            if (votedAtDay == nowDay) {
+              return #err("Already voted today");
+            };
+          };
+        };
+        let voteId = voteRecordId;
+        let vote : VoteRecord = {
+          id = voteId;
+          profileId;
+          voterIdentifier;
+          votedAt = Time.now();
+        };
+        voteRecords.add(voteId, vote);
+        voteRecordId += 1 : Nat;
+        let updatedProfile = {
+          profile with totalVotes = profile.totalVotes + 1;
+        };
+        rankingProfiles.add(profileId, updatedProfile);
+        #ok;
+      };
+    };
+  };
+
+  public query ({ caller }) func getVoteRecordsForProfile(profileId : Nat) : async [VoteRecord] {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can view vote records");
+    };
+    voteRecords.values().toArray().filter(
+      func(v) { v.profileId == profileId }
+    );
+  };
+
+  public shared ({ caller }) func adjustAdminScore(profileId : Nat, score : Nat) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can adjust admin score");
+    };
+    switch (rankingProfiles.get(profileId)) {
+      case (null) { Runtime.trap("RANKING_PROFILE_NOT_FOUND") };
+      case (?profile) {
+        let updatedProfile = { profile with adminScore = score };
+        rankingProfiles.add(profileId, updatedProfile);
+      };
+    };
+  };
+
+  public shared ({ caller }) func linkVendorToProfile(profileId : Nat, vendorId : ?Nat) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can link vendor");
+    };
+    switch (rankingProfiles.get(profileId)) {
+      case (null) { Runtime.trap("RANKING_PROFILE_NOT_FOUND") };
+      case (?profile) {
+        let updatedProfile = { profile with linkedVendorId = vendorId };
+        rankingProfiles.add(profileId, updatedProfile);
+      };
+    };
   };
 
   ////////////////////////////////////////////////////////
@@ -624,7 +827,7 @@ actor {
     hotelBookings.values().toArray();
   };
 
-  public query ({ caller }) func getHotelBooking(id : Nat) : async ?HotelBooking {
+  public query func getHotelBooking(id : Nat) : async ?HotelBooking {
     hotelBookings.get(id);
   };
 

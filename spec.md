@@ -1,58 +1,49 @@
-# DMT Creatology
+# DMT Creatology — Phase 14: India Top 100 Rankings Engine
 
 ## Current State
 
-The platform is at Version 11 and includes:
-- Full public website with 14 pages including a static `/transport` page
-- Admin dashboard with panels for Events, Hotels, Hotel Bookings, Vendors, Bookings, Payments, Users, Staff, Listings, Analytics, Configuration
-- Hotel system: admin can create/edit/delete hotels with room types; public `/hotels` page shows live data; full hotel booking flow with Razorpay payment and confirmation page at `/hotel-confirmation/:bookingId`
-- Event booking with QR ticket generation at `/ticket/:bookingId` and staff scanner at `/scan`
-- Razorpay payment integration (test mode), payment transactions table in admin
-- Staff login system at `/staff/login` protecting `/scan`
-- Vendor marketplace with vendor registration, approval, and dashboard
-
-The `/transport` page is currently static-only with hardcoded sample data and no backend connection.
+Version 13 is live with the following modules all intact and working:
+- Public static website (14 pages)
+- Event creation + ticket booking + QR ticket generation
+- Staff scanner with authentication
+- Vendor self-registration + approval flow
+- Hotel listing management + hotel booking engine
+- Transport listing management + transport booking
+- Razorpay payment integration
+- Admin dashboard with full management panels (events, vendors, hotels, transport, bookings, staff, payments, config)
+- `/rankings` page exists but is fully static (hardcoded sample data only, no backend, no voting)
 
 ## Requested Changes (Diff)
 
 ### Add
-
-**Backend (Motoko):**
-- `TransportOption` type: id, transportType (Car/Bus/Flight/Train/Helicopter/Cruise), operatorName, route, city, price, availableSeats, photoUrls, createdAt
-- `TransportBooking` type: id, transportId, transportName, transportType, operatorName, route, passengerName, passengerPhone, passengerEmail, city, travelDate, seats, totalAmount, status (BookingStatus), paymentStatus (TransactionStatus), createdAt
-- CRUD for TransportOption: createTransport (admin-only), updateTransport (admin-only), deleteTransport (admin-only), getAllTransports (public), getTransport (public)
-- CRUD for TransportBooking: createTransportBooking (public), getAllTransportBookings (admin-only), getTransportBooking, updateTransportBookingStatus (admin-only), updateTransportBookingPaymentStatus
-
-**Frontend:**
-- `/admin/transport` — Admin page to add/edit/delete transport options with all fields including photo URLs
-- `/admin/transport-bookings` — Admin panel showing all transport bookings with status management
-- `/transport` — Updated public page that fetches live transport options from backend, falls back to static data; each card has a "Book Transport" button opening a booking modal
-- Transport booking modal — multi-step: select route/date/seats → passenger details → Razorpay payment
-- `/transport-confirmation/:bookingId` — Booking confirmation page after successful payment
-- New hooks in `useAdminQueries.ts` for transport CRUD and booking management
-- Admin sidebar: add "Transport" and "Transport Bookings" nav items
-- `App.tsx`: add routes for `/admin/transport`, `/admin/transport-bookings`, `/transport-confirmation/:bookingId`
+- **RankingProfile** backend type: id, name, city, category, photoUrl, description, rating (float as Nat*100), totalVotes, adminScore, linkedVendorId (optional), createdAt
+- **VoteRecord** backend type: id, profileId, voterIdentifier (IP/session hash), votedAt — one vote per profile per voter per day
+- Backend function: `createRankingProfile` (admin only)
+- Backend function: `updateRankingProfile` (admin only)
+- Backend function: `deleteRankingProfile` (admin only)
+- Backend function: `getAllRankingProfiles` (public query)
+- Backend function: `getRankingProfilesByCategory` (public query)
+- Backend function: `voteForProfile(profileId, voterIdentifier)` — checks duplicate vote per day, increments totalVotes, returns ok/err
+- Backend function: `getVoteCount(profileId)` (admin query)
+- Backend function: `adjustAdminScore(profileId, score)` (admin only)
+- Backend function: `linkVendorToProfile(profileId, vendorId)` (admin only)
+- **Public `/rankings` page** — replace static page with live backend data; tab categories: Top DJs, Top Event Photographers, Top Makeup Artists, Top Event Planners, Top Wedding Venues, Top Hotels, Top Caterers, Top Music Artists, Top Production Companies, Top Event Management Companies; leaderboard cards with profile photo, name, city, category, rating, total votes, Vote button; voting sends voterIdentifier (fingerprint from localStorage UUID + IP hash)
+- **Admin `/admin/rankings` page** — add/edit/delete profiles, view vote counts, manually adjust admin score, link vendor marketplace profile; "Rankings" link in admin sidebar
 
 ### Modify
-
-- `TransportPage.tsx` — Replace static hardcoded categories with live data from backend; retain static fallback
-- `AdminLayout.tsx` — Add "Transport" and "Transport Bookings" to NAV_ITEMS
-- `App.tsx` — Register new routes for admin transport pages and transport confirmation page
-- `useAdminQueries.ts` — Add transport-related hooks
-- Backend `main.mo` — Add new transport types, state maps, ID counters, and functions
+- `/rankings` public page — replace all static hardcoded data with live backend queries; keep the same layout and tab structure but replace 5 old categories with the 10 new specified categories
+- Admin sidebar — add "Rankings" nav link
 
 ### Remove
-
-Nothing removed. All existing systems untouched.
+- Hardcoded `rankingData` static object from `RankingsPage.tsx` (replaced by backend data)
 
 ## Implementation Plan
 
-1. Update `main.mo` to add TransportOption and TransportBooking types, state, and all CRUD/query functions
-2. Add transport hooks to `useAdminQueries.ts`
-3. Create `AdminTransportPage.tsx` (admin CRUD for transport options, mirrors AdminHotelsPage pattern)
-4. Create `AdminTransportBookingsPage.tsx` (mirrors AdminHotelBookingsPage pattern)
-5. Update `TransportPage.tsx` to fetch live transports and show booking modal per option
-6. Create `TransportBookingModal.tsx` (3-step: details → passenger info → Razorpay payment)
-7. Create `TransportConfirmationPage.tsx` (mirrors HotelConfirmationPage pattern)
-8. Update `AdminLayout.tsx` to add Transport and Transport Bookings nav items
-9. Update `App.tsx` to register all new routes
+1. Add `RankingProfile`, `VoteRecord` types and counter variables to `main.mo`
+2. Add backend functions: createRankingProfile, updateRankingProfile, deleteRankingProfile, getAllRankingProfiles, getRankingProfilesByCategory, voteForProfile, getVoteCount, adjustAdminScore, linkVendorToProfile
+3. Vote spam prevention: voterIdentifier is a string (localStorage UUID + client IP hash); backend checks if same voterIdentifier voted for same profileId within the same calendar day (nanosecond timestamp divided to day bucket)
+4. Ranking order: profiles sorted by computed score = (totalVotes * 0.6) + (adminScore * 0.4), descending
+5. Frontend: New `AdminRankingsPage.tsx` at `/admin/rankings` with add/edit/delete profile form modal, vote count column, admin score input, vendor link dropdown
+6. Frontend: Rewrite `RankingsPage.tsx` to fetch from `getAllRankingProfiles`, group by category into 10 tabs, render leaderboard cards with Vote button that calls `voteForProfile`
+7. Wire new admin route in `App.tsx` and add sidebar link in `AdminLayout`
+8. No modifications to any existing module files

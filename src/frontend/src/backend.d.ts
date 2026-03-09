@@ -24,9 +24,24 @@ export interface HotelBooking {
     numberOfNights: bigint;
     roomType: string;
 }
-export interface RoomType {
-    pricePerNight: bigint;
+export interface VoteRecord {
+    id: bigint;
+    profileId: bigint;
+    votedAt: bigint;
+    voterIdentifier: string;
+}
+export interface RankingProfile {
+    id: bigint;
+    totalVotes: bigint;
+    city: string;
     name: string;
+    createdAt: bigint;
+    description: string;
+    photoUrl: string;
+    linkedVendorId?: bigint;
+    category: string;
+    adminScore: bigint;
+    rating: bigint;
 }
 export interface PaymentTransaction {
     id: bigint;
@@ -36,6 +51,10 @@ export interface PaymentTransaction {
     timestamp: bigint;
     amount: bigint;
     transactionId: string;
+}
+export interface RoomType {
+    pricePerNight: bigint;
+    name: string;
 }
 export interface TransportOption {
     id: bigint;
@@ -108,17 +127,21 @@ export enum UserRole {
     guest = "guest"
 }
 export interface backendInterface {
+    adjustAdminScore(profileId: bigint, score: bigint): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     createHotel(name: string, city: string, address: string, description: string, roomTypes: Array<RoomType>, amenities: Array<string>, photoUrls: Array<string>): Promise<bigint>;
     createHotelBooking(hotelId: bigint, hotelName: string, roomType: string, pricePerNight: bigint, guestName: string, guestPhone: string, guestEmail: string, checkInDate: bigint, checkOutDate: bigint, numberOfNights: bigint, totalAmount: bigint): Promise<bigint>;
     createPaymentTransaction(transactionId: string, paymentMethod: string, amount: bigint, bookingId: bigint, status: TransactionStatus): Promise<bigint>;
+    createRankingProfile(name: string, city: string, category: string, photoUrl: string, description: string, rating: bigint, adminScore: bigint, linkedVendorId: bigint | null): Promise<bigint>;
     createTransportBooking(transportId: bigint, transportName: string, transportType: string, operatorName: string, route: string, passengerName: string, passengerPhone: string, passengerEmail: string, city: string, travelDate: bigint, seats: bigint, totalAmount: bigint): Promise<bigint>;
     createTransportOption(transportType: TransportType, operatorName: string, route: string, city: string, price: bigint, availableSeats: bigint, photoUrls: Array<string>): Promise<bigint>;
     deleteHotel(id: bigint): Promise<void>;
+    deleteRankingProfile(id: bigint): Promise<void>;
     deleteTransportOption(id: bigint): Promise<void>;
     getAllHotelBookings(): Promise<Array<HotelBooking>>;
     getAllHotels(): Promise<Array<Hotel>>;
     getAllPaymentTransactions(): Promise<Array<PaymentTransaction>>;
+    getAllRankingProfiles(): Promise<Array<RankingProfile>>;
     getAllTransportBookings(): Promise<Array<TransportBooking>>;
     getAllTransportOptions(): Promise<Array<TransportOption>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
@@ -126,15 +149,26 @@ export interface backendInterface {
     getHotel(id: bigint): Promise<Hotel | null>;
     getHotelBooking(id: bigint): Promise<HotelBooking | null>;
     getPaymentTransactionByBookingId(bookingId: bigint): Promise<PaymentTransaction | null>;
+    getRankingProfilesByCategory(category: string): Promise<Array<RankingProfile>>;
     getTransportBooking(id: bigint): Promise<TransportBooking | null>;
     getTransportOption(id: bigint): Promise<TransportOption | null>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
+    getVoteRecordsForProfile(profileId: bigint): Promise<Array<VoteRecord>>;
     isCallerAdmin(): Promise<boolean>;
+    linkVendorToProfile(profileId: bigint, vendorId: bigint | null): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     updateHotel(id: bigint, name: string, city: string, address: string, description: string, roomTypes: Array<RoomType>, amenities: Array<string>, photoUrls: Array<string>): Promise<void>;
     updateHotelBookingPaymentStatus(id: bigint, paymentStatus: TransactionStatus): Promise<void>;
     updateHotelBookingStatus(id: bigint, status: BookingStatus): Promise<void>;
+    updateRankingProfile(id: bigint, name: string, city: string, category: string, photoUrl: string, description: string, rating: bigint, adminScore: bigint, linkedVendorId: bigint | null): Promise<void>;
     updateTransportBookingPaymentStatus(id: bigint, paymentStatus: TransactionStatus): Promise<void>;
     updateTransportBookingStatus(id: bigint, status: BookingStatus): Promise<void>;
     updateTransportOption(id: bigint, transportType: TransportType, operatorName: string, route: string, city: string, price: bigint, availableSeats: bigint, photoUrls: Array<string>): Promise<void>;
+    voteForProfile(profileId: bigint, voterIdentifier: string): Promise<{
+        __kind__: "ok";
+        ok: null;
+    } | {
+        __kind__: "err";
+        err: string;
+    }>;
 }

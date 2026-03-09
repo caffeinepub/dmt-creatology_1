@@ -84,6 +84,19 @@ export const PaymentTransaction = IDL.Record({
   'amount' : IDL.Nat,
   'transactionId' : IDL.Text,
 });
+export const RankingProfile = IDL.Record({
+  'id' : IDL.Nat,
+  'totalVotes' : IDL.Nat,
+  'city' : IDL.Text,
+  'name' : IDL.Text,
+  'createdAt' : IDL.Int,
+  'description' : IDL.Text,
+  'photoUrl' : IDL.Text,
+  'linkedVendorId' : IDL.Opt(IDL.Nat),
+  'category' : IDL.Text,
+  'adminScore' : IDL.Nat,
+  'rating' : IDL.Nat,
+});
 export const TransportBooking = IDL.Record({
   'id' : IDL.Nat,
   'status' : BookingStatus,
@@ -119,6 +132,12 @@ export const UserProfile = IDL.Record({
   'email' : IDL.Text,
   'phone' : IDL.Text,
 });
+export const VoteRecord = IDL.Record({
+  'id' : IDL.Nat,
+  'profileId' : IDL.Nat,
+  'votedAt' : IDL.Int,
+  'voterIdentifier' : IDL.Text,
+});
 
 export const idlService = IDL.Service({
   '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -148,6 +167,7 @@ export const idlService = IDL.Service({
     ),
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+  'adjustAdminScore' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'createHotel' : IDL.Func(
       [
@@ -184,6 +204,20 @@ export const idlService = IDL.Service({
       [IDL.Nat],
       [],
     ),
+  'createRankingProfile' : IDL.Func(
+      [
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Nat,
+        IDL.Nat,
+        IDL.Opt(IDL.Nat),
+      ],
+      [IDL.Nat],
+      [],
+    ),
   'createTransportBooking' : IDL.Func(
       [
         IDL.Nat,
@@ -216,6 +250,7 @@ export const idlService = IDL.Service({
       [],
     ),
   'deleteHotel' : IDL.Func([IDL.Nat], [], []),
+  'deleteRankingProfile' : IDL.Func([IDL.Nat], [], []),
   'deleteTransportOption' : IDL.Func([IDL.Nat], [], []),
   'getAllHotelBookings' : IDL.Func([], [IDL.Vec(HotelBooking)], ['query']),
   'getAllHotels' : IDL.Func([], [IDL.Vec(Hotel)], ['query']),
@@ -224,6 +259,7 @@ export const idlService = IDL.Service({
       [IDL.Vec(PaymentTransaction)],
       ['query'],
     ),
+  'getAllRankingProfiles' : IDL.Func([], [IDL.Vec(RankingProfile)], ['query']),
   'getAllTransportBookings' : IDL.Func(
       [],
       [IDL.Vec(TransportBooking)],
@@ -243,6 +279,11 @@ export const idlService = IDL.Service({
       [IDL.Opt(PaymentTransaction)],
       ['query'],
     ),
+  'getRankingProfilesByCategory' : IDL.Func(
+      [IDL.Text],
+      [IDL.Vec(RankingProfile)],
+      ['query'],
+    ),
   'getTransportBooking' : IDL.Func(
       [IDL.Nat],
       [IDL.Opt(TransportBooking)],
@@ -258,7 +299,13 @@ export const idlService = IDL.Service({
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
+  'getVoteRecordsForProfile' : IDL.Func(
+      [IDL.Nat],
+      [IDL.Vec(VoteRecord)],
+      ['query'],
+    ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'linkVendorToProfile' : IDL.Func([IDL.Nat, IDL.Opt(IDL.Nat)], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'updateHotel' : IDL.Func(
       [
@@ -280,6 +327,21 @@ export const idlService = IDL.Service({
       [],
     ),
   'updateHotelBookingStatus' : IDL.Func([IDL.Nat, BookingStatus], [], []),
+  'updateRankingProfile' : IDL.Func(
+      [
+        IDL.Nat,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Nat,
+        IDL.Nat,
+        IDL.Opt(IDL.Nat),
+      ],
+      [],
+      [],
+    ),
   'updateTransportBookingPaymentStatus' : IDL.Func(
       [IDL.Nat, TransactionStatus],
       [],
@@ -298,6 +360,11 @@ export const idlService = IDL.Service({
         IDL.Vec(IDL.Text),
       ],
       [],
+      [],
+    ),
+  'voteForProfile' : IDL.Func(
+      [IDL.Nat, IDL.Text],
+      [IDL.Variant({ 'ok' : IDL.Null, 'err' : IDL.Text })],
       [],
     ),
 });
@@ -378,6 +445,19 @@ export const idlFactory = ({ IDL }) => {
     'amount' : IDL.Nat,
     'transactionId' : IDL.Text,
   });
+  const RankingProfile = IDL.Record({
+    'id' : IDL.Nat,
+    'totalVotes' : IDL.Nat,
+    'city' : IDL.Text,
+    'name' : IDL.Text,
+    'createdAt' : IDL.Int,
+    'description' : IDL.Text,
+    'photoUrl' : IDL.Text,
+    'linkedVendorId' : IDL.Opt(IDL.Nat),
+    'category' : IDL.Text,
+    'adminScore' : IDL.Nat,
+    'rating' : IDL.Nat,
+  });
   const TransportBooking = IDL.Record({
     'id' : IDL.Nat,
     'status' : BookingStatus,
@@ -413,6 +493,12 @@ export const idlFactory = ({ IDL }) => {
     'email' : IDL.Text,
     'phone' : IDL.Text,
   });
+  const VoteRecord = IDL.Record({
+    'id' : IDL.Nat,
+    'profileId' : IDL.Nat,
+    'votedAt' : IDL.Int,
+    'voterIdentifier' : IDL.Text,
+  });
   
   return IDL.Service({
     '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -442,6 +528,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+    'adjustAdminScore' : IDL.Func([IDL.Nat, IDL.Nat], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'createHotel' : IDL.Func(
         [
@@ -478,6 +565,20 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Nat],
         [],
       ),
+    'createRankingProfile' : IDL.Func(
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Nat,
+          IDL.Nat,
+          IDL.Opt(IDL.Nat),
+        ],
+        [IDL.Nat],
+        [],
+      ),
     'createTransportBooking' : IDL.Func(
         [
           IDL.Nat,
@@ -510,12 +611,18 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'deleteHotel' : IDL.Func([IDL.Nat], [], []),
+    'deleteRankingProfile' : IDL.Func([IDL.Nat], [], []),
     'deleteTransportOption' : IDL.Func([IDL.Nat], [], []),
     'getAllHotelBookings' : IDL.Func([], [IDL.Vec(HotelBooking)], ['query']),
     'getAllHotels' : IDL.Func([], [IDL.Vec(Hotel)], ['query']),
     'getAllPaymentTransactions' : IDL.Func(
         [],
         [IDL.Vec(PaymentTransaction)],
+        ['query'],
+      ),
+    'getAllRankingProfiles' : IDL.Func(
+        [],
+        [IDL.Vec(RankingProfile)],
         ['query'],
       ),
     'getAllTransportBookings' : IDL.Func(
@@ -537,6 +644,11 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(PaymentTransaction)],
         ['query'],
       ),
+    'getRankingProfilesByCategory' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(RankingProfile)],
+        ['query'],
+      ),
     'getTransportBooking' : IDL.Func(
         [IDL.Nat],
         [IDL.Opt(TransportBooking)],
@@ -552,7 +664,13 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
+    'getVoteRecordsForProfile' : IDL.Func(
+        [IDL.Nat],
+        [IDL.Vec(VoteRecord)],
+        ['query'],
+      ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'linkVendorToProfile' : IDL.Func([IDL.Nat, IDL.Opt(IDL.Nat)], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'updateHotel' : IDL.Func(
         [
@@ -574,6 +692,21 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'updateHotelBookingStatus' : IDL.Func([IDL.Nat, BookingStatus], [], []),
+    'updateRankingProfile' : IDL.Func(
+        [
+          IDL.Nat,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Nat,
+          IDL.Nat,
+          IDL.Opt(IDL.Nat),
+        ],
+        [],
+        [],
+      ),
     'updateTransportBookingPaymentStatus' : IDL.Func(
         [IDL.Nat, TransactionStatus],
         [],
@@ -592,6 +725,11 @@ export const idlFactory = ({ IDL }) => {
           IDL.Vec(IDL.Text),
         ],
         [],
+        [],
+      ),
+    'voteForProfile' : IDL.Func(
+        [IDL.Nat, IDL.Text],
+        [IDL.Variant({ 'ok' : IDL.Null, 'err' : IDL.Text })],
         [],
       ),
   });
