@@ -553,6 +553,43 @@ actor {
   };
 
   ////////////////////////////////////////////////////////
+  // STAFF JOB APPLICATION SYSTEM
+  ////////////////////////////////////////////////////////
+  public type JobApplicationStatus = {
+    #pending;
+    #approved;
+    #rejected;
+  };
+
+  public type JobListing = {
+    id : Nat;
+    title : Text;
+    category : Text;
+    city : Text;
+    eventCompanyName : Text;
+    workDate : Int;
+    dailyWage : Nat;
+    requiredStaffCount : Nat;
+    description : Text;
+    isActive : Bool;
+    createdAt : Int;
+  };
+
+  public type JobApplication = {
+    id : Nat;
+    jobId : Nat;
+    jobTitle : Text;
+    fullName : Text;
+    phone : Text;
+    city : Text;
+    skills : Text;
+    experience : Text;
+    availableDates : Text;
+    status : JobApplicationStatus;
+    createdAt : Int;
+  };
+
+  ////////////////////////////////////////////////////////
   // State
   ////////////////////////////////////////////////////////
 
@@ -572,6 +609,8 @@ actor {
   var hotelBookingId = 0;
   var transportOptionId = 0;
   var transportBookingId = 0;
+  var jobListingId = 0 : Nat;
+  var jobApplicationId = 0 : Nat;
 
   let events = Maps.empty<Nat, Event>();
   let vendors = Maps.empty<Nat, Vendor>();
@@ -590,6 +629,8 @@ actor {
   let hotelBookings = Maps.empty<Nat, HotelBooking>();
   let transportOptions = Maps.empty<Nat, TransportOption>();
   let transportBookings = Maps.empty<Nat, TransportBooking>();
+  let jobListings = Maps.empty<Nat, JobListing>();
+  let jobApplications = Maps.empty<Nat, JobApplication>();
 
   ////////////////////////////////////////////////////////
   // USER PROFILE FUNCTIONS (Required by frontend)
@@ -988,6 +1029,147 @@ actor {
           };
           case (?booking) { return ?transaction };
         };
+      };
+    };
+  };
+
+  ////////////////////////////////////////////////////////
+  // STAFF JOB LISTING FUNCTIONS
+  ////////////////////////////////////////////////////////
+  public shared ({ caller }) func createJobListing(
+    title : Text,
+    category : Text,
+    city : Text,
+    eventCompanyName : Text,
+    workDate : Int,
+    dailyWage : Nat,
+    requiredStaffCount : Nat,
+    description : Text,
+  ) : async Nat {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can create job listings");
+    };
+    let id = jobListingId;
+    let job : JobListing = {
+      id;
+      title;
+      category;
+      city;
+      eventCompanyName;
+      workDate;
+      dailyWage;
+      requiredStaffCount;
+      description;
+      isActive = true;
+      createdAt = Time.now();
+    };
+    jobListings.add(id, job);
+    jobListingId += 1 : Nat;
+    id;
+  };
+
+  public shared ({ caller }) func updateJobListing(
+    id : Nat,
+    title : Text,
+    category : Text,
+    city : Text,
+    eventCompanyName : Text,
+    workDate : Int,
+    dailyWage : Nat,
+    requiredStaffCount : Nat,
+    description : Text,
+    isActive : Bool,
+  ) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can update job listings");
+    };
+    switch (jobListings.get(id)) {
+      case (null) { Runtime.trap("Job listing not found") };
+      case (?existing) {
+        let updated : JobListing = {
+          id;
+          title;
+          category;
+          city;
+          eventCompanyName;
+          workDate;
+          dailyWage;
+          requiredStaffCount;
+          description;
+          isActive;
+          createdAt = existing.createdAt;
+        };
+        jobListings.add(id, updated);
+      };
+    };
+  };
+
+  public shared ({ caller }) func deleteJobListing(id : Nat) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can delete job listings");
+    };
+    switch (jobListings.get(id)) {
+      case (null) { Runtime.trap("Job listing not found") };
+      case (?_) { jobListings.remove(id) };
+    };
+  };
+
+  public query func getAllJobListings() : async [JobListing] {
+    jobListings.values().toArray();
+  };
+
+  public query func getActiveJobListings() : async [JobListing] {
+    jobListings.values().toArray().filter(func(j) { j.isActive });
+  };
+
+  public shared func createJobApplication(
+    jobId : Nat,
+    jobTitle : Text,
+    fullName : Text,
+    phone : Text,
+    city : Text,
+    skills : Text,
+    experience : Text,
+    availableDates : Text,
+  ) : async Nat {
+    let id = jobApplicationId;
+    let application : JobApplication = {
+      id;
+      jobId;
+      jobTitle;
+      fullName;
+      phone;
+      city;
+      skills;
+      experience;
+      availableDates;
+      status = #pending;
+      createdAt = Time.now();
+    };
+    jobApplications.add(id, application);
+    jobApplicationId += 1 : Nat;
+    id;
+  };
+
+  public query ({ caller }) func getAllJobApplications() : async [JobApplication] {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can view job applications");
+    };
+    jobApplications.values().toArray();
+  };
+
+  public shared ({ caller }) func updateJobApplicationStatus(
+    id : Nat,
+    status : JobApplicationStatus,
+  ) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can update application status");
+    };
+    switch (jobApplications.get(id)) {
+      case (null) { Runtime.trap("Job application not found") };
+      case (?existing) {
+        let updated : JobApplication = { existing with status };
+        jobApplications.add(id, updated);
       };
     };
   };

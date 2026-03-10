@@ -38,6 +38,8 @@ import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminEventsPage from "./pages/admin/AdminEventsPage";
 import AdminHotelBookingsPage from "./pages/admin/AdminHotelBookingsPage";
 import AdminHotelsPage from "./pages/admin/AdminHotelsPage";
+import AdminJobApplicationsPage from "./pages/admin/AdminJobApplicationsPage";
+import AdminJobsPage from "./pages/admin/AdminJobsPage";
 import AdminListingsPage from "./pages/admin/AdminListingsPage";
 import AdminLoginPage from "./pages/admin/AdminLoginPage";
 import AdminPaymentsPage from "./pages/admin/AdminPaymentsPage";
@@ -270,6 +272,18 @@ const adminRankingsRoute = createRoute({
   component: AdminRankingsPage,
 });
 
+const adminJobsRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/jobs",
+  component: AdminJobsPage,
+});
+
+const adminJobApplicationsRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/job-applications",
+  component: AdminJobApplicationsPage,
+});
+
 const transportConfirmationRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/transport-confirmation/$bookingId",
@@ -288,6 +302,8 @@ adminLayoutRoute.addChildren([
   adminTransportRoute,
   adminTransportBookingsRoute,
   adminRankingsRoute,
+  adminJobsRoute,
+  adminJobApplicationsRoute,
   adminUsersRoute,
   adminListingsRoute,
   adminAnalyticsRoute,

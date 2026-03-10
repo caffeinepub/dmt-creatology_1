@@ -5,12 +5,14 @@ import {
   BarChart3,
   BedDouble,
   BookOpen,
+  Briefcase,
   Building2,
   CalendarDays,
   Car,
   ChevronLeft,
   ChevronRight,
   CreditCard,
+  FileText,
   LayoutDashboard,
   List,
   LogOut,
@@ -37,6 +39,12 @@ const NAV_ITEMS = [
     icon: MapPin,
   },
   { label: "Rankings", href: "/admin/rankings", icon: Trophy },
+  { label: "Jobs", href: "/admin/jobs", icon: Briefcase },
+  {
+    label: "Job Applications",
+    href: "/admin/job-applications",
+    icon: FileText,
+  },
   { label: "Vendors", href: "/admin/vendors", icon: Store },
   { label: "Bookings", href: "/admin/bookings", icon: BookOpen },
   { label: "Payments", href: "/admin/payments", icon: CreditCard },
@@ -73,7 +81,7 @@ function NavItem({
           ? "bg-gold/15 text-gold border border-gold/20"
           : "text-slate-400 hover:text-white hover:bg-white/5"
       }`}
-      data-ocid={`admin.nav.${item.label.toLowerCase()}.link`}
+      data-ocid={`admin.nav.${item.label.toLowerCase().replace(/ /g, "_")}.link`}
     >
       <Icon
         size={18}
