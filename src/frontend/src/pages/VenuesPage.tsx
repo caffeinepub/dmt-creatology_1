@@ -1,130 +1,154 @@
 import PageHeader from "@/components/PageHeader";
-import ServiceCard from "@/components/ServiceCard";
+import VenueBookingModal from "@/components/VenueBookingModal";
 import { Badge } from "@/components/ui/badge";
-import { FALLBACK_IMAGES } from "@/lib/fallbackImages";
-
-const IMG = FALLBACK_IMAGES.venue;
-
-const venues = [
-  {
-    title: "Grand Ballroom Mumbai",
-    subtitle: "Bandra, Mumbai",
-    description:
-      "Magnificent 1000-capacity ballroom with crystal chandeliers, marble floors, and state-of-the-art AV.",
-    details: "Capacity: 1,000",
-    service: "Grand Ballroom Mumbai Venue",
-    badge: "PREMIUM",
-    rating: 4.9,
-    type: "Banquet Hall",
-  },
-  {
-    title: "The Lawn Delhi",
-    subtitle: "Mehrauli, Delhi",
-    description:
-      "Lush green lawns amid ancient ruins. Perfect for outdoor weddings and cultural events.",
-    details: "Capacity: 500",
-    service: "The Lawn Delhi Venue",
-    rating: 4.7,
-    type: "Outdoor",
-  },
-  {
-    title: "Skyline Terrace Bangalore",
-    subtitle: "UB City, Bangalore",
-    description:
-      "Stunning rooftop terrace with 360° city panorama, ideal for corporate gatherings and cocktail parties.",
-    details: "Capacity: 300",
-    service: "Skyline Terrace Bangalore Venue",
-    badge: "ROOFTOP",
-    rating: 4.7,
-    type: "Terrace",
-  },
-  {
-    title: "Crystal Hall Pune",
-    subtitle: "Koregaon Park, Pune",
-    description:
-      "Elegant 800-person hall with crystal décor, customizable lighting, and full catering kitchen.",
-    details: "Capacity: 800",
-    service: "Crystal Hall Pune Venue",
-    rating: 4.6,
-    type: "Banquet Hall",
-  },
-  {
-    title: "Beach Venue Goa",
-    subtitle: "Anjuna, Goa",
-    description:
-      "Breathtaking beachfront venue with natural backdrop, sunset views, and sea breeze.",
-    details: "Capacity: 400",
-    service: "Beach Venue Goa",
-    badge: "BEACHFRONT",
-    rating: 4.8,
-    type: "Beach",
-  },
-  {
-    title: "Convention Center Hyderabad",
-    subtitle: "HITEC City, Hyderabad",
-    description:
-      "Modern convention facility for large-scale conferences, expos, and corporate mega-events.",
-    details: "Capacity: 2,000",
-    service: "Convention Center Hyderabad Venue",
-    badge: "MEGA",
-    rating: 4.5,
-    type: "Convention",
-  },
-];
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useAllVenues } from "@/hooks/useVenueQueries";
+import { FALLBACK_IMAGES, resolveImage } from "@/lib/fallbackImages";
+import { Building2, MapPin, Users } from "lucide-react";
+import { useState } from "react";
+import type { Venue } from "../backend.d";
 
 export default function VenuesPage() {
+  const { data: venues, isLoading } = useAllVenues();
+  const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
+
   return (
-    <div>
+    <div data-ocid="venues.page">
       <PageHeader
         title="Party Venues"
-        subtitle="Spectacular spaces for weddings, parties, conferences, and corporate events"
-        breadcrumb="Event Venues"
+        subtitle="Premium banquet halls, wedding lawns, clubs &amp; conference spaces across India"
       />
 
-      <section className="py-10">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-wrap gap-2 mb-8">
-            {[
-              "All",
-              "Banquet Hall",
-              "Outdoor",
-              "Terrace",
-              "Beach",
-              "Convention",
-            ].map((t) => (
-              <Badge
-                key={t}
-                variant={t === "All" ? "default" : "outline"}
-                className={
-                  t === "All"
-                    ? "gradient-gold text-[oklch(0.1_0.01_260)] border-0 cursor-pointer"
-                    : "border-border text-muted-foreground cursor-pointer hover:border-gold hover:text-gold"
-                }
+      <div className="container mx-auto px-4 py-10">
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div
+                key={i}
+                className="rounded-2xl overflow-hidden border border-border bg-card"
               >
-                {t}
-              </Badge>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {venues.map((venue, i) => (
-              <div key={venue.title} className="relative">
-                <div className="absolute top-3 right-3 z-10">
-                  <Badge className="bg-black/70 text-white/80 border-0 text-xs backdrop-blur-sm">
-                    {venue.type}
-                  </Badge>
+                <Skeleton className="h-52 w-full" />
+                <div className="p-5 space-y-3">
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-10 w-full" />
                 </div>
-                <ServiceCard
-                  {...venue}
-                  image={IMG}
-                  fallbackSrc={IMG}
-                  index={i + 1}
-                />
               </div>
             ))}
           </div>
-        </div>
-      </section>
+        ) : !venues?.length ? (
+          <div
+            className="flex flex-col items-center justify-center py-24 text-center"
+            data-ocid="venues.empty_state"
+          >
+            <Building2 className="w-16 h-16 text-muted-foreground/30 mb-4" />
+            <h3 className="font-display text-xl font-semibold text-foreground mb-2">
+              No venues listed yet
+            </h3>
+            <p className="text-muted-foreground text-sm max-w-xs">
+              Venue listings will appear here once they are added by the admin.
+            </p>
+          </div>
+        ) : (
+          <div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            data-ocid="venues.list"
+          >
+            {venues.map((venue, i) => (
+              <div
+                key={String(venue.id)}
+                className="group rounded-2xl overflow-hidden border border-border bg-card hover:border-gold/40 transition-all duration-300 hover:shadow-lg hover:shadow-gold/5 flex flex-col"
+                data-ocid={`venues.item.${i + 1}`}
+              >
+                {/* Photo */}
+                <div className="relative h-52 overflow-hidden">
+                  <img
+                    src={resolveImage(venue.photoUrls[0], "venue")}
+                    alt={venue.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src =
+                        FALLBACK_IMAGES.venue;
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                    <span className="text-white font-bold text-sm drop-shadow">
+                      ₹{Number(venue.pricePerDay).toLocaleString("en-IN")}/day
+                    </span>
+                    <div className="flex items-center gap-1 text-white text-xs bg-black/40 rounded-full px-2 py-1">
+                      <Users size={11} />
+                      <span>
+                        {Number(venue.capacity).toLocaleString("en-IN")}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-5 flex flex-col flex-1">
+                  <h3 className="font-display font-bold text-foreground text-lg leading-snug mb-1">
+                    {venue.name}
+                  </h3>
+                  <div className="flex items-center gap-1 text-muted-foreground text-sm mb-3">
+                    <MapPin size={13} />
+                    <span>{venue.city}</span>
+                  </div>
+
+                  {venue.description && (
+                    <p className="text-muted-foreground text-sm leading-relaxed mb-3 line-clamp-2">
+                      {venue.description}
+                    </p>
+                  )}
+
+                  {/* Amenities */}
+                  {venue.amenities.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-4">
+                      {venue.amenities.slice(0, 4).map((a) => (
+                        <Badge
+                          key={a}
+                          variant="outline"
+                          className="text-[10px] px-2 py-0 border-border text-muted-foreground"
+                        >
+                          {a}
+                        </Badge>
+                      ))}
+                      {venue.amenities.length > 4 && (
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] px-2 py-0 border-border text-muted-foreground"
+                        >
+                          +{venue.amenities.length - 4} more
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="mt-auto">
+                    <Button
+                      onClick={() => setSelectedVenue(venue)}
+                      className="w-full bg-gold text-slate-950 hover:bg-gold/90 font-semibold"
+                      data-ocid={`venues.book.primary_button.${i + 1}`}
+                    >
+                      Book Venue
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {selectedVenue && (
+        <VenueBookingModal
+          open={!!selectedVenue}
+          onClose={() => setSelectedVenue(null)}
+          venue={selectedVenue}
+        />
+      )}
     </div>
   );
 }

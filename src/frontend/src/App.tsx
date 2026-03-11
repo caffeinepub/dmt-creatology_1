@@ -30,6 +30,7 @@ import VendorDashboardPage from "./pages/VendorDashboardPage";
 import VendorLoginPage from "./pages/VendorLoginPage";
 import VendorRegisterPage from "./pages/VendorRegisterPage";
 import VendorsPage from "./pages/VendorsPage";
+import VenueConfirmationPage from "./pages/VenueConfirmationPage";
 import VenuesPage from "./pages/VenuesPage";
 import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
 import AdminBookingsPage from "./pages/admin/AdminBookingsPage";
@@ -49,6 +50,8 @@ import AdminTransportBookingsPage from "./pages/admin/AdminTransportBookingsPage
 import AdminTransportPage from "./pages/admin/AdminTransportPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminVendorsPage from "./pages/admin/AdminVendorsPage";
+import AdminVenueBookingsPage from "./pages/admin/AdminVenueBookingsPage";
+import AdminVenuesPage from "./pages/admin/AdminVenuesPage";
 
 // Protected scan page wrapper
 function ProtectedScanPage() {
@@ -284,10 +287,28 @@ const adminJobApplicationsRoute = createRoute({
   component: AdminJobApplicationsPage,
 });
 
+const adminVenuesRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/admin/venues",
+  component: AdminVenuesPage,
+});
+
+const adminVenueBookingsRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/admin/venue-bookings",
+  component: AdminVenueBookingsPage,
+});
+
 const transportConfirmationRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/transport-confirmation/$bookingId",
   component: TransportConfirmationPage,
+});
+
+const venueConfirmationRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/venue-confirmation/$bookingId",
+  component: VenueConfirmationPage,
 });
 
 // Wire admin layout children
@@ -304,6 +325,8 @@ adminLayoutRoute.addChildren([
   adminRankingsRoute,
   adminJobsRoute,
   adminJobApplicationsRoute,
+  adminVenuesRoute,
+  adminVenueBookingsRoute,
   adminUsersRoute,
   adminListingsRoute,
   adminAnalyticsRoute,
@@ -359,6 +382,7 @@ const publicRouteTree = rootRoute.addChildren([
   ticketRoute,
   hotelConfirmationRoute,
   transportConfirmationRoute,
+  venueConfirmationRoute,
   scanRoute,
 ]);
 

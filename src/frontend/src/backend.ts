@@ -106,15 +106,6 @@ export interface HotelBooking {
     numberOfNights: bigint;
     roomType: string;
 }
-export interface _CaffeineStorageRefillInformation {
-    proposed_top_up_amount?: bigint;
-}
-export interface VoteRecord {
-    id: bigint;
-    profileId: bigint;
-    votedAt: bigint;
-    voterIdentifier: string;
-}
 export interface RankingProfile {
     id: bigint;
     totalVotes: bigint;
@@ -128,9 +119,33 @@ export interface RankingProfile {
     adminScore: bigint;
     rating: bigint;
 }
+export interface Venue {
+    id: bigint;
+    photoUrls: Array<string>;
+    city: string;
+    name: string;
+    createdAt: bigint;
+    description: string;
+    amenities: Array<string>;
+    pricePerDay: bigint;
+    capacity: bigint;
+}
+export interface VoteRecord {
+    id: bigint;
+    profileId: bigint;
+    votedAt: bigint;
+    voterIdentifier: string;
+}
+export interface _CaffeineStorageRefillInformation {
+    proposed_top_up_amount?: bigint;
+}
 export interface _CaffeineStorageCreateCertificateResult {
     method: string;
     blob_hash: string;
+}
+export interface RoomType {
+    pricePerNight: bigint;
+    name: string;
 }
 export interface PaymentTransaction {
     id: bigint;
@@ -141,9 +156,45 @@ export interface PaymentTransaction {
     amount: bigint;
     transactionId: string;
 }
-export interface RoomType {
-    pricePerNight: bigint;
-    name: string;
+export interface JobListing {
+    id: bigint;
+    title: string;
+    dailyWage: bigint;
+    city: string;
+    createdAt: bigint;
+    description: string;
+    eventCompanyName: string;
+    isActive: boolean;
+    category: string;
+    requiredStaffCount: bigint;
+    workDate: bigint;
+}
+export interface JobApplication {
+    id: bigint;
+    status: JobApplicationStatus;
+    city: string;
+    createdAt: bigint;
+    jobId: bigint;
+    fullName: string;
+    experience: string;
+    jobTitle: string;
+    phone: string;
+    skills: string;
+    availableDates: string;
+}
+export interface VenueBooking {
+    id: bigint;
+    status: BookingStatus;
+    paymentStatus: TransactionStatus;
+    venueId: bigint;
+    eventDetails: string;
+    createdAt: bigint;
+    guestName: string;
+    guestEmail: string;
+    totalAmount: bigint;
+    guestPhone: string;
+    venueName: string;
+    eventDate: bigint;
 }
 export interface TransportOption {
     id: bigint;
@@ -186,20 +237,25 @@ export interface TransportBooking {
     passengerPhone: string;
     route: string;
 }
+export interface _CaffeineStorageRefillResult {
+    success?: boolean;
+    topped_up_amount?: bigint;
+}
 export interface UserProfile {
     name: string;
     email: string;
     phone: string;
-}
-export interface _CaffeineStorageRefillResult {
-    success?: boolean;
-    topped_up_amount?: bigint;
 }
 export enum BookingStatus {
     new_ = "new",
     cancelled = "cancelled",
     reviewed = "reviewed",
     confirmed = "confirmed"
+}
+export enum JobApplicationStatus {
+    pending = "pending",
+    approved = "approved",
+    rejected = "rejected"
 }
 export enum TransactionStatus {
     pending = "pending",
@@ -231,19 +287,30 @@ export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     createHotel(name: string, city: string, address: string, description: string, roomTypes: Array<RoomType>, amenities: Array<string>, photoUrls: Array<string>): Promise<bigint>;
     createHotelBooking(hotelId: bigint, hotelName: string, roomType: string, pricePerNight: bigint, guestName: string, guestPhone: string, guestEmail: string, checkInDate: bigint, checkOutDate: bigint, numberOfNights: bigint, totalAmount: bigint): Promise<bigint>;
+    createJobApplication(jobId: bigint, jobTitle: string, fullName: string, phone: string, city: string, skills: string, experience: string, availableDates: string): Promise<bigint>;
+    createJobListing(title: string, category: string, city: string, eventCompanyName: string, workDate: bigint, dailyWage: bigint, requiredStaffCount: bigint, description: string): Promise<bigint>;
     createPaymentTransaction(transactionId: string, paymentMethod: string, amount: bigint, bookingId: bigint, status: TransactionStatus): Promise<bigint>;
     createRankingProfile(name: string, city: string, category: string, photoUrl: string, description: string, rating: bigint, adminScore: bigint, linkedVendorId: bigint | null): Promise<bigint>;
     createTransportBooking(transportId: bigint, transportName: string, transportType: string, operatorName: string, route: string, passengerName: string, passengerPhone: string, passengerEmail: string, city: string, travelDate: bigint, seats: bigint, totalAmount: bigint): Promise<bigint>;
     createTransportOption(transportType: TransportType, operatorName: string, route: string, city: string, price: bigint, availableSeats: bigint, photoUrls: Array<string>): Promise<bigint>;
+    createVenue(name: string, city: string, capacity: bigint, pricePerDay: bigint, photoUrls: Array<string>, amenities: Array<string>, description: string): Promise<bigint>;
+    createVenueBooking(venueId: bigint, venueName: string, eventDate: bigint, eventDetails: string, guestName: string, guestPhone: string, guestEmail: string, totalAmount: bigint): Promise<bigint>;
     deleteHotel(id: bigint): Promise<void>;
+    deleteJobListing(id: bigint): Promise<void>;
     deleteRankingProfile(id: bigint): Promise<void>;
     deleteTransportOption(id: bigint): Promise<void>;
+    deleteVenue(id: bigint): Promise<void>;
+    getActiveJobListings(): Promise<Array<JobListing>>;
     getAllHotelBookings(): Promise<Array<HotelBooking>>;
     getAllHotels(): Promise<Array<Hotel>>;
+    getAllJobApplications(): Promise<Array<JobApplication>>;
+    getAllJobListings(): Promise<Array<JobListing>>;
     getAllPaymentTransactions(): Promise<Array<PaymentTransaction>>;
     getAllRankingProfiles(): Promise<Array<RankingProfile>>;
     getAllTransportBookings(): Promise<Array<TransportBooking>>;
     getAllTransportOptions(): Promise<Array<TransportOption>>;
+    getAllVenueBookings(): Promise<Array<VenueBooking>>;
+    getAllVenues(): Promise<Array<Venue>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getHotel(id: bigint): Promise<Hotel | null>;
@@ -253,6 +320,8 @@ export interface backendInterface {
     getTransportBooking(id: bigint): Promise<TransportBooking | null>;
     getTransportOption(id: bigint): Promise<TransportOption | null>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
+    getVenue(id: bigint): Promise<Venue | null>;
+    getVenueBooking(id: bigint): Promise<VenueBooking | null>;
     getVoteRecordsForProfile(profileId: bigint): Promise<Array<VoteRecord>>;
     isCallerAdmin(): Promise<boolean>;
     linkVendorToProfile(profileId: bigint, vendorId: bigint | null): Promise<void>;
@@ -260,10 +329,15 @@ export interface backendInterface {
     updateHotel(id: bigint, name: string, city: string, address: string, description: string, roomTypes: Array<RoomType>, amenities: Array<string>, photoUrls: Array<string>): Promise<void>;
     updateHotelBookingPaymentStatus(id: bigint, paymentStatus: TransactionStatus): Promise<void>;
     updateHotelBookingStatus(id: bigint, status: BookingStatus): Promise<void>;
+    updateJobApplicationStatus(id: bigint, status: JobApplicationStatus): Promise<void>;
+    updateJobListing(id: bigint, title: string, category: string, city: string, eventCompanyName: string, workDate: bigint, dailyWage: bigint, requiredStaffCount: bigint, description: string, isActive: boolean): Promise<void>;
     updateRankingProfile(id: bigint, name: string, city: string, category: string, photoUrl: string, description: string, rating: bigint, adminScore: bigint, linkedVendorId: bigint | null): Promise<void>;
     updateTransportBookingPaymentStatus(id: bigint, paymentStatus: TransactionStatus): Promise<void>;
     updateTransportBookingStatus(id: bigint, status: BookingStatus): Promise<void>;
     updateTransportOption(id: bigint, transportType: TransportType, operatorName: string, route: string, city: string, price: bigint, availableSeats: bigint, photoUrls: Array<string>): Promise<void>;
+    updateVenue(id: bigint, name: string, city: string, capacity: bigint, pricePerDay: bigint, photoUrls: Array<string>, amenities: Array<string>, description: string): Promise<void>;
+    updateVenueBookingPaymentStatus(id: bigint, paymentStatus: TransactionStatus): Promise<void>;
+    updateVenueBookingStatus(id: bigint, status: BookingStatus): Promise<void>;
     voteForProfile(profileId: bigint, voterIdentifier: string): Promise<{
         __kind__: "ok";
         ok: null;
@@ -272,7 +346,7 @@ export interface backendInterface {
         err: string;
     }>;
 }
-import type { BookingStatus as _BookingStatus, Hotel as _Hotel, HotelBooking as _HotelBooking, PaymentTransaction as _PaymentTransaction, RankingProfile as _RankingProfile, TransactionStatus as _TransactionStatus, TransportBooking as _TransportBooking, TransportOption as _TransportOption, TransportType as _TransportType, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
+import type { BookingStatus as _BookingStatus, Hotel as _Hotel, HotelBooking as _HotelBooking, JobApplication as _JobApplication, JobApplicationStatus as _JobApplicationStatus, PaymentTransaction as _PaymentTransaction, RankingProfile as _RankingProfile, TransactionStatus as _TransactionStatus, TransportBooking as _TransportBooking, TransportOption as _TransportOption, TransportType as _TransportType, UserProfile as _UserProfile, UserRole as _UserRole, Venue as _Venue, VenueBooking as _VenueBooking, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _caffeineStorageBlobIsLive(arg0: Uint8Array): Promise<boolean> {
@@ -429,6 +503,34 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async createJobApplication(arg0: bigint, arg1: string, arg2: string, arg3: string, arg4: string, arg5: string, arg6: string, arg7: string): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.createJobApplication(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.createJobApplication(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+            return result;
+        }
+    }
+    async createJobListing(arg0: string, arg1: string, arg2: string, arg3: string, arg4: bigint, arg5: bigint, arg6: bigint, arg7: string): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.createJobListing(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.createJobListing(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+            return result;
+        }
+    }
     async createPaymentTransaction(arg0: string, arg1: string, arg2: bigint, arg3: bigint, arg4: TransactionStatus): Promise<bigint> {
         if (this.processError) {
             try {
@@ -485,6 +587,34 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async createVenue(arg0: string, arg1: string, arg2: bigint, arg3: bigint, arg4: Array<string>, arg5: Array<string>, arg6: string): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.createVenue(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.createVenue(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+            return result;
+        }
+    }
+    async createVenueBooking(arg0: bigint, arg1: string, arg2: bigint, arg3: string, arg4: string, arg5: string, arg6: string, arg7: bigint): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.createVenueBooking(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.createVenueBooking(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+            return result;
+        }
+    }
     async deleteHotel(arg0: bigint): Promise<void> {
         if (this.processError) {
             try {
@@ -496,6 +626,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.deleteHotel(arg0);
+            return result;
+        }
+    }
+    async deleteJobListing(arg0: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteJobListing(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteJobListing(arg0);
             return result;
         }
     }
@@ -527,6 +671,34 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async deleteVenue(arg0: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteVenue(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteVenue(arg0);
+            return result;
+        }
+    }
+    async getActiveJobListings(): Promise<Array<JobListing>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getActiveJobListings();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getActiveJobListings();
+            return result;
+        }
+    }
     async getAllHotelBookings(): Promise<Array<HotelBooking>> {
         if (this.processError) {
             try {
@@ -555,186 +727,270 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async getAllPaymentTransactions(): Promise<Array<PaymentTransaction>> {
+    async getAllJobApplications(): Promise<Array<JobApplication>> {
         if (this.processError) {
             try {
-                const result = await this.actor.getAllPaymentTransactions();
+                const result = await this.actor.getAllJobApplications();
                 return from_candid_vec_n22(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.getAllPaymentTransactions();
+            const result = await this.actor.getAllJobApplications();
             return from_candid_vec_n22(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getAllJobListings(): Promise<Array<JobListing>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllJobListings();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllJobListings();
+            return result;
+        }
+    }
+    async getAllPaymentTransactions(): Promise<Array<PaymentTransaction>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllPaymentTransactions();
+                return from_candid_vec_n27(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllPaymentTransactions();
+            return from_candid_vec_n27(this._uploadFile, this._downloadFile, result);
         }
     }
     async getAllRankingProfiles(): Promise<Array<RankingProfile>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getAllRankingProfiles();
-                return from_candid_vec_n25(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n30(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getAllRankingProfiles();
-            return from_candid_vec_n25(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n30(this._uploadFile, this._downloadFile, result);
         }
     }
     async getAllTransportBookings(): Promise<Array<TransportBooking>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getAllTransportBookings();
-                return from_candid_vec_n28(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n33(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getAllTransportBookings();
-            return from_candid_vec_n28(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n33(this._uploadFile, this._downloadFile, result);
         }
     }
     async getAllTransportOptions(): Promise<Array<TransportOption>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getAllTransportOptions();
-                return from_candid_vec_n31(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n36(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getAllTransportOptions();
-            return from_candid_vec_n31(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n36(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getAllVenueBookings(): Promise<Array<VenueBooking>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllVenueBookings();
+                return from_candid_vec_n41(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllVenueBookings();
+            return from_candid_vec_n41(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getAllVenues(): Promise<Array<Venue>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllVenues();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllVenues();
+            return result;
         }
     }
     async getCallerUserProfile(): Promise<UserProfile | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserProfile();
-                return from_candid_opt_n36(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n44(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserProfile();
-            return from_candid_opt_n36(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n44(this._uploadFile, this._downloadFile, result);
         }
     }
     async getCallerUserRole(): Promise<UserRole> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserRole();
-                return from_candid_UserRole_n37(this._uploadFile, this._downloadFile, result);
+                return from_candid_UserRole_n45(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserRole();
-            return from_candid_UserRole_n37(this._uploadFile, this._downloadFile, result);
+            return from_candid_UserRole_n45(this._uploadFile, this._downloadFile, result);
         }
     }
     async getHotel(arg0: bigint): Promise<Hotel | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getHotel(arg0);
-                return from_candid_opt_n39(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n47(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getHotel(arg0);
-            return from_candid_opt_n39(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n47(this._uploadFile, this._downloadFile, result);
         }
     }
     async getHotelBooking(arg0: bigint): Promise<HotelBooking | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getHotelBooking(arg0);
-                return from_candid_opt_n40(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n48(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getHotelBooking(arg0);
-            return from_candid_opt_n40(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n48(this._uploadFile, this._downloadFile, result);
         }
     }
     async getPaymentTransactionByBookingId(arg0: bigint): Promise<PaymentTransaction | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getPaymentTransactionByBookingId(arg0);
-                return from_candid_opt_n41(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n49(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getPaymentTransactionByBookingId(arg0);
-            return from_candid_opt_n41(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n49(this._uploadFile, this._downloadFile, result);
         }
     }
     async getRankingProfilesByCategory(arg0: string): Promise<Array<RankingProfile>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getRankingProfilesByCategory(arg0);
-                return from_candid_vec_n25(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n30(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getRankingProfilesByCategory(arg0);
-            return from_candid_vec_n25(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n30(this._uploadFile, this._downloadFile, result);
         }
     }
     async getTransportBooking(arg0: bigint): Promise<TransportBooking | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getTransportBooking(arg0);
-                return from_candid_opt_n42(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n50(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getTransportBooking(arg0);
-            return from_candid_opt_n42(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n50(this._uploadFile, this._downloadFile, result);
         }
     }
     async getTransportOption(arg0: bigint): Promise<TransportOption | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getTransportOption(arg0);
-                return from_candid_opt_n43(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n51(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getTransportOption(arg0);
-            return from_candid_opt_n43(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n51(this._uploadFile, this._downloadFile, result);
         }
     }
     async getUserProfile(arg0: Principal): Promise<UserProfile | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getUserProfile(arg0);
-                return from_candid_opt_n36(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n44(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getUserProfile(arg0);
-            return from_candid_opt_n36(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n44(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getVenue(arg0: bigint): Promise<Venue | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getVenue(arg0);
+                return from_candid_opt_n52(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getVenue(arg0);
+            return from_candid_opt_n52(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getVenueBooking(arg0: bigint): Promise<VenueBooking | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getVenueBooking(arg0);
+                return from_candid_opt_n53(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getVenueBooking(arg0);
+            return from_candid_opt_n53(this._uploadFile, this._downloadFile, result);
         }
     }
     async getVoteRecordsForProfile(arg0: bigint): Promise<Array<VoteRecord>> {
@@ -824,14 +1080,42 @@ export class Backend implements backendInterface {
     async updateHotelBookingStatus(arg0: bigint, arg1: BookingStatus): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.updateHotelBookingStatus(arg0, to_candid_BookingStatus_n44(this._uploadFile, this._downloadFile, arg1));
+                const result = await this.actor.updateHotelBookingStatus(arg0, to_candid_BookingStatus_n54(this._uploadFile, this._downloadFile, arg1));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.updateHotelBookingStatus(arg0, to_candid_BookingStatus_n44(this._uploadFile, this._downloadFile, arg1));
+            const result = await this.actor.updateHotelBookingStatus(arg0, to_candid_BookingStatus_n54(this._uploadFile, this._downloadFile, arg1));
+            return result;
+        }
+    }
+    async updateJobApplicationStatus(arg0: bigint, arg1: JobApplicationStatus): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateJobApplicationStatus(arg0, to_candid_JobApplicationStatus_n56(this._uploadFile, this._downloadFile, arg1));
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateJobApplicationStatus(arg0, to_candid_JobApplicationStatus_n56(this._uploadFile, this._downloadFile, arg1));
+            return result;
+        }
+    }
+    async updateJobListing(arg0: bigint, arg1: string, arg2: string, arg3: string, arg4: string, arg5: bigint, arg6: bigint, arg7: bigint, arg8: string, arg9: boolean): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateJobListing(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateJobListing(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
             return result;
         }
     }
@@ -866,14 +1150,14 @@ export class Backend implements backendInterface {
     async updateTransportBookingStatus(arg0: bigint, arg1: BookingStatus): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.updateTransportBookingStatus(arg0, to_candid_BookingStatus_n44(this._uploadFile, this._downloadFile, arg1));
+                const result = await this.actor.updateTransportBookingStatus(arg0, to_candid_BookingStatus_n54(this._uploadFile, this._downloadFile, arg1));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.updateTransportBookingStatus(arg0, to_candid_BookingStatus_n44(this._uploadFile, this._downloadFile, arg1));
+            const result = await this.actor.updateTransportBookingStatus(arg0, to_candid_BookingStatus_n54(this._uploadFile, this._downloadFile, arg1));
             return result;
         }
     }
@@ -891,6 +1175,48 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async updateVenue(arg0: bigint, arg1: string, arg2: string, arg3: bigint, arg4: bigint, arg5: Array<string>, arg6: Array<string>, arg7: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateVenue(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateVenue(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+            return result;
+        }
+    }
+    async updateVenueBookingPaymentStatus(arg0: bigint, arg1: TransactionStatus): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateVenueBookingPaymentStatus(arg0, to_candid_TransactionStatus_n10(this._uploadFile, this._downloadFile, arg1));
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateVenueBookingPaymentStatus(arg0, to_candid_TransactionStatus_n10(this._uploadFile, this._downloadFile, arg1));
+            return result;
+        }
+    }
+    async updateVenueBookingStatus(arg0: bigint, arg1: BookingStatus): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateVenueBookingStatus(arg0, to_candid_BookingStatus_n54(this._uploadFile, this._downloadFile, arg1));
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateVenueBookingStatus(arg0, to_candid_BookingStatus_n54(this._uploadFile, this._downloadFile, arg1));
+            return result;
+        }
+    }
     async voteForProfile(arg0: bigint, arg1: string): Promise<{
         __kind__: "ok";
         ok: null;
@@ -901,14 +1227,14 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.voteForProfile(arg0, arg1);
-                return from_candid_variant_n46(this._uploadFile, this._downloadFile, result);
+                return from_candid_variant_n58(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.voteForProfile(arg0, arg1);
-            return from_candid_variant_n46(this._uploadFile, this._downloadFile, result);
+            return from_candid_variant_n58(this._uploadFile, this._downloadFile, result);
         }
     }
 }
@@ -918,47 +1244,62 @@ function from_candid_BookingStatus_n18(_uploadFile: (file: ExternalBlob) => Prom
 function from_candid_HotelBooking_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _HotelBooking): HotelBooking {
     return from_candid_record_n17(_uploadFile, _downloadFile, value);
 }
-function from_candid_PaymentTransaction_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _PaymentTransaction): PaymentTransaction {
+function from_candid_JobApplicationStatus_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _JobApplicationStatus): JobApplicationStatus {
+    return from_candid_variant_n26(_uploadFile, _downloadFile, value);
+}
+function from_candid_JobApplication_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _JobApplication): JobApplication {
     return from_candid_record_n24(_uploadFile, _downloadFile, value);
 }
-function from_candid_RankingProfile_n26(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _RankingProfile): RankingProfile {
-    return from_candid_record_n27(_uploadFile, _downloadFile, value);
+function from_candid_PaymentTransaction_n28(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _PaymentTransaction): PaymentTransaction {
+    return from_candid_record_n29(_uploadFile, _downloadFile, value);
+}
+function from_candid_RankingProfile_n31(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _RankingProfile): RankingProfile {
+    return from_candid_record_n32(_uploadFile, _downloadFile, value);
 }
 function from_candid_TransactionStatus_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _TransactionStatus): TransactionStatus {
     return from_candid_variant_n21(_uploadFile, _downloadFile, value);
 }
-function from_candid_TransportBooking_n29(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _TransportBooking): TransportBooking {
-    return from_candid_record_n30(_uploadFile, _downloadFile, value);
+function from_candid_TransportBooking_n34(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _TransportBooking): TransportBooking {
+    return from_candid_record_n35(_uploadFile, _downloadFile, value);
 }
-function from_candid_TransportOption_n32(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _TransportOption): TransportOption {
-    return from_candid_record_n33(_uploadFile, _downloadFile, value);
+function from_candid_TransportOption_n37(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _TransportOption): TransportOption {
+    return from_candid_record_n38(_uploadFile, _downloadFile, value);
 }
-function from_candid_TransportType_n34(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _TransportType): TransportType {
-    return from_candid_variant_n35(_uploadFile, _downloadFile, value);
+function from_candid_TransportType_n39(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _TransportType): TransportType {
+    return from_candid_variant_n40(_uploadFile, _downloadFile, value);
 }
-function from_candid_UserRole_n37(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
-    return from_candid_variant_n38(_uploadFile, _downloadFile, value);
+function from_candid_UserRole_n45(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
+    return from_candid_variant_n46(_uploadFile, _downloadFile, value);
+}
+function from_candid_VenueBooking_n42(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _VenueBooking): VenueBooking {
+    return from_candid_record_n43(_uploadFile, _downloadFile, value);
 }
 function from_candid__CaffeineStorageRefillResult_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: __CaffeineStorageRefillResult): _CaffeineStorageRefillResult {
     return from_candid_record_n5(_uploadFile, _downloadFile, value);
 }
-function from_candid_opt_n36(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
+function from_candid_opt_n44(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n39(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Hotel]): Hotel | null {
+function from_candid_opt_n47(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Hotel]): Hotel | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n40(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_HotelBooking]): HotelBooking | null {
+function from_candid_opt_n48(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_HotelBooking]): HotelBooking | null {
     return value.length === 0 ? null : from_candid_HotelBooking_n16(_uploadFile, _downloadFile, value[0]);
 }
-function from_candid_opt_n41(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_PaymentTransaction]): PaymentTransaction | null {
-    return value.length === 0 ? null : from_candid_PaymentTransaction_n23(_uploadFile, _downloadFile, value[0]);
+function from_candid_opt_n49(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_PaymentTransaction]): PaymentTransaction | null {
+    return value.length === 0 ? null : from_candid_PaymentTransaction_n28(_uploadFile, _downloadFile, value[0]);
 }
-function from_candid_opt_n42(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_TransportBooking]): TransportBooking | null {
-    return value.length === 0 ? null : from_candid_TransportBooking_n29(_uploadFile, _downloadFile, value[0]);
+function from_candid_opt_n50(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_TransportBooking]): TransportBooking | null {
+    return value.length === 0 ? null : from_candid_TransportBooking_n34(_uploadFile, _downloadFile, value[0]);
 }
-function from_candid_opt_n43(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_TransportOption]): TransportOption | null {
-    return value.length === 0 ? null : from_candid_TransportOption_n32(_uploadFile, _downloadFile, value[0]);
+function from_candid_opt_n51(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_TransportOption]): TransportOption | null {
+    return value.length === 0 ? null : from_candid_TransportOption_n37(_uploadFile, _downloadFile, value[0]);
+}
+function from_candid_opt_n52(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Venue]): Venue | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_opt_n53(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_VenueBooking]): VenueBooking | null {
+    return value.length === 0 ? null : from_candid_VenueBooking_n42(_uploadFile, _downloadFile, value[0]);
 }
 function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [boolean]): boolean | null {
     return value.length === 0 ? null : value[0];
@@ -1019,6 +1360,45 @@ function from_candid_record_n17(_uploadFile: (file: ExternalBlob) => Promise<Uin
 }
 function from_candid_record_n24(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: bigint;
+    status: _JobApplicationStatus;
+    city: string;
+    createdAt: bigint;
+    jobId: bigint;
+    fullName: string;
+    experience: string;
+    jobTitle: string;
+    phone: string;
+    skills: string;
+    availableDates: string;
+}): {
+    id: bigint;
+    status: JobApplicationStatus;
+    city: string;
+    createdAt: bigint;
+    jobId: bigint;
+    fullName: string;
+    experience: string;
+    jobTitle: string;
+    phone: string;
+    skills: string;
+    availableDates: string;
+} {
+    return {
+        id: value.id,
+        status: from_candid_JobApplicationStatus_n25(_uploadFile, _downloadFile, value.status),
+        city: value.city,
+        createdAt: value.createdAt,
+        jobId: value.jobId,
+        fullName: value.fullName,
+        experience: value.experience,
+        jobTitle: value.jobTitle,
+        phone: value.phone,
+        skills: value.skills,
+        availableDates: value.availableDates
+    };
+}
+function from_candid_record_n29(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    id: bigint;
     status: _TransactionStatus;
     paymentMethod: string;
     bookingId: bigint;
@@ -1044,7 +1424,7 @@ function from_candid_record_n24(_uploadFile: (file: ExternalBlob) => Promise<Uin
         transactionId: value.transactionId
     };
 }
-function from_candid_record_n27(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n32(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: bigint;
     totalVotes: bigint;
     city: string;
@@ -1083,7 +1463,7 @@ function from_candid_record_n27(_uploadFile: (file: ExternalBlob) => Promise<Uin
         rating: value.rating
     };
 }
-function from_candid_record_n30(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n35(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: bigint;
     status: _BookingStatus;
     paymentStatus: _TransactionStatus;
@@ -1140,7 +1520,7 @@ function from_candid_record_n30(_uploadFile: (file: ExternalBlob) => Promise<Uin
         route: value.route
     };
 }
-function from_candid_record_n33(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n38(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: bigint;
     photoUrls: Array<string>;
     city: string;
@@ -1168,9 +1548,51 @@ function from_candid_record_n33(_uploadFile: (file: ExternalBlob) => Promise<Uin
         createdAt: value.createdAt,
         operatorName: value.operatorName,
         availableSeats: value.availableSeats,
-        transportType: from_candid_TransportType_n34(_uploadFile, _downloadFile, value.transportType),
+        transportType: from_candid_TransportType_n39(_uploadFile, _downloadFile, value.transportType),
         price: value.price,
         route: value.route
+    };
+}
+function from_candid_record_n43(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    id: bigint;
+    status: _BookingStatus;
+    paymentStatus: _TransactionStatus;
+    venueId: bigint;
+    eventDetails: string;
+    createdAt: bigint;
+    guestName: string;
+    guestEmail: string;
+    totalAmount: bigint;
+    guestPhone: string;
+    venueName: string;
+    eventDate: bigint;
+}): {
+    id: bigint;
+    status: BookingStatus;
+    paymentStatus: TransactionStatus;
+    venueId: bigint;
+    eventDetails: string;
+    createdAt: bigint;
+    guestName: string;
+    guestEmail: string;
+    totalAmount: bigint;
+    guestPhone: string;
+    venueName: string;
+    eventDate: bigint;
+} {
+    return {
+        id: value.id,
+        status: from_candid_BookingStatus_n18(_uploadFile, _downloadFile, value.status),
+        paymentStatus: from_candid_TransactionStatus_n20(_uploadFile, _downloadFile, value.paymentStatus),
+        venueId: value.venueId,
+        eventDetails: value.eventDetails,
+        createdAt: value.createdAt,
+        guestName: value.guestName,
+        guestEmail: value.guestEmail,
+        totalAmount: value.totalAmount,
+        guestPhone: value.guestPhone,
+        venueName: value.venueName,
+        eventDate: value.eventDate
     };
 }
 function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
@@ -1205,7 +1627,16 @@ function from_candid_variant_n21(_uploadFile: (file: ExternalBlob) => Promise<Ui
 }): TransactionStatus {
     return "pending" in value ? TransactionStatus.pending : "completed" in value ? TransactionStatus.completed : "failed" in value ? TransactionStatus.failed : value;
 }
-function from_candid_variant_n35(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n26(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    pending: null;
+} | {
+    approved: null;
+} | {
+    rejected: null;
+}): JobApplicationStatus {
+    return "pending" in value ? JobApplicationStatus.pending : "approved" in value ? JobApplicationStatus.approved : "rejected" in value ? JobApplicationStatus.rejected : value;
+}
+function from_candid_variant_n40(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     bus: null;
 } | {
     car: null;
@@ -1220,7 +1651,7 @@ function from_candid_variant_n35(_uploadFile: (file: ExternalBlob) => Promise<Ui
 }): TransportType {
     return "bus" in value ? TransportType.bus : "car" in value ? TransportType.car : "train" in value ? TransportType.train : "flight" in value ? TransportType.flight : "helicopter" in value ? TransportType.helicopter : "cruise" in value ? TransportType.cruise : value;
 }
-function from_candid_variant_n38(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n46(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     admin: null;
 } | {
     user: null;
@@ -1229,7 +1660,7 @@ function from_candid_variant_n38(_uploadFile: (file: ExternalBlob) => Promise<Ui
 }): UserRole {
     return "admin" in value ? UserRole.admin : "user" in value ? UserRole.user : "guest" in value ? UserRole.guest : value;
 }
-function from_candid_variant_n46(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n58(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     ok: null;
 } | {
     err: string;
@@ -1251,20 +1682,29 @@ function from_candid_variant_n46(_uploadFile: (file: ExternalBlob) => Promise<Ui
 function from_candid_vec_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_HotelBooking>): Array<HotelBooking> {
     return value.map((x)=>from_candid_HotelBooking_n16(_uploadFile, _downloadFile, x));
 }
-function from_candid_vec_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_PaymentTransaction>): Array<PaymentTransaction> {
-    return value.map((x)=>from_candid_PaymentTransaction_n23(_uploadFile, _downloadFile, x));
+function from_candid_vec_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_JobApplication>): Array<JobApplication> {
+    return value.map((x)=>from_candid_JobApplication_n23(_uploadFile, _downloadFile, x));
 }
-function from_candid_vec_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_RankingProfile>): Array<RankingProfile> {
-    return value.map((x)=>from_candid_RankingProfile_n26(_uploadFile, _downloadFile, x));
+function from_candid_vec_n27(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_PaymentTransaction>): Array<PaymentTransaction> {
+    return value.map((x)=>from_candid_PaymentTransaction_n28(_uploadFile, _downloadFile, x));
 }
-function from_candid_vec_n28(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_TransportBooking>): Array<TransportBooking> {
-    return value.map((x)=>from_candid_TransportBooking_n29(_uploadFile, _downloadFile, x));
+function from_candid_vec_n30(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_RankingProfile>): Array<RankingProfile> {
+    return value.map((x)=>from_candid_RankingProfile_n31(_uploadFile, _downloadFile, x));
 }
-function from_candid_vec_n31(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_TransportOption>): Array<TransportOption> {
-    return value.map((x)=>from_candid_TransportOption_n32(_uploadFile, _downloadFile, x));
+function from_candid_vec_n33(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_TransportBooking>): Array<TransportBooking> {
+    return value.map((x)=>from_candid_TransportBooking_n34(_uploadFile, _downloadFile, x));
 }
-function to_candid_BookingStatus_n44(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: BookingStatus): _BookingStatus {
-    return to_candid_variant_n45(_uploadFile, _downloadFile, value);
+function from_candid_vec_n36(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_TransportOption>): Array<TransportOption> {
+    return value.map((x)=>from_candid_TransportOption_n37(_uploadFile, _downloadFile, x));
+}
+function from_candid_vec_n41(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_VenueBooking>): Array<VenueBooking> {
+    return value.map((x)=>from_candid_VenueBooking_n42(_uploadFile, _downloadFile, x));
+}
+function to_candid_BookingStatus_n54(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: BookingStatus): _BookingStatus {
+    return to_candid_variant_n55(_uploadFile, _downloadFile, value);
+}
+function to_candid_JobApplicationStatus_n56(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: JobApplicationStatus): _JobApplicationStatus {
+    return to_candid_variant_n57(_uploadFile, _downloadFile, value);
 }
 function to_candid_TransactionStatus_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: TransactionStatus): _TransactionStatus {
     return to_candid_variant_n11(_uploadFile, _downloadFile, value);
@@ -1335,7 +1775,7 @@ function to_candid_variant_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint
         cruise: null
     } : value;
 }
-function to_candid_variant_n45(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: BookingStatus): {
+function to_candid_variant_n55(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: BookingStatus): {
     new: null;
 } | {
     cancelled: null;
@@ -1352,6 +1792,21 @@ function to_candid_variant_n45(_uploadFile: (file: ExternalBlob) => Promise<Uint
         reviewed: null
     } : value == BookingStatus.confirmed ? {
         confirmed: null
+    } : value;
+}
+function to_candid_variant_n57(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: JobApplicationStatus): {
+    pending: null;
+} | {
+    approved: null;
+} | {
+    rejected: null;
+} {
+    return value == JobApplicationStatus.pending ? {
+        pending: null
+    } : value == JobApplicationStatus.approved ? {
+        approved: null
+    } : value == JobApplicationStatus.rejected ? {
+        rejected: null
     } : value;
 }
 function to_candid_variant_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {

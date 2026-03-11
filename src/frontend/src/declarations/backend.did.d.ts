@@ -42,6 +42,35 @@ export interface HotelBooking {
   'numberOfNights' : bigint,
   'roomType' : string,
 }
+export interface JobApplication {
+  'id' : bigint,
+  'status' : JobApplicationStatus,
+  'city' : string,
+  'createdAt' : bigint,
+  'jobId' : bigint,
+  'fullName' : string,
+  'experience' : string,
+  'jobTitle' : string,
+  'phone' : string,
+  'skills' : string,
+  'availableDates' : string,
+}
+export type JobApplicationStatus = { 'pending' : null } |
+  { 'approved' : null } |
+  { 'rejected' : null };
+export interface JobListing {
+  'id' : bigint,
+  'title' : string,
+  'dailyWage' : bigint,
+  'city' : string,
+  'createdAt' : bigint,
+  'description' : string,
+  'eventCompanyName' : string,
+  'isActive' : boolean,
+  'category' : string,
+  'requiredStaffCount' : bigint,
+  'workDate' : bigint,
+}
 export interface PaymentTransaction {
   'id' : bigint,
   'status' : TransactionStatus,
@@ -112,6 +141,31 @@ export interface UserProfile {
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
+export interface Venue {
+  'id' : bigint,
+  'photoUrls' : Array<string>,
+  'city' : string,
+  'name' : string,
+  'createdAt' : bigint,
+  'description' : string,
+  'amenities' : Array<string>,
+  'pricePerDay' : bigint,
+  'capacity' : bigint,
+}
+export interface VenueBooking {
+  'id' : bigint,
+  'status' : BookingStatus,
+  'paymentStatus' : TransactionStatus,
+  'venueId' : bigint,
+  'eventDetails' : string,
+  'createdAt' : bigint,
+  'guestName' : string,
+  'guestEmail' : string,
+  'totalAmount' : bigint,
+  'guestPhone' : string,
+  'venueName' : string,
+  'eventDate' : bigint,
+}
 export interface VoteRecord {
   'id' : bigint,
   'profileId' : bigint,
@@ -176,6 +230,14 @@ export interface _SERVICE {
     ],
     bigint
   >,
+  'createJobApplication' : ActorMethod<
+    [bigint, string, string, string, string, string, string, string],
+    bigint
+  >,
+  'createJobListing' : ActorMethod<
+    [string, string, string, string, bigint, bigint, bigint, string],
+    bigint
+  >,
   'createPaymentTransaction' : ActorMethod<
     [string, string, bigint, bigint, TransactionStatus],
     bigint
@@ -205,15 +267,30 @@ export interface _SERVICE {
     [TransportType, string, string, string, bigint, bigint, Array<string>],
     bigint
   >,
+  'createVenue' : ActorMethod<
+    [string, string, bigint, bigint, Array<string>, Array<string>, string],
+    bigint
+  >,
+  'createVenueBooking' : ActorMethod<
+    [bigint, string, bigint, string, string, string, string, bigint],
+    bigint
+  >,
   'deleteHotel' : ActorMethod<[bigint], undefined>,
+  'deleteJobListing' : ActorMethod<[bigint], undefined>,
   'deleteRankingProfile' : ActorMethod<[bigint], undefined>,
   'deleteTransportOption' : ActorMethod<[bigint], undefined>,
+  'deleteVenue' : ActorMethod<[bigint], undefined>,
+  'getActiveJobListings' : ActorMethod<[], Array<JobListing>>,
   'getAllHotelBookings' : ActorMethod<[], Array<HotelBooking>>,
   'getAllHotels' : ActorMethod<[], Array<Hotel>>,
+  'getAllJobApplications' : ActorMethod<[], Array<JobApplication>>,
+  'getAllJobListings' : ActorMethod<[], Array<JobListing>>,
   'getAllPaymentTransactions' : ActorMethod<[], Array<PaymentTransaction>>,
   'getAllRankingProfiles' : ActorMethod<[], Array<RankingProfile>>,
   'getAllTransportBookings' : ActorMethod<[], Array<TransportBooking>>,
   'getAllTransportOptions' : ActorMethod<[], Array<TransportOption>>,
+  'getAllVenueBookings' : ActorMethod<[], Array<VenueBooking>>,
+  'getAllVenues' : ActorMethod<[], Array<Venue>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getHotel' : ActorMethod<[bigint], [] | [Hotel]>,
@@ -226,6 +303,8 @@ export interface _SERVICE {
   'getTransportBooking' : ActorMethod<[bigint], [] | [TransportBooking]>,
   'getTransportOption' : ActorMethod<[bigint], [] | [TransportOption]>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'getVenue' : ActorMethod<[bigint], [] | [Venue]>,
+  'getVenueBooking' : ActorMethod<[bigint], [] | [VenueBooking]>,
   'getVoteRecordsForProfile' : ActorMethod<[bigint], Array<VoteRecord>>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'linkVendorToProfile' : ActorMethod<[bigint, [] | [bigint]], undefined>,
@@ -248,6 +327,25 @@ export interface _SERVICE {
     undefined
   >,
   'updateHotelBookingStatus' : ActorMethod<[bigint, BookingStatus], undefined>,
+  'updateJobApplicationStatus' : ActorMethod<
+    [bigint, JobApplicationStatus],
+    undefined
+  >,
+  'updateJobListing' : ActorMethod<
+    [
+      bigint,
+      string,
+      string,
+      string,
+      string,
+      bigint,
+      bigint,
+      bigint,
+      string,
+      boolean,
+    ],
+    undefined
+  >,
   'updateRankingProfile' : ActorMethod<
     [
       bigint,
@@ -283,6 +381,24 @@ export interface _SERVICE {
     ],
     undefined
   >,
+  'updateVenue' : ActorMethod<
+    [
+      bigint,
+      string,
+      string,
+      bigint,
+      bigint,
+      Array<string>,
+      Array<string>,
+      string,
+    ],
+    undefined
+  >,
+  'updateVenueBookingPaymentStatus' : ActorMethod<
+    [bigint, TransactionStatus],
+    undefined
+  >,
+  'updateVenueBookingStatus' : ActorMethod<[bigint, BookingStatus], undefined>,
   'voteForProfile' : ActorMethod<
     [bigint, string],
     { 'ok' : null } |

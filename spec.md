@@ -1,33 +1,43 @@
-# DMT Creatology
+# DMT Creatology — Phase 16: Venue Booking System
 
 ## Current State
-Version 14 is live with: Events, QR tickets, Staff scanner auth, Vendor marketplace, Hotel booking engine, Transport booking, Razorpay payments, Rankings engine, Admin dashboard. The public `/staff-jobs` page shows hardcoded static job cards using the existing BookingModal.
+- `/venues` (VenuesPage.tsx) is a fully static page with hardcoded venue cards and no backend connection.
+- No venue management exists in the admin panel.
+- Admin sidebar has nav items for Hotels, Transport, Jobs but not Venues.
+- The App.tsx routing has `/venues` route pointing to the static VenuesPage.
+- Backend has Hotel, HotelBooking, TransportBooking patterns to follow.
+- All other modules (Events, Hotels, Transport, Vendor, Rankings, Staff Jobs, QR, Payments) remain untouched.
 
 ## Requested Changes (Diff)
 
 ### Add
-- `JobListing` type in backend: id, title, category (Security/Bouncer/Bartender/Technician/Driver/Volunteer/Hotel Staff), city, eventCompanyName, workDate, dailyWage, requiredStaffCount, description, status (active/inactive), createdAt
-- `JobApplication` type in backend: id, jobId, jobTitle, fullName, phone, city, skills, experience, availableDates, status (pending/approved/rejected), createdAt
-- Backend functions: createJobListing, updateJobListing, deleteJobListing, getAllJobListings, createJobApplication, getAllJobApplications, updateJobApplicationStatus
-- Admin page `/admin/jobs` — create/edit/delete job listings
-- Admin page `/admin/job-applications` — view all applications with status management
-- Public `/staff-jobs` page updated to fetch live job listings from backend; each card has "Apply for Job" button opening an application modal
-- Admin sidebar links: Jobs, Job Applications
-- App.tsx routes: adminJobsRoute, adminJobApplicationsRoute
+- `Venue` type in backend: id, name, city, capacity, pricePerDay, photoUrls, amenities, description, createdAt
+- `VenueBooking` type: id, venueId, venueName, eventDate, eventDetails, guestName, guestPhone, guestEmail, totalAmount, status, paymentStatus, createdAt
+- Backend functions: createVenue, updateVenue, deleteVenue, getAllVenues, getVenue
+- Backend functions: createVenueBooking, getAllVenueBookings, getVenueBooking, updateVenueBookingStatus, updateVenueBookingPaymentStatus
+- Public `/venues` page — dynamic, fetches from backend, shows venue cards with Book Venue button
+- `VenueBookingModal` component — 3-step: (1) Select date, (2) Enter event details, (3) Razorpay payment
+- `/venue-confirmation/:bookingId` page — shows booking confirmation with all details
+- `/admin/venues` page — CRUD for venue listings (add/edit/delete)
+- `/admin/venue-bookings` page — table of all venue bookings with status management
+- Admin sidebar nav items: "Venues" and "Venue Bookings"
+- Routes in App.tsx: venueConfirmationRoute, adminVenuesRoute, adminVenueBookingsRoute
 
 ### Modify
-- `StaffJobsPage.tsx` — replace static data with live backend fetch; replace BookingModal with a dedicated JobApplicationModal
-- `AdminLayout.tsx` — add "Jobs" and "Job Applications" nav items
-- `App.tsx` — register two new admin routes
+- `VenuesPage.tsx` — replace static hardcoded data with backend fetch; add Book Venue button per card
+- `AdminLayout.tsx` — add Venues and Venue Bookings nav items
+- `App.tsx` — add venueConfirmationRoute, adminVenuesRoute, adminVenueBookingsRoute
+- `backend/main.mo` — add Venue and VenueBooking types + all CRUD functions
 
 ### Remove
-- Nothing removed
+- Static hardcoded venue array from VenuesPage.tsx
 
 ## Implementation Plan
-1. Add JobListing and JobApplication types + all CRUD functions to `main.mo`
-2. Create `AdminJobsPage.tsx` — table with add/edit/delete modals
-3. Create `AdminJobApplicationsPage.tsx` — table with status dropdown
-4. Create `JobApplicationModal.tsx` component — 6-field form, saves to backend
-5. Update `StaffJobsPage.tsx` — fetch live listings, open JobApplicationModal on Apply
-6. Update `AdminLayout.tsx` — add Jobs and Job Applications nav items
-7. Update `App.tsx` — register new admin routes
+1. Extend backend main.mo with Venue + VenueBooking types and all CRUD/query functions
+2. Create AdminVenuesPage.tsx — add/edit/delete venue listings
+3. Create AdminVenueBookingsPage.tsx — list bookings, update status
+4. Create VenueBookingModal.tsx — 3-step booking flow with Razorpay
+5. Create VenueConfirmationPage.tsx — post-booking confirmation
+6. Rewrite VenuesPage.tsx — live data from backend, Book Venue button per card
+7. Update AdminLayout.tsx — insert Venues + Venue Bookings nav items after Transport Bookings
+8. Update App.tsx — add all new routes

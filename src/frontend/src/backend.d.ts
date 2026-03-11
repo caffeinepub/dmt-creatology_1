@@ -24,12 +24,6 @@ export interface HotelBooking {
     numberOfNights: bigint;
     roomType: string;
 }
-export interface VoteRecord {
-    id: bigint;
-    profileId: bigint;
-    votedAt: bigint;
-    voterIdentifier: string;
-}
 export interface RankingProfile {
     id: bigint;
     totalVotes: bigint;
@@ -43,6 +37,27 @@ export interface RankingProfile {
     adminScore: bigint;
     rating: bigint;
 }
+export interface Venue {
+    id: bigint;
+    photoUrls: Array<string>;
+    city: string;
+    name: string;
+    createdAt: bigint;
+    description: string;
+    amenities: Array<string>;
+    pricePerDay: bigint;
+    capacity: bigint;
+}
+export interface VoteRecord {
+    id: bigint;
+    profileId: bigint;
+    votedAt: bigint;
+    voterIdentifier: string;
+}
+export interface RoomType {
+    pricePerNight: bigint;
+    name: string;
+}
 export interface PaymentTransaction {
     id: bigint;
     status: TransactionStatus;
@@ -52,9 +67,45 @@ export interface PaymentTransaction {
     amount: bigint;
     transactionId: string;
 }
-export interface RoomType {
-    pricePerNight: bigint;
-    name: string;
+export interface JobListing {
+    id: bigint;
+    title: string;
+    dailyWage: bigint;
+    city: string;
+    createdAt: bigint;
+    description: string;
+    eventCompanyName: string;
+    isActive: boolean;
+    category: string;
+    requiredStaffCount: bigint;
+    workDate: bigint;
+}
+export interface JobApplication {
+    id: bigint;
+    status: JobApplicationStatus;
+    city: string;
+    createdAt: bigint;
+    jobId: bigint;
+    fullName: string;
+    experience: string;
+    jobTitle: string;
+    phone: string;
+    skills: string;
+    availableDates: string;
+}
+export interface VenueBooking {
+    id: bigint;
+    status: BookingStatus;
+    paymentStatus: TransactionStatus;
+    venueId: bigint;
+    eventDetails: string;
+    createdAt: bigint;
+    guestName: string;
+    guestEmail: string;
+    totalAmount: bigint;
+    guestPhone: string;
+    venueName: string;
+    eventDate: bigint;
 }
 export interface TransportOption {
     id: bigint;
@@ -102,37 +153,16 @@ export interface UserProfile {
     email: string;
     phone: string;
 }
-export interface JobListing {
-    id: bigint;
-    title: string;
-    category: string;
-    city: string;
-    eventCompanyName: string;
-    workDate: bigint;
-    dailyWage: bigint;
-    requiredStaffCount: bigint;
-    description: string;
-    isActive: boolean;
-    createdAt: bigint;
-}
-export interface JobApplication {
-    id: bigint;
-    jobId: bigint;
-    jobTitle: string;
-    fullName: string;
-    phone: string;
-    city: string;
-    skills: string;
-    experience: string;
-    availableDates: string;
-    status: JobApplicationStatus;
-    createdAt: bigint;
-}
 export enum BookingStatus {
     new_ = "new",
     cancelled = "cancelled",
     reviewed = "reviewed",
     confirmed = "confirmed"
+}
+export enum JobApplicationStatus {
+    pending = "pending",
+    approved = "approved",
+    rejected = "rejected"
 }
 export enum TransactionStatus {
     pending = "pending",
@@ -152,37 +182,35 @@ export enum UserRole {
     user = "user",
     guest = "guest"
 }
-export enum JobApplicationStatus {
-    pending = "pending",
-    approved = "approved",
-    rejected = "rejected"
-}
 export interface backendInterface {
     adjustAdminScore(profileId: bigint, score: bigint): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     createHotel(name: string, city: string, address: string, description: string, roomTypes: Array<RoomType>, amenities: Array<string>, photoUrls: Array<string>): Promise<bigint>;
     createHotelBooking(hotelId: bigint, hotelName: string, roomType: string, pricePerNight: bigint, guestName: string, guestPhone: string, guestEmail: string, checkInDate: bigint, checkOutDate: bigint, numberOfNights: bigint, totalAmount: bigint): Promise<bigint>;
+    createJobApplication(jobId: bigint, jobTitle: string, fullName: string, phone: string, city: string, skills: string, experience: string, availableDates: string): Promise<bigint>;
+    createJobListing(title: string, category: string, city: string, eventCompanyName: string, workDate: bigint, dailyWage: bigint, requiredStaffCount: bigint, description: string): Promise<bigint>;
     createPaymentTransaction(transactionId: string, paymentMethod: string, amount: bigint, bookingId: bigint, status: TransactionStatus): Promise<bigint>;
     createRankingProfile(name: string, city: string, category: string, photoUrl: string, description: string, rating: bigint, adminScore: bigint, linkedVendorId: bigint | null): Promise<bigint>;
     createTransportBooking(transportId: bigint, transportName: string, transportType: string, operatorName: string, route: string, passengerName: string, passengerPhone: string, passengerEmail: string, city: string, travelDate: bigint, seats: bigint, totalAmount: bigint): Promise<bigint>;
     createTransportOption(transportType: TransportType, operatorName: string, route: string, city: string, price: bigint, availableSeats: bigint, photoUrls: Array<string>): Promise<bigint>;
-    createJobListing(title: string, category: string, city: string, eventCompanyName: string, workDate: bigint, dailyWage: bigint, requiredStaffCount: bigint, description: string): Promise<bigint>;
-    updateJobListing(id: bigint, title: string, category: string, city: string, eventCompanyName: string, workDate: bigint, dailyWage: bigint, requiredStaffCount: bigint, description: string, isActive: boolean): Promise<void>;
-    deleteJobListing(id: bigint): Promise<void>;
-    getAllJobListings(): Promise<Array<JobListing>>;
-    getActiveJobListings(): Promise<Array<JobListing>>;
-    createJobApplication(jobId: bigint, jobTitle: string, fullName: string, phone: string, city: string, skills: string, experience: string, availableDates: string): Promise<bigint>;
-    getAllJobApplications(): Promise<Array<JobApplication>>;
-    updateJobApplicationStatus(id: bigint, status: JobApplicationStatus): Promise<void>;
+    createVenue(name: string, city: string, capacity: bigint, pricePerDay: bigint, photoUrls: Array<string>, amenities: Array<string>, description: string): Promise<bigint>;
+    createVenueBooking(venueId: bigint, venueName: string, eventDate: bigint, eventDetails: string, guestName: string, guestPhone: string, guestEmail: string, totalAmount: bigint): Promise<bigint>;
     deleteHotel(id: bigint): Promise<void>;
+    deleteJobListing(id: bigint): Promise<void>;
     deleteRankingProfile(id: bigint): Promise<void>;
     deleteTransportOption(id: bigint): Promise<void>;
+    deleteVenue(id: bigint): Promise<void>;
+    getActiveJobListings(): Promise<Array<JobListing>>;
     getAllHotelBookings(): Promise<Array<HotelBooking>>;
     getAllHotels(): Promise<Array<Hotel>>;
+    getAllJobApplications(): Promise<Array<JobApplication>>;
+    getAllJobListings(): Promise<Array<JobListing>>;
     getAllPaymentTransactions(): Promise<Array<PaymentTransaction>>;
     getAllRankingProfiles(): Promise<Array<RankingProfile>>;
     getAllTransportBookings(): Promise<Array<TransportBooking>>;
     getAllTransportOptions(): Promise<Array<TransportOption>>;
+    getAllVenueBookings(): Promise<Array<VenueBooking>>;
+    getAllVenues(): Promise<Array<Venue>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getHotel(id: bigint): Promise<Hotel | null>;
@@ -192,6 +220,8 @@ export interface backendInterface {
     getTransportBooking(id: bigint): Promise<TransportBooking | null>;
     getTransportOption(id: bigint): Promise<TransportOption | null>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
+    getVenue(id: bigint): Promise<Venue | null>;
+    getVenueBooking(id: bigint): Promise<VenueBooking | null>;
     getVoteRecordsForProfile(profileId: bigint): Promise<Array<VoteRecord>>;
     isCallerAdmin(): Promise<boolean>;
     linkVendorToProfile(profileId: bigint, vendorId: bigint | null): Promise<void>;
@@ -199,10 +229,15 @@ export interface backendInterface {
     updateHotel(id: bigint, name: string, city: string, address: string, description: string, roomTypes: Array<RoomType>, amenities: Array<string>, photoUrls: Array<string>): Promise<void>;
     updateHotelBookingPaymentStatus(id: bigint, paymentStatus: TransactionStatus): Promise<void>;
     updateHotelBookingStatus(id: bigint, status: BookingStatus): Promise<void>;
+    updateJobApplicationStatus(id: bigint, status: JobApplicationStatus): Promise<void>;
+    updateJobListing(id: bigint, title: string, category: string, city: string, eventCompanyName: string, workDate: bigint, dailyWage: bigint, requiredStaffCount: bigint, description: string, isActive: boolean): Promise<void>;
     updateRankingProfile(id: bigint, name: string, city: string, category: string, photoUrl: string, description: string, rating: bigint, adminScore: bigint, linkedVendorId: bigint | null): Promise<void>;
     updateTransportBookingPaymentStatus(id: bigint, paymentStatus: TransactionStatus): Promise<void>;
     updateTransportBookingStatus(id: bigint, status: BookingStatus): Promise<void>;
     updateTransportOption(id: bigint, transportType: TransportType, operatorName: string, route: string, city: string, price: bigint, availableSeats: bigint, photoUrls: Array<string>): Promise<void>;
+    updateVenue(id: bigint, name: string, city: string, capacity: bigint, pricePerDay: bigint, photoUrls: Array<string>, amenities: Array<string>, description: string): Promise<void>;
+    updateVenueBookingPaymentStatus(id: bigint, paymentStatus: TransactionStatus): Promise<void>;
+    updateVenueBookingStatus(id: bigint, status: BookingStatus): Promise<void>;
     voteForProfile(profileId: bigint, voterIdentifier: string): Promise<{
         __kind__: "ok";
         ok: null;

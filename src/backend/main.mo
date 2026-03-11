@@ -633,6 +633,185 @@ actor {
   let jobApplications = Maps.empty<Nat, JobApplication>();
 
   ////////////////////////////////////////////////////////
+  // VENUE BOOKING SYSTEM
+  ////////////////////////////////////////////////////////
+
+  public type Venue = {
+    id : Nat;
+    name : Text;
+    city : Text;
+    capacity : Nat;
+    pricePerDay : Nat;
+    photoUrls : [Text];
+    amenities : [Text];
+    description : Text;
+    createdAt : Int;
+  };
+
+  public type VenueBooking = {
+    id : Nat;
+    venueId : Nat;
+    venueName : Text;
+    eventDate : Int;
+    eventDetails : Text;
+    guestName : Text;
+    guestPhone : Text;
+    guestEmail : Text;
+    totalAmount : Nat;
+    status : BookingStatus;
+    paymentStatus : TransactionStatus;
+    createdAt : Int;
+  };
+
+  var venueId = 0 : Nat;
+  var venueBookingId = 0 : Nat;
+  let venues = Maps.empty<Nat, Venue>();
+  let venueBookings = Maps.empty<Nat, VenueBooking>();
+
+  public shared ({ caller }) func createVenue(
+    name : Text,
+    city : Text,
+    capacity : Nat,
+    pricePerDay : Nat,
+    photoUrls : [Text],
+    amenities : [Text],
+    description : Text,
+  ) : async Nat {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can create venues");
+    };
+    let id = venueId;
+    let venue : Venue = {
+      id;
+      name;
+      city;
+      capacity;
+      pricePerDay;
+      photoUrls;
+      amenities;
+      description;
+      createdAt = Time.now();
+    };
+    venues.add(id, venue);
+    venueId += 1 : Nat;
+    id;
+  };
+
+  public shared ({ caller }) func updateVenue(
+    id : Nat,
+    name : Text,
+    city : Text,
+    capacity : Nat,
+    pricePerDay : Nat,
+    photoUrls : [Text],
+    amenities : [Text],
+    description : Text,
+  ) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can update venues");
+    };
+    switch (venues.get(id)) {
+      case (null) { Runtime.trap("Venue not found") };
+      case (?existing) {
+        let updated : Venue = {
+          id;
+          name;
+          city;
+          capacity;
+          pricePerDay;
+          photoUrls;
+          amenities;
+          description;
+          createdAt = existing.createdAt;
+        };
+        venues.add(id, updated);
+      };
+    };
+  };
+
+  public shared ({ caller }) func deleteVenue(id : Nat) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can delete venues");
+    };
+    switch (venues.get(id)) {
+      case (null) { Runtime.trap("Venue not found") };
+      case (?_) { venues.remove(id) };
+    };
+  };
+
+  public query func getAllVenues() : async [Venue] {
+    venues.values().toArray();
+  };
+
+  public query func getVenue(id : Nat) : async ?Venue {
+    venues.get(id);
+  };
+
+  public shared ({ caller }) func createVenueBooking(
+    venueId : Nat,
+    venueName : Text,
+    eventDate : Int,
+    eventDetails : Text,
+    guestName : Text,
+    guestPhone : Text,
+    guestEmail : Text,
+    totalAmount : Nat,
+  ) : async Nat {
+    let id = venueBookingId;
+    let booking : VenueBooking = {
+      id;
+      venueId;
+      venueName;
+      eventDate;
+      eventDetails;
+      guestName;
+      guestPhone;
+      guestEmail;
+      totalAmount;
+      status = #new;
+      paymentStatus = #pending;
+      createdAt = Time.now();
+    };
+    venueBookings.add(id, booking);
+    venueBookingId += 1 : Nat;
+    id;
+  };
+
+  public query ({ caller }) func getAllVenueBookings() : async [VenueBooking] {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can view all venue bookings");
+    };
+    venueBookings.values().toArray();
+  };
+
+  public query func getVenueBooking(id : Nat) : async ?VenueBooking {
+    venueBookings.get(id);
+  };
+
+  public shared ({ caller }) func updateVenueBookingStatus(id : Nat, status : BookingStatus) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can update venue booking status");
+    };
+    switch (venueBookings.get(id)) {
+      case (null) { Runtime.trap("Venue booking not found") };
+      case (?existing) {
+        let updated : VenueBooking = { existing with status };
+        venueBookings.add(id, updated);
+      };
+    };
+  };
+
+  public shared ({ caller }) func updateVenueBookingPaymentStatus(id : Nat, paymentStatus : TransactionStatus) : async () {
+    switch (venueBookings.get(id)) {
+      case (null) { Runtime.trap("Venue booking not found") };
+      case (?existing) {
+        let updated : VenueBooking = { existing with paymentStatus };
+        venueBookings.add(id, updated);
+      };
+    };
+  };
+
+  ////////////////////////////////////////////////////////
   // USER PROFILE FUNCTIONS (Required by frontend)
   ////////////////////////////////////////////////////////
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
