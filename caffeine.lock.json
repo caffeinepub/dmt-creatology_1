@@ -12,7 +12,8 @@
     "blob-storage": "4.0.0",
     "qr-code": "1.0.1",
     "camera": "1.0.1",
-    "http-outcalls": "3.0.0"
+    "http-outcalls": "3.0.0",
+    "github-export-icp-cli": "1.0.1"
   },
   "tags": [],
   "aiCoreVersion": "0.dev"

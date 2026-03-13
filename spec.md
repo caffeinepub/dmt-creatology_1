@@ -1,43 +1,50 @@
-# DMT Creatology — Phase 16: Venue Booking System
+# DMT CREATOLOGY
 
 ## Current State
-- `/venues` (VenuesPage.tsx) is a fully static page with hardcoded venue cards and no backend connection.
-- No venue management exists in the admin panel.
-- Admin sidebar has nav items for Hotels, Transport, Jobs but not Venues.
-- The App.tsx routing has `/venues` route pointing to the static VenuesPage.
-- Backend has Hotel, HotelBooking, TransportBooking patterns to follow.
-- All other modules (Events, Hotels, Transport, Vendor, Rankings, Staff Jobs, QR, Payments) remain untouched.
+- Dark navy + gold color theme throughout the site
+- Hero section shows generic "India's Premier Event & Entertainment Platform" headline
+- No founder/leadership section
+- No academy section
+- No scroll animations, counter animations, or cinematic effects
+- Gold text, gold buttons, gold gradients used everywhere
+- Footer and navbar use gold accent colors
 
 ## Requested Changes (Diff)
 
 ### Add
-- `Venue` type in backend: id, name, city, capacity, pricePerDay, photoUrls, amenities, description, createdAt
-- `VenueBooking` type: id, venueId, venueName, eventDate, eventDetails, guestName, guestPhone, guestEmail, totalAmount, status, paymentStatus, createdAt
-- Backend functions: createVenue, updateVenue, deleteVenue, getAllVenues, getVenue
-- Backend functions: createVenueBooking, getAllVenueBookings, getVenueBooking, updateVenueBookingStatus, updateVenueBookingPaymentStatus
-- Public `/venues` page — dynamic, fetches from backend, shows venue cards with Book Venue button
-- `VenueBookingModal` component — 3-step: (1) Select date, (2) Enter event details, (3) Razorpay payment
-- `/venue-confirmation/:bookingId` page — shows booking confirmation with all details
-- `/admin/venues` page — CRUD for venue listings (add/edit/delete)
-- `/admin/venue-bookings` page — table of all venue bookings with status management
-- Admin sidebar nav items: "Venues" and "Venue Bookings"
-- Routes in App.tsx: venueConfirmationRoute, adminVenuesRoute, adminVenueBookingsRoute
+- Founder & Leadership section below hero: profile card for Ujjwal Kapur (UK) — HR Manager at Sunburn Festival / VH1 Supersonic / IPL, National Sales Manager at Sunburn Festival Goa, Coverage: PAN INDIA
+- DMT Creatology Academy section: India's No.1 Tuition Academy & Event Management Company, 100% Practical Training + Job Assistance, animated cards for Cooking Course and Event Management Course
+- Scroll-triggered fade-in animations for all sections
+- Counter animation (0 to value) for stats section
+- Hero text fade-in + slide-up cinematic animation
+- Red glow hover effect on buttons
+- 3D hover lift effect on cards
+- Subtle dark cinematic gradient background animation
+- Business platform combination ticker/marquee: BookMyShow • WedMeGood • Cameo • Artist Celebrity Models Booking Engine • MakeMyTrip • OYO Hotels • MagicBricks • 99acres • Ola • Uber • RedBus • Flights Booking Engine (DMT – GDS AMADEUS) • Business Services Marketplace
+- Services line section in hero area
 
 ### Modify
-- `VenuesPage.tsx` — replace static hardcoded data with backend fetch; add Book Venue button per card
-- `AdminLayout.tsx` — add Venues and Venue Bookings nav items
-- `App.tsx` — add venueConfirmationRoute, adminVenuesRoute, adminVenueBookingsRoute
-- `backend/main.mo` — add Venue and VenueBooking types + all CRUD functions
+- Color theme: replace all gold/yellow with RED (#FF0000) as accent, BLACK (#000000) as background, WHITE (#FFFFFF) as text
+- index.css: replace gold/navy tokens with red/black tokens; update background, primary, accent variables
+- Hero headline: "BOOK ALL-IN-ONE ECOSYSTEM" (very large bold) with subtitle "(World 🌍 Top 100 Bookings Platform)"
+- Hero subheadline: "Global Asset Booking & Marketplace Platform / All Assets Booking & Management Super Platform"
+- Hero description: "You can book 100+ types of multi-billion dollar business industries products and services on one platform."
+- Hero badge: change from "India's Premier Platform" to "DMT CREATOLOGY" as title
+- Keep "Explore Events" and "Book Services" buttons but style them red background + white text
+- Navbar: replace gold active/hover colors with red
+- Footer: replace gold colors with red, update brand description
+- All card hover effects: replace gold glow with red glow
+- ServiceCard component: update badge/rating colors from gold to red
+- Section "View All" links: change from gold to red
+- CTA banner: change from gold to red
 
 ### Remove
-- Static hardcoded venue array from VenuesPage.tsx
+- All yellow/gold color references from CSS variables, utility classes, and component styles
+- Gold gradient buttons, gold text gradients
 
 ## Implementation Plan
-1. Extend backend main.mo with Venue + VenueBooking types and all CRUD/query functions
-2. Create AdminVenuesPage.tsx — add/edit/delete venue listings
-3. Create AdminVenueBookingsPage.tsx — list bookings, update status
-4. Create VenueBookingModal.tsx — 3-step booking flow with Razorpay
-5. Create VenueConfirmationPage.tsx — post-booking confirmation
-6. Rewrite VenuesPage.tsx — live data from backend, Book Venue button per card
-7. Update AdminLayout.tsx — insert Venues + Venue Bookings nav items after Transport Bookings
-8. Update App.tsx — add all new routes
+1. Update `index.css`: redefine theme tokens (background → true black, primary/accent → red #FF0000), add animation keyframes (fadeSlideUp, countUp, redGlow, cinematicGradient, sectionFadeIn)
+2. Update `HomePage.tsx`: new hero content, business ticker, services line, founder section, academy section, counter animation on stats, scroll animations on sections
+3. Update `Navbar.tsx`: replace gold classes with red equivalents
+4. Update `Footer.tsx`: replace gold classes with red equivalents  
+5. Update `ServiceCard.tsx`: replace gold badge/rating with red

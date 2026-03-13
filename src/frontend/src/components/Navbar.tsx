@@ -28,7 +28,7 @@ export default function Navbar() {
   const isActive = (path: string) => currentPath === path;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-[oklch(0.12_0.018_260/95%)] backdrop-blur-md">
+    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-black/95 backdrop-blur-md">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -52,8 +52,8 @@ export default function Navbar() {
               className="hidden font-display font-black text-xl tracking-tight items-center"
               style={{ display: "none" }}
             >
-              <span className="text-gradient-gold">DMT</span>
-              <span className="text-foreground ml-1.5">CREATOLOGY</span>
+              <span className="text-red-500">DMT</span>
+              <span className="text-white ml-1.5">CREATOLOGY</span>
             </span>
           </Link>
 
@@ -65,8 +65,8 @@ export default function Navbar() {
                 to={link.path}
                 className={`px-2.5 py-1.5 rounded text-xs font-medium transition-colors duration-200 whitespace-nowrap ${
                   isActive(link.path)
-                    ? "text-gold bg-gold/10"
-                    : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                    ? "text-red-500 bg-red-500/10"
+                    : "text-white/60 hover:text-white hover:bg-white/5"
                 }`}
                 data-ocid="nav.link"
               >
@@ -78,7 +78,7 @@ export default function Navbar() {
           {/* Staff Scan button (desktop) */}
           <Link
             to="/scan"
-            className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium text-muted-foreground hover:text-gold hover:bg-gold/10 transition-colors duration-200 shrink-0 border border-border/40 hover:border-gold/40"
+            className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium text-white/60 hover:text-red-500 hover:bg-red-500/10 transition-colors duration-200 shrink-0 border border-white/10 hover:border-red-500/40"
             title="Staff Entry Scan"
             data-ocid="nav.scan_link"
           >
@@ -90,7 +90,7 @@ export default function Navbar() {
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden text-foreground hover:bg-white/10"
+            className="lg:hidden text-white hover:bg-white/10"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle menu"
             data-ocid="nav.mobile_toggle"
@@ -106,7 +106,7 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="lg:hidden border-t border-border/50 bg-[oklch(0.14_0.02_260)] animate-fade-in">
+        <div className="lg:hidden border-t border-white/10 bg-[#111] animate-fade-in">
           <nav className="container mx-auto px-4 py-3 grid grid-cols-2 gap-1">
             {navLinks.map((link) => (
               <Link
@@ -114,8 +114,8 @@ export default function Navbar() {
                 to={link.path}
                 className={`px-3 py-2 rounded text-sm font-medium transition-colors duration-200 ${
                   isActive(link.path)
-                    ? "text-gold bg-gold/10"
-                    : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                    ? "text-red-500 bg-red-500/10"
+                    : "text-white/60 hover:text-white hover:bg-white/5"
                 }`}
                 onClick={() => setMobileOpen(false)}
                 data-ocid="nav.link"
@@ -126,10 +126,10 @@ export default function Navbar() {
             {/* Staff Scan link in mobile menu */}
             <Link
               to="/scan"
-              className={`px-3 py-2 rounded text-sm font-medium transition-colors duration-200 flex items-center gap-1.5 col-span-2 border border-border/30 mt-1 ${
+              className={`px-3 py-2 rounded text-sm font-medium transition-colors duration-200 flex items-center gap-1.5 col-span-2 border border-white/10 mt-1 ${
                 isActive("/scan")
-                  ? "text-gold bg-gold/10"
-                  : "text-muted-foreground hover:text-gold hover:bg-gold/5"
+                  ? "text-red-500 bg-red-500/10"
+                  : "text-white/60 hover:text-red-500 hover:bg-red-500/5"
               }`}
               onClick={() => setMobileOpen(false)}
               data-ocid="nav.scan_link"

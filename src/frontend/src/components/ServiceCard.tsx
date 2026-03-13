@@ -36,13 +36,12 @@ export default function ServiceCard({
 }: ServiceCardProps) {
   const [open, setOpen] = useState(false);
 
-  // Resolve image: if empty/missing, use fallback immediately
   const resolvedSrc = image && image.trim() !== "" ? image : fallbackSrc;
 
   return (
     <>
       <Card
-        className="bg-card border-border overflow-hidden card-hover group"
+        className="bg-[#111] border border-white/10 overflow-hidden card-3d-hover group"
         data-ocid={`service.item.${index}`}
       >
         <div className="relative overflow-hidden h-48">
@@ -56,7 +55,7 @@ export default function ServiceCard({
             }}
           />
           {badge && (
-            <Badge className="absolute top-3 left-3 gradient-gold text-[oklch(0.1_0.01_260)] font-bold border-0 text-xs">
+            <Badge className="absolute top-3 left-3 bg-red-600 text-white font-bold border-0 text-xs">
               {badge}
             </Badge>
           )}
@@ -65,35 +64,39 @@ export default function ServiceCard({
 
         <CardContent className="p-4 space-y-3">
           <div>
-            <h3 className="font-display font-bold text-foreground text-lg leading-tight">
+            <h3 className="font-display font-bold text-white text-lg leading-tight">
               {title}
             </h3>
             {subtitle && (
-              <div className="flex items-center gap-1 mt-1 text-muted-foreground text-sm">
-                <MapPin className="w-3 h-3 text-gold" />
+              <div className="flex items-center gap-1 mt-1 text-white/50 text-sm">
+                <MapPin className="w-3 h-3 text-red-500" />
                 <span>{subtitle}</span>
               </div>
             )}
           </div>
 
-          <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2">
+          <p className="text-white/50 text-sm leading-relaxed line-clamp-2">
             {description}
           </p>
 
           <div className="flex items-center justify-between pt-1">
             <div className="space-y-0.5">
               {details && (
-                <p className="text-gold font-bold text-sm">{details}</p>
+                <p className="text-red-500 font-bold text-sm">{details}</p>
               )}
               {rating && (
                 <div className="flex items-center gap-1">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <Star
                       key={star}
-                      className={`w-3 h-3 ${star <= Math.floor(rating) ? "text-gold fill-gold" : "text-muted-foreground"}`}
+                      className={`w-3 h-3 ${
+                        star <= Math.floor(rating)
+                          ? "text-red-500 fill-red-500"
+                          : "text-white/20"
+                      }`}
                     />
                   ))}
-                  <span className="text-muted-foreground text-xs ml-0.5">
+                  <span className="text-white/40 text-xs ml-0.5">
                     {rating.toFixed(1)}
                   </span>
                 </div>
@@ -102,7 +105,7 @@ export default function ServiceCard({
 
             <Button
               size="sm"
-              className="gradient-gold text-[oklch(0.1_0.01_260)] font-bold hover:opacity-90 transition-opacity shrink-0"
+              className="bg-red-600 hover:bg-red-500 text-white font-bold btn-red-glow shrink-0"
               onClick={() => setOpen(true)}
               data-ocid="booking.open_modal_button"
             >

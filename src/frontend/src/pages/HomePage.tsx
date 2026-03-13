@@ -2,7 +2,16 @@ import ServiceCard from "@/components/ServiceCard";
 import { Button } from "@/components/ui/button";
 import { FALLBACK_IMAGES } from "@/lib/fallbackImages";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Calendar, MapPin, Star, Users } from "lucide-react";
+import {
+  ArrowRight,
+  Calendar,
+  ChefHat,
+  Clapperboard,
+  MapPin,
+  Star,
+  Users,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 const HERO_IMG = FALLBACK_IMAGES.event;
 const HOTEL_IMG = FALLBACK_IMAGES.hotel;
@@ -11,12 +20,46 @@ const VENUE_IMG = FALLBACK_IMAGES.venue;
 const ARTIST_IMG = FALLBACK_IMAGES.artist;
 const TRANSPORT_IMG = FALLBACK_IMAGES.transport;
 
-const stats = [
-  { icon: Users, label: "Happy Clients", value: "50,000+" },
-  { icon: Calendar, label: "Events Managed", value: "5,000+" },
-  { icon: MapPin, label: "Cities Covered", value: "100+" },
-  { icon: Star, label: "5-Star Reviews", value: "12,000+" },
+const statsData = [
+  { icon: Users, label: "Happy Clients", value: 50000, suffix: "+" },
+  { icon: Calendar, label: "Events Managed", value: 5000, suffix: "+" },
+  { icon: MapPin, label: "Cities Covered", value: 100, suffix: "+" },
+  { icon: Star, label: "5-Star Reviews", value: 12000, suffix: "+" },
 ];
+
+const services = [
+  {
+    title: "Event Ticket Booking",
+    sub: "",
+  },
+  {
+    title: "Wedding & Party Service Booking",
+    sub: "Venue | Catering | DJ | Photographer | Makeup Artist | Decoration | Lighting | Sound",
+  },
+  {
+    title: "Artist & Celebrity Booking",
+    sub: "DJ's | Singers | Music Bands | Comedians | Anchors / Hosts | Dancers | Influencers | Celebrities | Models",
+  },
+  {
+    title: "Studio & Production Booking",
+    sub: "",
+  },
+  {
+    title: "Creator Services",
+    sub: "",
+  },
+  {
+    title: "Travel & Experience Booking",
+    sub: "",
+  },
+  {
+    title: "Hotels • Venues • Artists • Transport • Business Services",
+    sub: "",
+  },
+];
+
+const TICKER_TEXT =
+  "BookMyShow  •  WedMeGood  •  Cameo  •  Artist Celebrity Models Booking Engine  •  MakeMyTrip  •  OYO Hotels  •  MagicBricks  •  99acres  •  Ola  •  Uber  •  RedBus  •  Flights Booking Engine (DMT – GDS AMADEUS)  •  Business Services Marketplace";
 
 const featuredEvents = [
   {
@@ -173,7 +216,7 @@ const artists = [
   },
 ];
 
-const transport = [
+const transportItems = [
   {
     title: "Luxury Car Rental",
     subtitle: "Pan India",
@@ -205,6 +248,78 @@ const transport = [
   },
 ];
 
+// ── Animated counter hook ──
+function useCounter(target: number, active: boolean) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    if (!active) return;
+    let start = 0;
+    const duration = 1800;
+    const step = Math.ceil(target / (duration / 16));
+    const timer = setInterval(() => {
+      start += step;
+      if (start >= target) {
+        setCount(target);
+        clearInterval(timer);
+      } else {
+        setCount(start);
+      }
+    }, 16);
+    return () => clearInterval(timer);
+  }, [active, target]);
+  return count;
+}
+
+// ── Section animate hook ──
+function useSectionAnimation() {
+  useEffect(() => {
+    const els = document.querySelectorAll(".section-animate");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("visible");
+          }
+        }
+      },
+      { threshold: 0.1 },
+    );
+    for (const el of els) observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+}
+
+// ── Stat Counter Item ──
+function StatItem({
+  icon: Icon,
+  label,
+  value,
+  suffix,
+  active,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: number;
+  suffix: string;
+  active: boolean;
+}) {
+  const count = useCounter(value, active);
+  return (
+    <div className="flex items-center gap-3">
+      <div className="w-10 h-10 rounded-lg bg-red-600/10 flex items-center justify-center shrink-0">
+        <Icon className="w-5 h-5 text-red-500" />
+      </div>
+      <div>
+        <p className="font-display font-black text-xl text-white">
+          {count.toLocaleString()}
+          {suffix}
+        </p>
+        <p className="text-white/50 text-xs">{label}</p>
+      </div>
+    </div>
+  );
+}
+
 interface SectionProps {
   title: string;
   subtitle: string;
@@ -214,18 +329,18 @@ interface SectionProps {
 
 function Section({ title, subtitle, viewAllPath, children }: SectionProps) {
   return (
-    <section className="py-12">
+    <section className="py-12 section-animate">
       <div className="container mx-auto px-4">
         <div className="flex items-end justify-between mb-8">
           <div>
-            <h2 className="font-display font-black text-2xl md:text-3xl text-foreground">
+            <h2 className="font-display font-black text-2xl md:text-3xl text-white">
               {title}
             </h2>
-            <p className="text-muted-foreground text-sm mt-1">{subtitle}</p>
+            <p className="text-white/50 text-sm mt-1">{subtitle}</p>
           </div>
           <Link
             to={viewAllPath}
-            className="flex items-center gap-1 text-gold hover:text-gold-bright transition-colors text-sm font-medium shrink-0"
+            className="flex items-center gap-1 text-red-500 hover:text-red-400 transition-colors text-sm font-medium shrink-0"
           >
             View All <ArrowRight className="w-4 h-4" />
           </Link>
@@ -237,46 +352,142 @@ function Section({ title, subtitle, viewAllPath, children }: SectionProps) {
 }
 
 export default function HomePage() {
+  useSectionAnimation();
+
+  // Stats counter activation via intersection observer
+  const statsRef = useRef<HTMLDivElement>(null);
+  const [statsActive, setStatsActive] = useState(false);
+  useEffect(() => {
+    const el = statsRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setStatsActive(true);
+          obs.disconnect();
+        }
+      },
+      { threshold: 0.3 },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
   return (
-    <div>
-      {/* Hero */}
-      <section className="relative min-h-[85vh] flex items-center overflow-hidden">
+    <div className="bg-black">
+      {/* ── Hero ── */}
+      <section className="relative min-h-[90vh] flex items-center overflow-hidden">
         <div className="absolute inset-0">
           <img
             src={HERO_IMG}
             alt="DMT Creatology Events"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/50" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
+          {/* Cinematic vignette */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.6) 100%)",
+            }}
+          />
         </div>
 
         <div className="relative container mx-auto px-4 py-20">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 bg-gold/10 border border-gold/30 rounded-full px-4 py-1.5 mb-6">
-              <Star className="w-3.5 h-3.5 text-gold fill-gold" />
-              <span className="text-gold text-xs font-bold uppercase tracking-wider">
-                India's Premier Platform
+          <div className="max-w-4xl">
+            {/* Title badge */}
+            <div
+              className="inline-flex items-center gap-2 bg-red-600/10 border border-red-600/40 rounded-full px-4 py-1.5 mb-4"
+              style={{
+                animationDelay: "0.1s",
+                opacity: 0,
+                animation: "fadeSlideUp 0.8s ease-out 0.1s forwards",
+              }}
+            >
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <span className="text-red-500 text-xs font-black uppercase tracking-widest">
+                DMT CREATOLOGY
               </span>
             </div>
 
-            <h1 className="font-display font-black text-4xl md:text-6xl lg:text-7xl text-white leading-tight mb-6">
-              India's Premier{" "}
-              <span className="text-gradient-gold">Event &</span>
+            {/* Main headline */}
+            <h1
+              className="font-display font-black text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-white leading-none mb-4 uppercase"
+              style={{
+                opacity: 0,
+                animation: "fadeSlideUp 0.8s ease-out 0.3s forwards",
+              }}
+            >
+              BOOK{" "}
+              <span
+                style={{
+                  background:
+                    "linear-gradient(135deg, #ff0000 0%, #ff4444 60%, #ff6666 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                ALL-IN-ONE
+              </span>
               <br />
-              Entertainment Platform
+              ECOSYSTEM
             </h1>
 
-            <p className="text-white/80 text-lg md:text-xl max-w-2xl mb-8 leading-relaxed">
-              Book events, hotels, venues, artists, transport, and services —
-              all in one place. Your complete entertainment ecosystem.
+            {/* World ranking */}
+            <p
+              className="text-white/70 text-base md:text-lg font-medium mb-4 tracking-wide"
+              style={{
+                opacity: 0,
+                animation: "fadeSlideUp 0.8s ease-out 0.45s forwards",
+              }}
+            >
+              🌍 World Top 100 Bookings Platform
             </p>
 
-            <div className="flex flex-wrap gap-4">
+            {/* Subheadlines */}
+            <div
+              className="mb-4 space-y-1"
+              style={{
+                opacity: 0,
+                animation: "fadeSlideUp 0.8s ease-out 0.5s forwards",
+              }}
+            >
+              <p className="text-white text-xl md:text-2xl font-bold">
+                Global Asset Booking & Marketplace Platform
+              </p>
+              <p className="text-white/80 text-lg md:text-xl">
+                All Assets Booking & Management Super Platform
+              </p>
+            </div>
+
+            {/* Description */}
+            <p
+              className="text-white/60 text-base md:text-lg max-w-2xl mb-8 leading-relaxed"
+              style={{
+                opacity: 0,
+                animation: "fadeSlideUp 0.8s ease-out 0.7s forwards",
+              }}
+            >
+              You can book 100+ types of multi-billion dollar business
+              industries products and services on one platform.
+            </p>
+
+            {/* CTA Buttons */}
+            <div
+              className="flex flex-wrap gap-4"
+              style={{
+                opacity: 0,
+                animation: "fadeSlideUp 0.8s ease-out 0.9s forwards",
+              }}
+            >
               <Button
                 asChild
                 size="lg"
-                className="gradient-gold text-[oklch(0.1_0.01_260)] font-bold text-base px-8 hover:opacity-90"
+                className="bg-red-600 hover:bg-red-500 text-white font-bold text-base px-8 btn-red-glow transition-all"
+                data-ocid="hero.primary_button"
               >
                 <Link to="/events">Explore Events</Link>
               </Button>
@@ -284,7 +495,8 @@ export default function HomePage() {
                 asChild
                 variant="outline"
                 size="lg"
-                className="border-white/30 text-white hover:bg-white/10 text-base px-8"
+                className="border-white/30 text-white hover:bg-red-600/10 hover:border-red-500/50 text-base px-8 transition-all"
+                data-ocid="hero.secondary_button"
               >
                 <Link to="/vendors">Book Services</Link>
               </Button>
@@ -293,28 +505,71 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="py-10 border-y border-border/50 bg-[oklch(0.14_0.02_255)]">
+      {/* ── Business Platform Ticker ── */}
+      <div className="bg-[#0a0a0a] border-y border-red-600/30 py-3 overflow-hidden">
+        <div className="flex whitespace-nowrap animate-marquee">
+          <span className="text-white/70 text-sm font-medium px-8">
+            {TICKER_TEXT}
+          </span>
+          <span className="text-white/70 text-sm font-medium px-8" aria-hidden>
+            {TICKER_TEXT}
+          </span>
+        </div>
+      </div>
+
+      {/* ── Services Grid ── */}
+      <section className="py-12 bg-black section-animate">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {stats.map((stat) => (
-              <div key={stat.label} className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-gold/10 flex items-center justify-center shrink-0">
-                  <stat.icon className="w-5 h-5 text-gold" />
-                </div>
-                <div>
-                  <p className="font-display font-black text-xl text-foreground">
-                    {stat.value}
+          <h2 className="font-display font-black text-2xl md:text-3xl text-white mb-2 text-center">
+            What We Offer
+          </h2>
+          <p className="text-white/50 text-sm text-center mb-8">
+            100+ business categories on one platform
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {services.map((svc, i) => (
+              <div
+                key={svc.title}
+                className="card-3d-hover bg-[#111] border border-red-600/20 hover:border-red-600/50 rounded-xl p-5 transition-colors"
+                data-ocid={`services.item.${i + 1}`}
+              >
+                <div className="w-2 h-2 rounded-full bg-red-500 mb-3" />
+                <h3 className="text-white font-bold text-sm leading-snug">
+                  {svc.title}
+                </h3>
+                {svc.sub && (
+                  <p className="text-white/40 text-xs mt-2 leading-relaxed">
+                    {svc.sub}
                   </p>
-                  <p className="text-muted-foreground text-xs">{stat.label}</p>
-                </div>
+                )}
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Featured Events */}
+      {/* ── Stats ── */}
+      <section
+        ref={statsRef}
+        className="py-10 border-y border-white/5 bg-[#0a0a0a] section-animate"
+      >
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {statsData.map((stat) => (
+              <StatItem
+                key={stat.label}
+                icon={stat.icon}
+                label={stat.label}
+                value={stat.value}
+                suffix={stat.suffix}
+                active={statsActive}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Featured Events ── */}
       <Section
         title="Featured Events"
         subtitle="Handpicked events across India"
@@ -333,9 +588,9 @@ export default function HomePage() {
         </div>
       </Section>
 
-      <div className="border-t border-border/30 mx-4" />
+      <div className="border-t border-white/5 mx-4" />
 
-      {/* Popular Hotels */}
+      {/* ── Popular Hotels ── */}
       <Section
         title="Popular Hotels"
         subtitle="Luxury stays for every occasion"
@@ -354,9 +609,9 @@ export default function HomePage() {
         </div>
       </Section>
 
-      <div className="border-t border-border/30 mx-4" />
+      <div className="border-t border-white/5 mx-4" />
 
-      {/* Food & Beverage */}
+      {/* ── Food & Beverage ── */}
       <Section
         title="Food & Beverage"
         subtitle="Catering and dining experiences"
@@ -375,9 +630,9 @@ export default function HomePage() {
         </div>
       </Section>
 
-      <div className="border-t border-border/30 mx-4" />
+      <div className="border-t border-white/5 mx-4" />
 
-      {/* Party Venues */}
+      {/* ── Party Venues ── */}
       <Section
         title="Party Venues"
         subtitle="Spectacular spaces for every event"
@@ -396,9 +651,9 @@ export default function HomePage() {
         </div>
       </Section>
 
-      <div className="border-t border-border/30 mx-4" />
+      <div className="border-t border-white/5 mx-4" />
 
-      {/* Top Artists */}
+      {/* ── Top Artists ── */}
       <Section
         title="Top Artists"
         subtitle="Performers and talent for hire"
@@ -417,16 +672,16 @@ export default function HomePage() {
         </div>
       </Section>
 
-      <div className="border-t border-border/30 mx-4" />
+      <div className="border-t border-white/5 mx-4" />
 
-      {/* Transport */}
+      {/* ── Transport Services ── */}
       <Section
         title="Transport Services"
         subtitle="Premium transportation for your events"
         viewAllPath="/transport"
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {transport.map((item, i) => (
+          {transportItems.map((item, i) => (
             <ServiceCard
               key={item.title}
               {...item}
@@ -438,22 +693,153 @@ export default function HomePage() {
         </div>
       </Section>
 
-      {/* CTA Banner */}
-      <section className="py-16 relative overflow-hidden">
-        <div className="absolute inset-0 gradient-gold opacity-10" />
+      {/* ── Founder & Leadership ── */}
+      <section className="py-16 bg-[#0a0a0a] section-animate">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-10">
+            <h2 className="font-display font-black text-2xl md:text-3xl text-white mb-2">
+              Founder &amp; Leadership
+            </h2>
+            <div className="w-16 h-0.5 bg-red-600 mx-auto" />
+          </div>
+          <div
+            className="card-3d-hover border border-red-500/30 bg-[#111] rounded-xl p-8 max-w-md mx-auto text-center"
+            data-ocid="founder.card"
+          >
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-red-600 to-red-900 flex items-center justify-center text-3xl font-black text-white mx-auto mb-4 shadow-lg">
+              UK
+            </div>
+            <h3 className="text-2xl font-black text-white">
+              Ujjwal Kapur (UK)
+            </h3>
+            <div className="mt-5 space-y-2 text-left">
+              <div className="bg-[#1a1a1a] rounded-lg p-3">
+                <p className="text-red-500 text-xs font-bold uppercase tracking-wider">
+                  HR Manager
+                </p>
+                <p className="text-white text-sm mt-1">
+                  SUNBURN FESTIVAL | VH1 SUPERSONIC | IPL
+                </p>
+              </div>
+              <div className="bg-[#1a1a1a] rounded-lg p-3">
+                <p className="text-red-500 text-xs font-bold uppercase tracking-wider">
+                  National Sales Manager
+                </p>
+                <p className="text-white text-sm mt-1">SUNBURN FESTIVAL GOA</p>
+              </div>
+              <div className="bg-[#1a1a1a] rounded-lg p-3">
+                <p className="text-red-500 text-xs font-bold uppercase tracking-wider">
+                  Coverage
+                </p>
+                <p className="text-white text-sm font-bold mt-1">PAN INDIA</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── DMT Creatology Academy ── */}
+      <section className="py-16 bg-black section-animate">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-10">
+            <h2 className="font-display font-black text-2xl md:text-3xl text-white mb-2">
+              DMT Creatology Academy
+            </h2>
+            <div className="w-16 h-0.5 bg-red-600 mx-auto mb-4" />
+            <p className="text-white/60 text-base">
+              India's No.1 Tuition Academy &amp; Event Management Company
+            </p>
+            <div className="inline-flex items-center gap-2 bg-red-600/10 border border-red-600/30 rounded-full px-4 py-1.5 mt-3">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+              <span className="text-red-400 text-xs font-bold uppercase tracking-wider">
+                100% Practical Training + Job Assistance
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+            {/* Cooking Course */}
+            <div
+              className="card-3d-hover bg-[#111] border border-red-600/20 hover:border-red-600/50 rounded-xl p-6 text-center"
+              data-ocid="academy.item.1"
+            >
+              <div className="w-14 h-14 rounded-full bg-red-600/10 flex items-center justify-center mx-auto mb-4">
+                <ChefHat className="w-7 h-7 text-red-500" />
+              </div>
+              <h3 className="text-white font-black text-lg mb-2">
+                Cooking Course
+              </h3>
+              <p className="text-white/50 text-sm mb-4 leading-relaxed">
+                Master culinary arts with hands-on training from professional
+                chefs. From basics to advanced techniques.
+              </p>
+              <Button
+                size="sm"
+                className="bg-red-600 hover:bg-red-500 text-white font-bold btn-red-glow"
+                data-ocid="academy.primary_button.1"
+              >
+                Learn More
+              </Button>
+            </div>
+
+            {/* Event Management Course */}
+            <div
+              className="card-3d-hover bg-[#111] border border-red-600/20 hover:border-red-600/50 rounded-xl p-6 text-center"
+              data-ocid="academy.item.2"
+            >
+              <div className="w-14 h-14 rounded-full bg-red-600/10 flex items-center justify-center mx-auto mb-4">
+                <Clapperboard className="w-7 h-7 text-red-500" />
+              </div>
+              <h3 className="text-white font-black text-lg mb-2">
+                Event Management Course
+              </h3>
+              <p className="text-white/50 text-sm mb-4 leading-relaxed">
+                Learn to plan and execute world-class events. From concerts to
+                weddings — become a certified event professional.
+              </p>
+              <Button
+                size="sm"
+                className="bg-red-600 hover:bg-red-500 text-white font-bold btn-red-glow"
+                data-ocid="academy.primary_button.2"
+              >
+                Learn More
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA Banner ── */}
+      <section className="py-16 relative overflow-hidden bg-[#0a0a0a]">
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            background: "linear-gradient(135deg, #cc0000 0%, #ff0000 100%)",
+          }}
+        />
         <div
           className="absolute inset-0"
           style={{
             backgroundImage:
-              "radial-gradient(circle at 50% 50%, oklch(0.78 0.17 75 / 15%) 0%, transparent 60%)",
+              "radial-gradient(circle at 50% 50%, rgba(255,0,0,0.08) 0%, transparent 60%)",
           }}
         />
         <div className="relative container mx-auto px-4 text-center">
-          <h2 className="font-display font-black text-3xl md:text-4xl text-foreground mb-4">
+          <h2 className="font-display font-black text-3xl md:text-4xl text-white mb-4">
             Ready to Create Something{" "}
-            <span className="text-gradient-gold">Unforgettable?</span>
+            <span
+              style={{
+                background:
+                  "linear-gradient(135deg, #ff0000 0%, #ff4444 60%, #ff6666 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              Unforgettable?
+            </span>
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8">
+          <p className="text-white/50 text-lg max-w-2xl mx-auto mb-8">
             From intimate gatherings to mega festivals — DMT Creatology has
             everything you need.
           </p>
@@ -461,7 +847,8 @@ export default function HomePage() {
             <Button
               asChild
               size="lg"
-              className="gradient-gold text-[oklch(0.1_0.01_260)] font-bold px-8"
+              className="bg-red-600 hover:bg-red-500 text-white font-bold px-8 btn-red-glow"
+              data-ocid="cta.primary_button"
             >
               <Link to="/contact">Get In Touch</Link>
             </Button>
@@ -469,7 +856,8 @@ export default function HomePage() {
               asChild
               variant="outline"
               size="lg"
-              className="border-gold/50 text-gold hover:bg-gold/10 px-8"
+              className="border-red-500/50 text-red-400 hover:bg-red-600/10 hover:text-red-300 px-8"
+              data-ocid="cta.secondary_button"
             >
               <a
                 href="https://wa.me/919821432904"
