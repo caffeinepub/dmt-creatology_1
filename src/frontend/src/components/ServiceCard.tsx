@@ -41,7 +41,7 @@ export default function ServiceCard({
   return (
     <>
       <Card
-        className="bg-[#111] border border-white/10 overflow-hidden card-3d-hover group"
+        className="bg-zinc-900 border-zinc-800 overflow-hidden card-3d-hover group"
         data-ocid={`service.item.${index}`}
       >
         <div className="relative overflow-hidden h-48">
@@ -82,7 +82,7 @@ export default function ServiceCard({
           <div className="flex items-center justify-between pt-1">
             <div className="space-y-0.5">
               {details && (
-                <p className="text-red-500 font-bold text-sm">{details}</p>
+                <p className="text-red-400 font-bold text-sm">{details}</p>
               )}
               {rating && (
                 <div className="flex items-center gap-1">
@@ -105,7 +105,7 @@ export default function ServiceCard({
 
             <Button
               size="sm"
-              className="bg-red-600 hover:bg-red-500 text-white font-bold btn-red-glow shrink-0"
+              className="bg-red-600 hover:bg-red-700 text-white font-bold red-glow-hover transition-all shrink-0"
               onClick={() => setOpen(true)}
               data-ocid="booking.open_modal_button"
             >

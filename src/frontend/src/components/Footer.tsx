@@ -41,7 +41,7 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-white/10 bg-black">
+    <footer className="border-t border-white/10 bg-zinc-950">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand */}
@@ -58,7 +58,7 @@ export default function Footer() {
             </div>
 
             {/* Payment */}
-            <div className="bg-[#111] border border-white/10 rounded-lg p-3 space-y-1">
+            <div className="bg-zinc-900 border border-red-900/40 rounded-lg p-3 space-y-1">
               <div className="flex items-center gap-2 text-red-500">
                 <CreditCard className="w-4 h-4" />
                 <span className="font-bold text-sm">Payment</span>
@@ -151,7 +151,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-10 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/40">
+        <div className="mt-10 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/30">
           <p>© {year} DMT CREATOLOGY. All rights reserved.</p>
           <p>
             Built with ❤️ using{" "}

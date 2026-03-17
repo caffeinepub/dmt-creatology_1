@@ -66,15 +66,11 @@ export default {
           border: "oklch(var(--sidebar-border))",
           ring: "oklch(var(--sidebar-ring))",
         },
-        gold: {
-          DEFAULT: "oklch(var(--gold))",
-          bright: "oklch(var(--gold-bright))",
-          dim: "oklch(var(--gold-dim))",
-        },
-        navy: {
-          DEFAULT: "oklch(var(--navy))",
-          light: "oklch(var(--navy-light))",
-          card: "oklch(var(--navy-card))",
+        /* Red accent tokens */
+        "dmt-red": {
+          DEFAULT: "oklch(var(--red))",
+          bright: "oklch(var(--red-bright))",
+          dim: "oklch(var(--red-dim))",
         },
       },
       fontFamily: {
@@ -89,9 +85,9 @@ export default {
       },
       boxShadow: {
         xs: "0 1px 2px 0 rgba(0,0,0,0.05)",
-        "gold-sm": "0 0 10px oklch(0.78 0.17 75 / 20%)",
-        "gold-md": "0 0 25px oklch(0.78 0.17 75 / 30%)",
-        "card-lift": "0 20px 60px rgba(0,0,0,0.5), 0 0 30px oklch(0.78 0.17 75 / 10%)",
+        "red-sm": "0 0 10px rgba(255,0,0,0.2)",
+        "red-md": "0 0 25px rgba(255,0,0,0.3)",
+        "card-lift": "0 20px 60px rgba(0,0,0,0.5), 0 0 30px rgba(255,0,0,0.1)",
       },
       keyframes: {
         "accordion-down": {

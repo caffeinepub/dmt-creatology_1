@@ -78,7 +78,7 @@ export default function Navbar() {
           {/* Staff Scan button (desktop) */}
           <Link
             to="/scan"
-            className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium text-white/60 hover:text-red-500 hover:bg-red-500/10 transition-colors duration-200 shrink-0 border border-white/10 hover:border-red-500/40"
+            className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium text-white/60 hover:text-red-400 hover:bg-red-500/10 transition-colors duration-200 shrink-0 border border-white/10 hover:border-red-500/40"
             title="Staff Entry Scan"
             data-ocid="nav.scan_link"
           >
@@ -106,7 +106,7 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="lg:hidden border-t border-white/10 bg-[#111] animate-fade-in">
+        <div className="lg:hidden border-t border-white/10 bg-zinc-950 animate-fade-in">
           <nav className="container mx-auto px-4 py-3 grid grid-cols-2 gap-1">
             {navLinks.map((link) => (
               <Link
@@ -123,13 +123,12 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-            {/* Staff Scan link in mobile menu */}
             <Link
               to="/scan"
               className={`px-3 py-2 rounded text-sm font-medium transition-colors duration-200 flex items-center gap-1.5 col-span-2 border border-white/10 mt-1 ${
                 isActive("/scan")
                   ? "text-red-500 bg-red-500/10"
-                  : "text-white/60 hover:text-red-500 hover:bg-red-500/5"
+                  : "text-white/60 hover:text-red-400 hover:bg-red-500/5"
               }`}
               onClick={() => setMobileOpen(false)}
               data-ocid="nav.scan_link"

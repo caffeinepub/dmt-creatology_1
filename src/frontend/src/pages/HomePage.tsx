@@ -2,15 +2,7 @@ import ServiceCard from "@/components/ServiceCard";
 import { Button } from "@/components/ui/button";
 import { FALLBACK_IMAGES } from "@/lib/fallbackImages";
 import { Link } from "@tanstack/react-router";
-import {
-  ArrowRight,
-  Calendar,
-  ChefHat,
-  Clapperboard,
-  MapPin,
-  Star,
-  Users,
-} from "lucide-react";
+import { ArrowRight, Calendar, MapPin, Star, Users } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 const HERO_IMG = FALLBACK_IMAGES.event;
@@ -21,45 +13,50 @@ const ARTIST_IMG = FALLBACK_IMAGES.artist;
 const TRANSPORT_IMG = FALLBACK_IMAGES.transport;
 
 const statsData = [
-  { icon: Users, label: "Happy Clients", value: 50000, suffix: "+" },
-  { icon: Calendar, label: "Events Managed", value: 5000, suffix: "+" },
-  { icon: MapPin, label: "Cities Covered", value: 100, suffix: "+" },
-  { icon: Star, label: "5-Star Reviews", value: 12000, suffix: "+" },
+  { icon: Users, label: "Happy Clients", value: "50,000+", numValue: 50000 },
+  { icon: Calendar, label: "Events Managed", value: "5,000+", numValue: 5000 },
+  { icon: MapPin, label: "Cities Covered", value: "100+", numValue: 100 },
+  { icon: Star, label: "5-Star Reviews", value: "12,000+", numValue: 12000 },
 ];
 
 const services = [
-  {
-    title: "Event Ticket Booking",
-    sub: "",
-  },
+  { title: "Event Ticket Booking", subtitle: "", icon: "🎟️" },
   {
     title: "Wedding & Party Service Booking",
-    sub: "Venue | Catering | DJ | Photographer | Makeup Artist | Decoration | Lighting | Sound",
+    subtitle:
+      "Venue | Catering | DJ | Photographer | Makeup Artist | Decoration | Lighting | Sound",
+    icon: "💒",
   },
   {
     title: "Artist & Celebrity Booking",
-    sub: "DJ's | Singers | Music Bands | Comedians | Anchors / Hosts | Dancers | Influencers | Celebrities | Models",
+    subtitle:
+      "DJ's | Singers | Music Bands | Comedians | Anchors / Hosts | Dancers | Influencers | Celebrities | Models",
+    icon: "🎤",
   },
-  {
-    title: "Studio & Production Booking",
-    sub: "",
-  },
-  {
-    title: "Creator Services",
-    sub: "",
-  },
+  { title: "Studio & Production Booking", subtitle: "", icon: "🎬" },
+  { title: "Creator Services", subtitle: "", icon: "✨" },
   {
     title: "Travel & Experience Booking",
-    sub: "",
-  },
-  {
-    title: "Hotels • Venues • Artists • Transport • Business Services",
-    sub: "",
+    subtitle: "Hotels • Venues • Artists • Transport • Business Services",
+    icon: "✈️",
   },
 ];
 
-const TICKER_TEXT =
-  "BookMyShow  •  WedMeGood  •  Cameo  •  Artist Celebrity Models Booking Engine  •  MakeMyTrip  •  OYO Hotels  •  MagicBricks  •  99acres  •  Ola  •  Uber  •  RedBus  •  Flights Booking Engine (DMT – GDS AMADEUS)  •  Business Services Marketplace";
+const platformNames = [
+  "BookMyShow",
+  "WedMeGood",
+  "Cameo",
+  "Artist Celebrity Models Booking Engine",
+  "MakeMyTrip",
+  "OYO Hotels",
+  "MagicBricks",
+  "99acres",
+  "Ola",
+  "Uber",
+  "RedBus",
+  "Flights Booking Engine (DMT – GDS AMADEUS)",
+  "Business Services Marketplace",
+];
 
 const featuredEvents = [
   {
@@ -216,7 +213,7 @@ const artists = [
   },
 ];
 
-const transportItems = [
+const transport = [
   {
     title: "Luxury Car Rental",
     subtitle: "Pan India",
@@ -248,76 +245,58 @@ const transportItems = [
   },
 ];
 
-// ── Animated counter hook ──
-function useCounter(target: number, active: boolean) {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    if (!active) return;
-    let start = 0;
-    const duration = 1800;
-    const step = Math.ceil(target / (duration / 16));
-    const timer = setInterval(() => {
-      start += step;
-      if (start >= target) {
-        setCount(target);
-        clearInterval(timer);
-      } else {
-        setCount(start);
-      }
-    }, 16);
-    return () => clearInterval(timer);
-  }, [active, target]);
-  return count;
-}
+/* Custom hook for intersection observer */
+function useInView(threshold = 0.15) {
+  const ref = useRef<HTMLElement>(null);
+  const [visible, setVisible] = useState(false);
 
-// ── Section animate hook ──
-function useSectionAnimation() {
   useEffect(() => {
-    const els = document.querySelectorAll(".section-animate");
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("visible");
-          }
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          obs.disconnect();
         }
       },
-      { threshold: 0.1 },
+      { threshold },
     );
-    for (const el of els) observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [threshold]);
+
+  return { ref, visible };
 }
 
-// ── Stat Counter Item ──
-function StatItem({
-  icon: Icon,
-  label,
+/* Animated stat counter */
+function AnimatedCounter({
   value,
-  suffix,
-  active,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: number;
-  suffix: string;
-  active: boolean;
-}) {
-  const count = useCounter(value, active);
-  return (
-    <div className="flex items-center gap-3">
-      <div className="w-10 h-10 rounded-lg bg-red-600/10 flex items-center justify-center shrink-0">
-        <Icon className="w-5 h-5 text-red-500" />
-      </div>
-      <div>
-        <p className="font-display font-black text-xl text-white">
-          {count.toLocaleString()}
-          {suffix}
-        </p>
-        <p className="text-white/50 text-xs">{label}</p>
-      </div>
-    </div>
-  );
+  numValue,
+}: { value: string; numValue: number }) {
+  const [display, setDisplay] = useState("0");
+  const { ref, visible } = useInView(0.5);
+
+  useEffect(() => {
+    if (!visible) return;
+    const suffix = value.replace(/[0-9,]/g, "");
+    const duration = 1500;
+    const steps = 40;
+    const increment = numValue / steps;
+    let current = 0;
+    const interval = setInterval(() => {
+      current += increment;
+      if (current >= numValue) {
+        setDisplay(value);
+        clearInterval(interval);
+      } else {
+        setDisplay(Math.floor(current).toLocaleString("en-IN") + suffix);
+      }
+    }, duration / steps);
+    return () => clearInterval(interval);
+  }, [visible, value, numValue]);
+
+  return <span ref={ref as React.RefObject<HTMLSpanElement>}>{display}</span>;
 }
 
 interface SectionProps {
@@ -328,15 +307,21 @@ interface SectionProps {
 }
 
 function Section({ title, subtitle, viewAllPath, children }: SectionProps) {
+  const { ref, visible } = useInView();
   return (
-    <section className="py-12 section-animate">
+    <section
+      ref={ref}
+      className={`py-12 transition-all duration-700 ${
+        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+      }`}
+    >
       <div className="container mx-auto px-4">
         <div className="flex items-end justify-between mb-8">
           <div>
             <h2 className="font-display font-black text-2xl md:text-3xl text-white">
               {title}
             </h2>
-            <p className="text-white/50 text-sm mt-1">{subtitle}</p>
+            <p className="text-white/40 text-sm mt-1">{subtitle}</p>
           </div>
           <Link
             to={viewAllPath}
@@ -352,30 +337,13 @@ function Section({ title, subtitle, viewAllPath, children }: SectionProps) {
 }
 
 export default function HomePage() {
-  useSectionAnimation();
-
-  // Stats counter activation via intersection observer
-  const statsRef = useRef<HTMLDivElement>(null);
-  const [statsActive, setStatsActive] = useState(false);
-  useEffect(() => {
-    const el = statsRef.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setStatsActive(true);
-          obs.disconnect();
-        }
-      },
-      { threshold: 0.3 },
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
+  const { ref: servicesRef, visible: servicesVisible } = useInView();
+  const { ref: founderRef, visible: founderVisible } = useInView();
+  const { ref: academyRef, visible: academyVisible } = useInView();
 
   return (
     <div className="bg-black">
-      {/* ── Hero ── */}
+      {/* ── HERO ── */}
       <section className="relative min-h-[90vh] flex items-center overflow-hidden">
         <div className="absolute inset-0">
           <img
@@ -383,110 +351,91 @@ export default function HomePage() {
             alt="DMT Creatology Events"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/50" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
-          {/* Cinematic vignette */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+          {/* Subtle red glow overlay */}
           <div
             className="absolute inset-0"
             style={{
               background:
-                "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.6) 100%)",
+                "radial-gradient(ellipse at 20% 50%, rgba(255,0,0,0.08) 0%, transparent 60%)",
             }}
           />
         </div>
 
-        <div className="relative container mx-auto px-4 py-20">
-          <div className="max-w-4xl">
-            {/* Title badge */}
-            <div
-              className="inline-flex items-center gap-2 bg-red-600/10 border border-red-600/40 rounded-full px-4 py-1.5 mb-4"
+        <div className="relative container mx-auto px-4 py-24">
+          <div className="max-w-3xl">
+            <p
+              className="text-red-500 font-bold text-sm uppercase tracking-[0.3em] mb-3"
               style={{
-                animationDelay: "0.1s",
+                animation: "fadeSlideUp 0.6s 0s ease forwards",
                 opacity: 0,
-                animation: "fadeSlideUp 0.8s ease-out 0.1s forwards",
               }}
             >
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              <span className="text-red-500 text-xs font-black uppercase tracking-widest">
-                DMT CREATOLOGY
-              </span>
-            </div>
+              DMT CREATOLOGY
+            </p>
 
-            {/* Main headline */}
             <h1
-              className="font-display font-black text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-white leading-none mb-4 uppercase"
+              className="font-display font-black text-5xl md:text-7xl lg:text-8xl text-white leading-[1.05] mb-4"
               style={{
+                animation: "fadeSlideUp 0.8s 0.2s ease forwards",
                 opacity: 0,
-                animation: "fadeSlideUp 0.8s ease-out 0.3s forwards",
               }}
             >
-              BOOK{" "}
-              <span
-                style={{
-                  background:
-                    "linear-gradient(135deg, #ff0000 0%, #ff4444 60%, #ff6666 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                ALL-IN-ONE
-              </span>
+              BOOK ALL-IN-ONE
               <br />
-              ECOSYSTEM
+              <span style={{ color: "#FF0000" }}>ECOSYSTEM</span>
             </h1>
 
-            {/* World ranking */}
             <p
-              className="text-white/70 text-base md:text-lg font-medium mb-4 tracking-wide"
+              className="text-white/90 font-bold text-xl md:text-2xl mb-2"
               style={{
+                animation: "fadeSlideUp 0.8s 0.4s ease forwards",
                 opacity: 0,
-                animation: "fadeSlideUp 0.8s ease-out 0.45s forwards",
               }}
             >
               🌍 World Top 100 Bookings Platform
             </p>
-
-            {/* Subheadlines */}
-            <div
-              className="mb-4 space-y-1"
+            <p
+              className="text-white/70 text-lg md:text-xl mb-1"
               style={{
+                animation: "fadeSlideUp 0.8s 0.5s ease forwards",
                 opacity: 0,
-                animation: "fadeSlideUp 0.8s ease-out 0.5s forwards",
               }}
             >
-              <p className="text-white text-xl md:text-2xl font-bold">
-                Global Asset Booking & Marketplace Platform
-              </p>
-              <p className="text-white/80 text-lg md:text-xl">
-                All Assets Booking & Management Super Platform
-              </p>
-            </div>
-
-            {/* Description */}
+              Global Asset Booking &amp; Marketplace Platform
+            </p>
             <p
-              className="text-white/60 text-base md:text-lg max-w-2xl mb-8 leading-relaxed"
+              className="text-white/70 text-lg md:text-xl mb-6"
               style={{
+                animation: "fadeSlideUp 0.8s 0.6s ease forwards",
                 opacity: 0,
-                animation: "fadeSlideUp 0.8s ease-out 0.7s forwards",
+              }}
+            >
+              All Assets Booking &amp; Management Super Platform
+            </p>
+            <p
+              className="text-white/60 text-base max-w-2xl mb-8"
+              style={{
+                animation: "fadeSlideUp 0.8s 0.7s ease forwards",
+                opacity: 0,
               }}
             >
               You can book 100+ types of multi-billion dollar business
               industries products and services on one platform.
             </p>
 
-            {/* CTA Buttons */}
             <div
               className="flex flex-wrap gap-4"
               style={{
+                animation: "fadeSlideUp 0.8s 0.85s ease forwards",
                 opacity: 0,
-                animation: "fadeSlideUp 0.8s ease-out 0.9s forwards",
               }}
             >
               <Button
                 asChild
                 size="lg"
-                className="bg-red-600 hover:bg-red-500 text-white font-bold text-base px-8 btn-red-glow transition-all"
+                className="bg-red-600 hover:bg-red-700 text-white font-bold text-base px-8 red-glow-hover transition-all"
                 data-ocid="hero.primary_button"
               >
                 <Link to="/events">Explore Events</Link>
@@ -495,7 +444,7 @@ export default function HomePage() {
                 asChild
                 variant="outline"
                 size="lg"
-                className="border-white/30 text-white hover:bg-red-600/10 hover:border-red-500/50 text-base px-8 transition-all"
+                className="border-white/30 text-white hover:bg-white/10 hover:border-red-500 text-base px-8"
                 data-ocid="hero.secondary_button"
               >
                 <Link to="/vendors">Book Services</Link>
@@ -505,41 +454,88 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Business Platform Ticker ── */}
-      <div className="bg-[#0a0a0a] border-y border-red-600/30 py-3 overflow-hidden">
-        <div className="flex whitespace-nowrap animate-marquee">
-          <span className="text-white/70 text-sm font-medium px-8">
-            {TICKER_TEXT}
-          </span>
-          <span className="text-white/70 text-sm font-medium px-8" aria-hidden>
-            {TICKER_TEXT}
-          </span>
+      {/* ── PLATFORM TICKER ── */}
+      <section className="py-4 bg-black border-y border-red-900/40 overflow-hidden">
+        <div
+          className="flex whitespace-nowrap gap-0"
+          style={{
+            width: "max-content",
+            animation: "marquee 40s linear infinite",
+          }}
+        >
+          {[...platformNames, ...platformNames].map((item) => (
+            <span
+              key={item}
+              className="text-white/50 text-sm font-medium px-5 inline-flex items-center"
+            >
+              <span className="text-red-500 mr-2">•</span>
+              {item}
+            </span>
+          ))}
         </div>
-      </div>
+      </section>
 
-      {/* ── Services Grid ── */}
-      <section className="py-12 bg-black section-animate">
+      {/* ── STATS ── */}
+      <section className="py-10 border-b border-white/5 bg-zinc-950">
         <div className="container mx-auto px-4">
-          <h2 className="font-display font-black text-2xl md:text-3xl text-white mb-2 text-center">
-            What We Offer
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {statsData.map((stat) => (
+              <div key={stat.label} className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0">
+                  <stat.icon className="w-5 h-5 text-red-500" />
+                </div>
+                <div>
+                  <p className="font-display font-black text-xl text-white">
+                    <AnimatedCounter
+                      value={stat.value}
+                      numValue={stat.numValue}
+                    />
+                  </p>
+                  <p className="text-white/40 text-xs">{stat.label}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── SERVICES ── */}
+      <section
+        ref={servicesRef as React.RefObject<HTMLElement>}
+        className={`py-16 bg-black transition-all duration-700 ${
+          servicesVisible
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 translate-y-8"
+        }`}
+      >
+        <div className="container mx-auto px-4">
+          <h2 className="font-display font-black text-3xl md:text-4xl text-white text-center mb-2">
+            Our <span className="text-red-500">Services</span>
           </h2>
-          <p className="text-white/50 text-sm text-center mb-8">
-            100+ business categories on one platform
+          <p className="text-white/40 text-center mb-10">
+            Everything you need on one platform
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.map((svc, i) => (
               <div
                 key={svc.title}
-                className="card-3d-hover bg-[#111] border border-red-600/20 hover:border-red-600/50 rounded-xl p-5 transition-colors"
-                data-ocid={`services.item.${i + 1}`}
+                className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 card-3d-hover"
+                style={
+                  servicesVisible
+                    ? {
+                        animation: `fadeIn 0.5s ${i * 0.1}s ease forwards`,
+                        opacity: 0,
+                      }
+                    : {}
+                }
               >
-                <div className="w-2 h-2 rounded-full bg-red-500 mb-3" />
-                <h3 className="text-white font-bold text-sm leading-snug">
+                <div className="text-3xl mb-3">{svc.icon}</div>
+                <h3 className="text-white font-bold text-lg mb-2">
                   {svc.title}
                 </h3>
-                {svc.sub && (
-                  <p className="text-white/40 text-xs mt-2 leading-relaxed">
-                    {svc.sub}
+                {svc.subtitle && (
+                  <p className="text-white/40 text-sm leading-relaxed">
+                    {svc.subtitle}
                   </p>
                 )}
               </div>
@@ -548,28 +544,60 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Stats ── */}
+      {/* ── FOUNDER & LEADERSHIP ── */}
       <section
-        ref={statsRef}
-        className="py-10 border-y border-white/5 bg-[#0a0a0a] section-animate"
+        ref={founderRef as React.RefObject<HTMLElement>}
+        className={`py-16 bg-zinc-950 transition-all duration-700 ${
+          founderVisible
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 translate-y-8"
+        }`}
       >
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {statsData.map((stat) => (
-              <StatItem
-                key={stat.label}
-                icon={stat.icon}
-                label={stat.label}
-                value={stat.value}
-                suffix={stat.suffix}
-                active={statsActive}
-              />
-            ))}
+          <h2 className="font-display font-black text-3xl md:text-4xl text-white text-center mb-2">
+            Founder &amp; <span className="text-red-500">Leadership</span>
+          </h2>
+          <p className="text-white/40 text-center mb-10">
+            The vision behind DMT Creatology
+          </p>
+          <div className="flex justify-center">
+            <div className="bg-zinc-900 border border-zinc-800 border-l-4 border-l-red-600 rounded-xl p-8 max-w-md w-full card-3d-hover">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-red-600 to-red-900 flex items-center justify-center text-white font-black text-2xl mb-4">
+                UK
+              </div>
+              <h3 className="text-white font-black text-2xl mb-1">
+                Ujjwal Kapur <span className="text-red-500">(UK)</span>
+              </h3>
+              <div className="space-y-4 mt-4">
+                <div>
+                  <p className="text-white/40 text-xs uppercase tracking-wider mb-0.5">
+                    HR Manager
+                  </p>
+                  <p className="text-white font-medium">
+                    SUNBURN FESTIVAL | VH1 SUPERSONIC | IPL
+                  </p>
+                </div>
+                <div>
+                  <p className="text-white/40 text-xs uppercase tracking-wider mb-0.5">
+                    National Sales Manager
+                  </p>
+                  <p className="text-white font-medium">SUNBURN FESTIVAL GOA</p>
+                </div>
+                <div className="pt-3 border-t border-zinc-700">
+                  <p className="text-white/40 text-xs uppercase tracking-wider mb-0.5">
+                    Coverage
+                  </p>
+                  <p className="text-red-400 font-bold tracking-wide">
+                    PAN INDIA
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── Featured Events ── */}
+      {/* ── FEATURED EVENTS ── */}
       <Section
         title="Featured Events"
         subtitle="Handpicked events across India"
@@ -590,7 +618,7 @@ export default function HomePage() {
 
       <div className="border-t border-white/5 mx-4" />
 
-      {/* ── Popular Hotels ── */}
+      {/* ── POPULAR HOTELS ── */}
       <Section
         title="Popular Hotels"
         subtitle="Luxury stays for every occasion"
@@ -611,7 +639,7 @@ export default function HomePage() {
 
       <div className="border-t border-white/5 mx-4" />
 
-      {/* ── Food & Beverage ── */}
+      {/* ── FOOD & BEVERAGE ── */}
       <Section
         title="Food & Beverage"
         subtitle="Catering and dining experiences"
@@ -632,7 +660,7 @@ export default function HomePage() {
 
       <div className="border-t border-white/5 mx-4" />
 
-      {/* ── Party Venues ── */}
+      {/* ── PARTY VENUES ── */}
       <Section
         title="Party Venues"
         subtitle="Spectacular spaces for every event"
@@ -653,7 +681,7 @@ export default function HomePage() {
 
       <div className="border-t border-white/5 mx-4" />
 
-      {/* ── Top Artists ── */}
+      {/* ── TOP ARTISTS ── */}
       <Section
         title="Top Artists"
         subtitle="Performers and talent for hire"
@@ -674,14 +702,14 @@ export default function HomePage() {
 
       <div className="border-t border-white/5 mx-4" />
 
-      {/* ── Transport Services ── */}
+      {/* ── TRANSPORT ── */}
       <Section
         title="Transport Services"
         subtitle="Premium transportation for your events"
         viewAllPath="/transport"
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {transportItems.map((item, i) => (
+          {transport.map((item, i) => (
             <ServiceCard
               key={item.title}
               {...item}
@@ -693,151 +721,75 @@ export default function HomePage() {
         </div>
       </Section>
 
-      {/* ── Founder & Leadership ── */}
-      <section className="py-16 bg-[#0a0a0a] section-animate">
+      {/* ── ACADEMY ── */}
+      <section
+        ref={academyRef as React.RefObject<HTMLElement>}
+        className={`py-16 bg-black transition-all duration-700 ${
+          academyVisible
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 translate-y-8"
+        }`}
+      >
         <div className="container mx-auto px-4">
-          <div className="text-center mb-10">
-            <h2 className="font-display font-black text-2xl md:text-3xl text-white mb-2">
-              Founder &amp; Leadership
+          <div className="text-center mb-12">
+            <h2 className="font-display font-black text-3xl md:text-4xl text-white mb-2">
+              DMT Creatology <span className="text-red-500">Academy</span>
             </h2>
-            <div className="w-16 h-0.5 bg-red-600 mx-auto" />
-          </div>
-          <div
-            className="card-3d-hover border border-red-500/30 bg-[#111] rounded-xl p-8 max-w-md mx-auto text-center"
-            data-ocid="founder.card"
-          >
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-red-600 to-red-900 flex items-center justify-center text-3xl font-black text-white mx-auto mb-4 shadow-lg">
-              UK
-            </div>
-            <h3 className="text-2xl font-black text-white">
-              Ujjwal Kapur (UK)
-            </h3>
-            <div className="mt-5 space-y-2 text-left">
-              <div className="bg-[#1a1a1a] rounded-lg p-3">
-                <p className="text-red-500 text-xs font-bold uppercase tracking-wider">
-                  HR Manager
-                </p>
-                <p className="text-white text-sm mt-1">
-                  SUNBURN FESTIVAL | VH1 SUPERSONIC | IPL
-                </p>
-              </div>
-              <div className="bg-[#1a1a1a] rounded-lg p-3">
-                <p className="text-red-500 text-xs font-bold uppercase tracking-wider">
-                  National Sales Manager
-                </p>
-                <p className="text-white text-sm mt-1">SUNBURN FESTIVAL GOA</p>
-              </div>
-              <div className="bg-[#1a1a1a] rounded-lg p-3">
-                <p className="text-red-500 text-xs font-bold uppercase tracking-wider">
-                  Coverage
-                </p>
-                <p className="text-white text-sm font-bold mt-1">PAN INDIA</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── DMT Creatology Academy ── */}
-      <section className="py-16 bg-black section-animate">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-10">
-            <h2 className="font-display font-black text-2xl md:text-3xl text-white mb-2">
-              DMT Creatology Academy
-            </h2>
-            <div className="w-16 h-0.5 bg-red-600 mx-auto mb-4" />
-            <p className="text-white/60 text-base">
-              India's No.1 Tuition Academy &amp; Event Management Company
+            <p className="text-white/60 text-lg mb-4">
+              India's No.1 Tuition Academy & Event Management Company
             </p>
-            <div className="inline-flex items-center gap-2 bg-red-600/10 border border-red-600/30 rounded-full px-4 py-1.5 mt-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-              <span className="text-red-400 text-xs font-bold uppercase tracking-wider">
+            <div className="inline-block bg-red-600/20 border border-red-600/40 rounded-full px-6 py-2">
+              <span className="text-red-400 font-bold">
                 100% Practical Training + Job Assistance
               </span>
             </div>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
-            {/* Cooking Course */}
-            <div
-              className="card-3d-hover bg-[#111] border border-red-600/20 hover:border-red-600/50 rounded-xl p-6 text-center"
-              data-ocid="academy.item.1"
-            >
-              <div className="w-14 h-14 rounded-full bg-red-600/10 flex items-center justify-center mx-auto mb-4">
-                <ChefHat className="w-7 h-7 text-red-500" />
-              </div>
-              <h3 className="text-white font-black text-lg mb-2">
-                Cooking Course
-              </h3>
-              <p className="text-white/50 text-sm mb-4 leading-relaxed">
-                Master culinary arts with hands-on training from professional
-                chefs. From basics to advanced techniques.
-              </p>
-              <Button
-                size="sm"
-                className="bg-red-600 hover:bg-red-500 text-white font-bold btn-red-glow"
-                data-ocid="academy.primary_button.1"
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+            {[
+              {
+                title: "Cooking Course",
+                icon: "👨‍🍳",
+                desc: "Professional culinary training with hands-on kitchen experience and industry certifications.",
+              },
+              {
+                title: "Event Management Course",
+                icon: "🎪",
+                desc: "Complete event planning curriculum covering budgeting, logistics, vendor management, and live execution.",
+              },
+            ].map((course, i) => (
+              <div
+                key={course.title}
+                className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 card-3d-hover group cursor-pointer"
+                data-ocid={`academy.item.${i + 1}`}
               >
-                Learn More
-              </Button>
-            </div>
-
-            {/* Event Management Course */}
-            <div
-              className="card-3d-hover bg-[#111] border border-red-600/20 hover:border-red-600/50 rounded-xl p-6 text-center"
-              data-ocid="academy.item.2"
-            >
-              <div className="w-14 h-14 rounded-full bg-red-600/10 flex items-center justify-center mx-auto mb-4">
-                <Clapperboard className="w-7 h-7 text-red-500" />
+                <div className="text-4xl mb-4">{course.icon}</div>
+                <h3 className="text-white font-black text-xl mb-2 group-hover:text-red-400 transition-colors">
+                  {course.title}
+                </h3>
+                <p className="text-white/50 text-sm mb-4">{course.desc}</p>
+                <div className="flex items-center gap-2 text-red-500 text-sm font-medium">
+                  <span>Learn More</span>
+                  <span>→</span>
+                </div>
               </div>
-              <h3 className="text-white font-black text-lg mb-2">
-                Event Management Course
-              </h3>
-              <p className="text-white/50 text-sm mb-4 leading-relaxed">
-                Learn to plan and execute world-class events. From concerts to
-                weddings — become a certified event professional.
-              </p>
-              <Button
-                size="sm"
-                className="bg-red-600 hover:bg-red-500 text-white font-bold btn-red-glow"
-                data-ocid="academy.primary_button.2"
-              >
-                Learn More
-              </Button>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ── CTA Banner ── */}
-      <section className="py-16 relative overflow-hidden bg-[#0a0a0a]">
-        <div
-          className="absolute inset-0 opacity-10"
-          style={{
-            background: "linear-gradient(135deg, #cc0000 0%, #ff0000 100%)",
-          }}
-        />
+      {/* ── CTA BANNER ── */}
+      <section className="py-16 relative overflow-hidden bg-zinc-950">
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage:
+            background:
               "radial-gradient(circle at 50% 50%, rgba(255,0,0,0.08) 0%, transparent 60%)",
           }}
         />
         <div className="relative container mx-auto px-4 text-center">
           <h2 className="font-display font-black text-3xl md:text-4xl text-white mb-4">
             Ready to Create Something{" "}
-            <span
-              style={{
-                background:
-                  "linear-gradient(135deg, #ff0000 0%, #ff4444 60%, #ff6666 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-              }}
-            >
-              Unforgettable?
-            </span>
+            <span className="text-red-500">Unforgettable?</span>
           </h2>
           <p className="text-white/50 text-lg max-w-2xl mx-auto mb-8">
             From intimate gatherings to mega festivals — DMT Creatology has
@@ -847,7 +799,7 @@ export default function HomePage() {
             <Button
               asChild
               size="lg"
-              className="bg-red-600 hover:bg-red-500 text-white font-bold px-8 btn-red-glow"
+              className="bg-red-600 hover:bg-red-700 text-white font-bold px-8 red-glow-hover"
               data-ocid="cta.primary_button"
             >
               <Link to="/contact">Get In Touch</Link>
@@ -856,7 +808,7 @@ export default function HomePage() {
               asChild
               variant="outline"
               size="lg"
-              className="border-red-500/50 text-red-400 hover:bg-red-600/10 hover:text-red-300 px-8"
+              className="border-red-500/50 text-red-400 hover:bg-red-500/10 px-8"
               data-ocid="cta.secondary_button"
             >
               <a
