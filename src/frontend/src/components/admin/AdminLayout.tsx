@@ -12,6 +12,7 @@ import {
   Car,
   ChevronLeft,
   ChevronRight,
+  ClipboardList,
   CreditCard,
   FileText,
   LayoutDashboard,
@@ -24,6 +25,8 @@ import {
   Trophy,
   UserCog,
   Users,
+  Users2,
+  UtensilsCrossed,
   X,
 } from "lucide-react";
 import { useState } from "react";
@@ -45,6 +48,8 @@ const NAV_ITEMS = [
     href: "/admin/venue-bookings",
     icon: CalendarCheck,
   },
+  { label: "Catering", href: "/admin/catering", icon: UtensilsCrossed },
+  { label: "Food Bookings", href: "/admin/food-bookings", icon: ClipboardList },
   { label: "Rankings", href: "/admin/rankings", icon: Trophy },
   { label: "Jobs", href: "/admin/jobs", icon: Briefcase },
   {
@@ -57,6 +62,7 @@ const NAV_ITEMS = [
   { label: "Payments", href: "/admin/payments", icon: CreditCard },
   { label: "Users", href: "/admin/users", icon: Users },
   { label: "Staff", href: "/admin/staff", icon: UserCog },
+  { label: "Organisers", href: "/admin/organisers", icon: Users2 },
   { label: "Listings", href: "/admin/listings", icon: List },
   { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { label: "Configuration", href: "/admin/config", icon: Settings2 },

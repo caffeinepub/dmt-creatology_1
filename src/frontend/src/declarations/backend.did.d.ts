@@ -14,6 +14,53 @@ export type BookingStatus = { 'new' : null } |
   { 'cancelled' : null } |
   { 'reviewed' : null } |
   { 'confirmed' : null };
+export interface CateringVendor {
+  'id' : bigint,
+  'photoUrls' : Array<string>,
+  'city' : string,
+  'name' : string,
+  'createdAt' : bigint,
+  'cuisineType' : string,
+  'description' : string,
+  'pricePerPlate' : bigint,
+  'minimumGuests' : bigint,
+}
+export interface Event {
+  'id' : bigint,
+  'status' : Status,
+  'subCategory' : string,
+  'duration' : string,
+  'country' : string,
+  'venue' : string,
+  'city' : string,
+  'date' : bigint,
+  'name' : string,
+  'createdAt' : bigint,
+  'time' : string,
+  'description' : string,
+  'state' : string,
+  'posterUrl' : string,
+  'category' : string,
+  'bannerUrl' : string,
+  'ageLimit' : bigint,
+}
+export interface FoodBooking {
+  'id' : bigint,
+  'status' : BookingStatus,
+  'paymentStatus' : TransactionStatus,
+  'bookedBy' : Principal,
+  'guestCount' : bigint,
+  'specialRequests' : string,
+  'createdAt' : bigint,
+  'guestName' : string,
+  'guestEmail' : string,
+  'totalAmount' : bigint,
+  'vendorId' : bigint,
+  'eventLocation' : string,
+  'guestPhone' : string,
+  'vendorName' : string,
+  'eventDate' : bigint,
+}
 export interface Hotel {
   'id' : bigint,
   'roomTypes' : Array<RoomType>,
@@ -30,6 +77,7 @@ export interface HotelBooking {
   'status' : BookingStatus,
   'paymentStatus' : TransactionStatus,
   'hotelName' : string,
+  'bookedBy' : Principal,
   'pricePerNight' : bigint,
   'createdAt' : bigint,
   'hotelId' : bigint,
@@ -71,6 +119,22 @@ export interface JobListing {
   'requiredStaffCount' : bigint,
   'workDate' : bigint,
 }
+export interface Organiser {
+  'id' : bigint,
+  'status' : OrganiserStatus,
+  'username' : string,
+  'name' : string,
+  'createdAt' : bigint,
+  'email' : string,
+  'passwordHash' : string,
+}
+export interface OrganiserSession {
+  'username' : string,
+  'name' : string,
+  'organiserId' : bigint,
+}
+export type OrganiserStatus = { 'active' : null } |
+  { 'inactive' : null };
 export interface PaymentTransaction {
   'id' : bigint,
   'status' : TransactionStatus,
@@ -94,6 +158,9 @@ export interface RankingProfile {
   'rating' : bigint,
 }
 export interface RoomType { 'pricePerNight' : bigint, 'name' : string }
+export type Status = { 'cancelled' : null } |
+  { 'published' : null } |
+  { 'draft' : null };
 export type TransactionStatus = { 'pending' : null } |
   { 'completed' : null } |
   { 'failed' : null };
@@ -156,6 +223,7 @@ export interface VenueBooking {
   'id' : bigint,
   'status' : BookingStatus,
   'paymentStatus' : TransactionStatus,
+  'bookedBy' : Principal,
   'venueId' : bigint,
   'eventDetails' : string,
   'createdAt' : bigint,
@@ -202,6 +270,45 @@ export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'adjustAdminScore' : ActorMethod<[bigint, bigint], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'createCateringVendor' : ActorMethod<
+    [string, string, string, bigint, bigint, Array<string>, string],
+    bigint
+  >,
+  'createEventAsOrganiser' : ActorMethod<
+    [
+      bigint,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      bigint,
+      string,
+      string,
+      bigint,
+      string,
+      string,
+      string,
+    ],
+    bigint
+  >,
+  'createFoodBooking' : ActorMethod<
+    [
+      bigint,
+      string,
+      string,
+      string,
+      string,
+      bigint,
+      bigint,
+      bigint,
+      string,
+      string,
+    ],
+    bigint
+  >,
   'createHotel' : ActorMethod<
     [
       string,
@@ -238,6 +345,7 @@ export interface _SERVICE {
     [string, string, string, string, bigint, bigint, bigint, string],
     bigint
   >,
+  'createOrganiser' : ActorMethod<[string, string, string, string], bigint>,
   'createPaymentTransaction' : ActorMethod<
     [string, string, bigint, bigint, TransactionStatus],
     bigint
@@ -275,16 +383,22 @@ export interface _SERVICE {
     [bigint, string, bigint, string, string, string, string, bigint],
     bigint
   >,
+  'deleteCateringVendor' : ActorMethod<[bigint], undefined>,
   'deleteHotel' : ActorMethod<[bigint], undefined>,
   'deleteJobListing' : ActorMethod<[bigint], undefined>,
+  'deleteOrganiser' : ActorMethod<[bigint], undefined>,
   'deleteRankingProfile' : ActorMethod<[bigint], undefined>,
   'deleteTransportOption' : ActorMethod<[bigint], undefined>,
   'deleteVenue' : ActorMethod<[bigint], undefined>,
   'getActiveJobListings' : ActorMethod<[], Array<JobListing>>,
+  'getActiveOrganiser' : ActorMethod<[bigint], [] | [Organiser]>,
+  'getAllCateringVendors' : ActorMethod<[], Array<CateringVendor>>,
+  'getAllFoodBookings' : ActorMethod<[], Array<FoodBooking>>,
   'getAllHotelBookings' : ActorMethod<[], Array<HotelBooking>>,
   'getAllHotels' : ActorMethod<[], Array<Hotel>>,
   'getAllJobApplications' : ActorMethod<[], Array<JobApplication>>,
   'getAllJobListings' : ActorMethod<[], Array<JobListing>>,
+  'getAllOrganisers' : ActorMethod<[], Array<Organiser>>,
   'getAllPaymentTransactions' : ActorMethod<[], Array<PaymentTransaction>>,
   'getAllRankingProfiles' : ActorMethod<[], Array<RankingProfile>>,
   'getAllTransportBookings' : ActorMethod<[], Array<TransportBooking>>,
@@ -293,8 +407,12 @@ export interface _SERVICE {
   'getAllVenues' : ActorMethod<[], Array<Venue>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getCateringVendor' : ActorMethod<[bigint], [] | [CateringVendor]>,
+  'getEventsByOrganiser' : ActorMethod<[bigint], Array<Event>>,
+  'getFoodBooking' : ActorMethod<[bigint], [] | [FoodBooking]>,
   'getHotel' : ActorMethod<[bigint], [] | [Hotel]>,
   'getHotelBooking' : ActorMethod<[bigint], [] | [HotelBooking]>,
+  'getOrganiserForEvent' : ActorMethod<[bigint], [] | [bigint]>,
   'getPaymentTransactionByBookingId' : ActorMethod<
     [bigint],
     [] | [PaymentTransaction]
@@ -308,7 +426,43 @@ export interface _SERVICE {
   'getVoteRecordsForProfile' : ActorMethod<[bigint], Array<VoteRecord>>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'linkVendorToProfile' : ActorMethod<[bigint, [] | [bigint]], undefined>,
+  'organiserLogin' : ActorMethod<
+    [string, string],
+    { 'ok' : OrganiserSession } |
+      { 'err' : string }
+  >,
+  'publishEventAsOrganiser' : ActorMethod<[bigint, bigint], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'updateCateringVendor' : ActorMethod<
+    [bigint, string, string, string, bigint, bigint, Array<string>, string],
+    undefined
+  >,
+  'updateEventAsOrganiser' : ActorMethod<
+    [
+      bigint,
+      bigint,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      bigint,
+      string,
+      string,
+      bigint,
+      string,
+      string,
+      string,
+    ],
+    undefined
+  >,
+  'updateFoodBookingPaymentStatus' : ActorMethod<
+    [bigint, TransactionStatus],
+    undefined
+  >,
+  'updateFoodBookingStatus' : ActorMethod<[bigint, BookingStatus], undefined>,
   'updateHotel' : ActorMethod<
     [
       bigint,
@@ -344,6 +498,10 @@ export interface _SERVICE {
       string,
       boolean,
     ],
+    undefined
+  >,
+  'updateOrganiser' : ActorMethod<
+    [bigint, string, string, OrganiserStatus],
     undefined
   >,
   'updateRankingProfile' : ActorMethod<

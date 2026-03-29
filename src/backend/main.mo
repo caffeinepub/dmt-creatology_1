@@ -9,14 +9,264 @@ import Order "mo:core/Order";
 import Iter "mo:core/Iter";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
+import Upgrades "migration";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
+// Event Management canister actor
+(with migration = Upgrades.run)
 actor {
   include MixinStorage();
 
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
+
+  // ORGANISER MANAGEMENT SYSTEM
+  type OrganiserStatus = {
+    #active;
+    #inactive;
+  };
+
+  type OrganiserSession = {
+    organiserId : Nat;
+    username : Text;
+    name : Text;
+  };
+
+  type Organiser = {
+    id : Nat;
+    username : Text;
+    passwordHash : Text;
+    name : Text;
+    email : Text;
+    status : OrganiserStatus;
+    createdAt : Int;
+  };
+
+  var organiserAccountId = 0 : Nat;
+  let organisers = Maps.empty<Nat, Organiser>();
+  let organiserEvents = Maps.empty<Nat, Nat>();
+
+  // Create an organiser (admin-only)
+  public shared ({ caller }) func createOrganiser(username : Text, password : Text, name : Text, email : Text) : async Nat {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can create organisers");
+    };
+    if (username.isEmpty() or password.isEmpty() or name.isEmpty() or email.isEmpty()) {
+      Runtime.trap("Invalid input: username, password, name, and email are required");
+    };
+
+    let existing : [Organiser] = organisers.values().toArray().filter(
+      func(o) { Text.equal(o.username, username) }
+    );
+    if (existing.size() > 0) {
+      Runtime.trap("Username already exists");
+    };
+
+    let id = organiserAccountId;
+    let hashedPassword = PasswordHelper.hash(password);
+    let organiser : Organiser = {
+      id;
+      username;
+      passwordHash = hashedPassword;
+      name;
+      email;
+      status = #active;
+      createdAt = Time.now();
+    };
+    organisers.add(id, organiser);
+    organiserAccountId += 1 : Nat;
+    id;
+  };
+
+  // Update an organiser (admin-only)
+  public shared ({ caller }) func updateOrganiser(id : Nat, name : Text, email : Text, status : OrganiserStatus) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can update organisers");
+    };
+
+    switch (organisers.get(id)) {
+      case (null) { Runtime.trap("Organiser not found") };
+      case (?existing) {
+        if (name.isEmpty()) { Runtime.trap("Name cannot be empty") };
+        let updated : Organiser = { existing with name; email; status };
+        organisers.add(id, updated);
+      };
+    };
+  };
+
+  // Delete an organiser (admin-only)
+  public shared ({ caller }) func deleteOrganiser(id : Nat) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can delete organisers");
+    };
+    switch (organisers.get(id)) {
+      case (null) { Runtime.trap("Organiser not found") };
+      case (?_) { organisers.remove(id) };
+    };
+  };
+
+  // Get all organisers (admin-only)
+  public query ({ caller }) func getAllOrganisers() : async [Organiser] {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can view organisers");
+    };
+    organisers.values().toArray();
+  };
+
+  // Organiser login (public, returns session for informational purposes)
+  public shared func organiserLogin(username : Text, password : Text) : async {
+    #ok : OrganiserSession;
+    #err : Text;
+  } {
+    switch (organisers.values().toArray().find(func(o) { Text.equal(o.username, username) })) {
+      case (null) { #err("Organiser not found") };
+      case (?organiser) {
+        if (not Text.equal(organiser.passwordHash, PasswordHelper.hash(password))) {
+          return #err("Invalid password");
+        };
+        if (organiser.status == #inactive) {
+          return #err("Organiser is inactive");
+        };
+        #ok({ organiserId = organiser.id; username; name = organiser.name });
+      };
+    };
+  };
+
+  // Create event as organiser (admin-only, since there's no session-based auth for organisers)
+  public shared ({ caller }) func createEventAsOrganiser(organiserId : Nat, name : Text, category : Text, subCategory : Text, venue : Text, city : Text, state : Text, country : Text, date : Int, time : Text, duration : Text, ageLimit : Nat, description : Text, posterUrl : Text, bannerUrl : Text) : async Nat {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can create events for organisers");
+    };
+    switch (organisers.get(organiserId)) {
+      case (null) { Runtime.trap("Organiser not found") };
+      case (?organiser) {
+        if (organiser.status == #inactive) { Runtime.trap("Organiser is inactive") };
+        let id = eventId;
+        let event : Event = {
+          id;
+          name;
+          category;
+          subCategory;
+          venue;
+          city;
+          state;
+          country;
+          date;
+          time;
+          duration;
+          ageLimit;
+          description;
+          posterUrl;
+          bannerUrl;
+          status = #draft;
+          createdAt = Time.now();
+        };
+        events.add(id, event);
+        organiserEvents.add(id, organiserId);
+        eventId += 1;
+        id;
+      };
+    };
+  };
+
+  // Update event as organiser (admin-only, since there's no session-based auth for organisers)
+  public shared ({ caller }) func updateEventAsOrganiser(organiserId : Nat, eventId : Nat, name : Text, category : Text, subCategory : Text, venue : Text, city : Text, state : Text, country : Text, date : Int, time : Text, duration : Text, ageLimit : Nat, description : Text, posterUrl : Text, bannerUrl : Text) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can update events for organisers");
+    };
+    switch (organisers.get(organiserId)) {
+      case (null) { Runtime.trap("Organiser not found") };
+      case (?organiser) {
+        if (organiser.status == #inactive) { Runtime.trap("Organiser is inactive") };
+        switch (organiserEvents.get(eventId)) {
+          case (null) { Runtime.trap("Event not found") };
+          case (?ownerId) {
+            if (ownerId != organiserId) { Runtime.trap("You do not own this event") };
+            switch (events.get(eventId)) {
+              case (null) { Runtime.trap("Event not found") };
+              case (?existing) {
+                let updated : Event = {
+                  id = eventId;
+                  name;
+                  category;
+                  subCategory;
+                  venue;
+                  city;
+                  state;
+                  country;
+                  date;
+                  time;
+                  duration;
+                  ageLimit;
+                  description;
+                  posterUrl;
+                  bannerUrl;
+                  status = existing.status;
+                  createdAt = existing.createdAt;
+                };
+                events.add(eventId, updated);
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+
+  // Publish event as organiser (admin-only, since there's no session-based auth for organisers)
+  public shared ({ caller }) func publishEventAsOrganiser(organiserId : Nat, eventId : Nat) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can publish events for organisers");
+    };
+    switch (organisers.get(organiserId)) {
+      case (null) { Runtime.trap("Organiser not found") };
+      case (?organiser) {
+        if (organiser.status == #inactive) { Runtime.trap("Organiser is inactive") };
+        switch (organiserEvents.get(eventId)) {
+          case (null) { Runtime.trap("Event not found") };
+          case (?ownerId) {
+            if (ownerId != organiserId) { Runtime.trap("You do not own this event") };
+            switch (events.get(eventId)) {
+              case (null) { Runtime.trap("Event not found") };
+              case (?existing) {
+                let updated : Event = { existing with status = #published };
+                events.add(eventId, updated);
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+
+  // Get all events by organiser (public query)
+  public query func getEventsByOrganiser(organiserId : Nat) : async [Event] {
+    if (organiserId == 0) { Runtime.trap("Invalid organiserId") };
+    events.values().toArray().filter(
+      func(event) {
+        switch (organiserEvents.get(event.id)) {
+          case (null) { false };
+          case (?ownerId) { ownerId == organiserId };
+        };
+      }
+    );
+  };
+
+  // Return organiser id for event id (public query)
+  public query func getOrganiserForEvent(eventId : Nat) : async ?Nat {
+    organiserEvents.get(eventId);
+  };
+
+  // Return null if organiser does not exist or is not active (public query)
+  public query func getActiveOrganiser(organiserId : Nat) : async ?Organiser {
+    switch (organisers.get(organiserId)) {
+      case (null) { null };
+      case (?organiser) {
+        if (organiser.status == #active) { ?organiser } else { null };
+      };
+    };
+  };
 
   type Status = {
     #draft;
@@ -305,6 +555,7 @@ actor {
     status : BookingStatus;
     paymentStatus : TransactionStatus;
     createdAt : Int;
+    bookedBy : Principal;
   };
 
   ////////////////////////////////////////////////////////
@@ -661,12 +912,211 @@ actor {
     status : BookingStatus;
     paymentStatus : TransactionStatus;
     createdAt : Int;
+    bookedBy : Principal;
   };
 
   var venueId = 0 : Nat;
   var venueBookingId = 0 : Nat;
   let venues = Maps.empty<Nat, Venue>();
   let venueBookings = Maps.empty<Nat, VenueBooking>();
+
+  ////////////////////////////////////////////////////////
+  // CATERING/FOOD BOOKING SYSTEM
+  ////////////////////////////////////////////////////////
+
+  public type CateringVendor = {
+    id : Nat;
+    name : Text;
+    city : Text;
+    cuisineType : Text;
+    pricePerPlate : Nat;
+    minimumGuests : Nat;
+    photoUrls : [Text];
+    description : Text;
+    createdAt : Int;
+  };
+
+  public type FoodBooking = {
+    id : Nat;
+    vendorId : Nat;
+    vendorName : Text;
+    guestName : Text;
+    guestPhone : Text;
+    guestEmail : Text;
+    eventDate : Int;
+    guestCount : Nat;
+    totalAmount : Nat;
+    eventLocation : Text;
+    specialRequests : Text;
+    status : BookingStatus;
+    paymentStatus : TransactionStatus;
+    createdAt : Int;
+    bookedBy : Principal;
+  };
+
+  var cateringVendorId = 0 : Nat;
+  var foodBookingId = 0 : Nat;
+  let cateringVendors = Maps.empty<Nat, CateringVendor>();
+  let foodBookings = Maps.empty<Nat, FoodBooking>();
+
+  public shared ({ caller }) func createCateringVendor(
+    name : Text,
+    city : Text,
+    cuisineType : Text,
+    pricePerPlate : Nat,
+    minimumGuests : Nat,
+    photoUrls : [Text],
+    description : Text,
+  ) : async Nat {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can create catering vendors");
+    };
+    let id = cateringVendorId;
+    let vendor : CateringVendor = {
+      id;
+      name;
+      city;
+      cuisineType;
+      pricePerPlate;
+      minimumGuests;
+      photoUrls;
+      description;
+      createdAt = Time.now();
+    };
+    cateringVendors.add(id, vendor);
+    cateringVendorId += 1 : Nat;
+    id;
+  };
+
+  public shared ({ caller }) func updateCateringVendor(
+    id : Nat,
+    name : Text,
+    city : Text,
+    cuisineType : Text,
+    pricePerPlate : Nat,
+    minimumGuests : Nat,
+    photoUrls : [Text],
+    description : Text,
+  ) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can update catering vendors");
+    };
+    switch (cateringVendors.get(id)) {
+      case (null) { Runtime.trap("Catering vendor not found") };
+      case (?existing) {
+        let updated : CateringVendor = {
+          id;
+          name;
+          city;
+          cuisineType;
+          pricePerPlate;
+          minimumGuests;
+          photoUrls;
+          description;
+          createdAt = existing.createdAt;
+        };
+        cateringVendors.add(id, updated);
+      };
+    };
+  };
+
+  public shared ({ caller }) func deleteCateringVendor(id : Nat) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can delete catering vendors");
+    };
+    if (not cateringVendors.containsKey(id)) {
+      Runtime.trap("Catering vendor not found");
+    };
+    cateringVendors.remove(id);
+  };
+
+  public query func getAllCateringVendors() : async [CateringVendor] {
+    cateringVendors.values().toArray();
+  };
+
+  public query func getCateringVendor(id : Nat) : async ?CateringVendor {
+    cateringVendors.get(id);
+  };
+
+  public shared ({ caller }) func createFoodBooking(
+    vendorId : Nat,
+    vendorName : Text,
+    guestName : Text,
+    guestPhone : Text,
+    guestEmail : Text,
+    eventDate : Int,
+    guestCount : Nat,
+    totalAmount : Nat,
+    eventLocation : Text,
+    specialRequests : Text,
+  ) : async Nat {
+    let id = foodBookingId;
+    let booking : FoodBooking = {
+      id;
+      vendorId;
+      vendorName;
+      guestName;
+      guestPhone;
+      guestEmail;
+      eventDate;
+      guestCount;
+      totalAmount;
+      eventLocation;
+      specialRequests;
+      status = #new;
+      paymentStatus = #pending;
+      createdAt = Time.now();
+      bookedBy = caller;
+    };
+    foodBookings.add(id, booking);
+    foodBookingId += 1 : Nat;
+    id;
+  };
+
+  public query ({ caller }) func getAllFoodBookings() : async [FoodBooking] {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can view all food bookings");
+    };
+    foodBookings.values().toArray();
+  };
+
+  public query ({ caller }) func getFoodBooking(id : Nat) : async ?FoodBooking {
+    switch (foodBookings.get(id)) {
+      case (null) { null };
+      case (?booking) {
+        if (caller != booking.bookedBy and not AccessControl.isAdmin(accessControlState, caller)) {
+          Runtime.trap("Unauthorized: Can only view your own bookings");
+        };
+        ?booking;
+      };
+    };
+  };
+
+  public shared ({ caller }) func updateFoodBookingStatus(id : Nat, status : BookingStatus) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can update food booking status");
+    };
+    switch (foodBookings.get(id)) {
+      case (null) { Runtime.trap("Food booking not found") };
+      case (?existing) {
+        let updated : FoodBooking = { existing with status };
+        foodBookings.add(id, updated);
+      };
+    };
+  };
+
+  public shared ({ caller }) func updateFoodBookingPaymentStatus(id : Nat, paymentStatus : TransactionStatus) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can update payment status");
+    };
+    switch (foodBookings.get(id)) {
+      case (null) { Runtime.trap("Food booking not found") };
+      case (?existing) {
+        let updated : FoodBooking = { existing with paymentStatus };
+        foodBookings.add(id, updated);
+      };
+    };
+  };
 
   public shared ({ caller }) func createVenue(
     name : Text,
@@ -771,6 +1221,7 @@ actor {
       status = #new;
       paymentStatus = #pending;
       createdAt = Time.now();
+      bookedBy = caller;
     };
     venueBookings.add(id, booking);
     venueBookingId += 1 : Nat;
@@ -784,8 +1235,16 @@ actor {
     venueBookings.values().toArray();
   };
 
-  public query func getVenueBooking(id : Nat) : async ?VenueBooking {
-    venueBookings.get(id);
+  public query ({ caller }) func getVenueBooking(id : Nat) : async ?VenueBooking {
+    switch (venueBookings.get(id)) {
+      case (null) { null };
+      case (?booking) {
+        if (caller != booking.bookedBy and not AccessControl.isAdmin(accessControlState, caller)) {
+          Runtime.trap("Unauthorized: Can only view your own bookings");
+        };
+        ?booking;
+      };
+    };
   };
 
   public shared ({ caller }) func updateVenueBookingStatus(id : Nat, status : BookingStatus) : async () {
@@ -802,6 +1261,9 @@ actor {
   };
 
   public shared ({ caller }) func updateVenueBookingPaymentStatus(id : Nat, paymentStatus : TransactionStatus) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admin can update payment status");
+    };
     switch (venueBookings.get(id)) {
       case (null) { Runtime.trap("Venue booking not found") };
       case (?existing) {
@@ -1034,6 +1496,7 @@ actor {
       status = #new;
       paymentStatus = #pending;
       createdAt = Time.now();
+      bookedBy = caller;
     };
     hotelBookings.add(id, booking);
     hotelBookingId += 1;
@@ -1047,8 +1510,16 @@ actor {
     hotelBookings.values().toArray();
   };
 
-  public query func getHotelBooking(id : Nat) : async ?HotelBooking {
-    hotelBookings.get(id);
+  public query ({ caller }) func getHotelBooking(id : Nat) : async ?HotelBooking {
+    switch (hotelBookings.get(id)) {
+      case (null) { null };
+      case (?booking) {
+        if (caller != booking.bookedBy and not AccessControl.isAdmin(accessControlState, caller)) {
+          Runtime.trap("Unauthorized: Can only view your own bookings");
+        };
+        ?booking;
+      };
+    };
   };
 
   public shared ({ caller }) func updateHotelBookingStatus(id : Nat, status : BookingStatus) : async () {

@@ -15,6 +15,7 @@ import BusinessServicesPage from "./pages/BusinessServicesPage";
 import ContactPage from "./pages/ContactPage";
 import DigitalProductsPage from "./pages/DigitalProductsPage";
 import EventsPage from "./pages/EventsPage";
+import FoodConfirmationPage from "./pages/FoodConfirmationPage";
 import FoodPage from "./pages/FoodPage";
 import HomePage from "./pages/HomePage";
 import HotelConfirmationPage from "./pages/HotelConfirmationPage";
@@ -34,15 +35,18 @@ import VenueConfirmationPage from "./pages/VenueConfirmationPage";
 import VenuesPage from "./pages/VenuesPage";
 import AdminAnalyticsPage from "./pages/admin/AdminAnalyticsPage";
 import AdminBookingsPage from "./pages/admin/AdminBookingsPage";
+import AdminCateringPage from "./pages/admin/AdminCateringPage";
 import AdminConfigPage from "./pages/admin/AdminConfigPage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminEventsPage from "./pages/admin/AdminEventsPage";
+import AdminFoodBookingsPage from "./pages/admin/AdminFoodBookingsPage";
 import AdminHotelBookingsPage from "./pages/admin/AdminHotelBookingsPage";
 import AdminHotelsPage from "./pages/admin/AdminHotelsPage";
 import AdminJobApplicationsPage from "./pages/admin/AdminJobApplicationsPage";
 import AdminJobsPage from "./pages/admin/AdminJobsPage";
 import AdminListingsPage from "./pages/admin/AdminListingsPage";
 import AdminLoginPage from "./pages/admin/AdminLoginPage";
+import AdminOrganisersPage from "./pages/admin/AdminOrganisersPage";
 import AdminPaymentsPage from "./pages/admin/AdminPaymentsPage";
 import AdminRankingsPage from "./pages/admin/AdminRankingsPage";
 import AdminStaffPage from "./pages/admin/AdminStaffPage";
@@ -52,6 +56,10 @@ import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminVendorsPage from "./pages/admin/AdminVendorsPage";
 import AdminVenueBookingsPage from "./pages/admin/AdminVenueBookingsPage";
 import AdminVenuesPage from "./pages/admin/AdminVenuesPage";
+import OrganiserCreateEventPage from "./pages/organiser/OrganiserCreateEventPage";
+import OrganiserDashboardPage from "./pages/organiser/OrganiserDashboardPage";
+import OrganiserEditEventPage from "./pages/organiser/OrganiserEditEventPage";
+import OrganiserLoginPage from "./pages/organiser/OrganiserLoginPage";
 
 // Protected scan page wrapper
 function ProtectedScanPage() {
@@ -305,6 +313,30 @@ const transportConfirmationRoute = createRoute({
   component: TransportConfirmationPage,
 });
 
+const adminCateringRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/admin/catering",
+  component: AdminCateringPage,
+});
+
+const adminFoodBookingsRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/admin/food-bookings",
+  component: AdminFoodBookingsPage,
+});
+
+const adminOrganisersRoute = createRoute({
+  getParentRoute: () => adminLayoutRoute,
+  path: "/organisers",
+  component: AdminOrganisersPage,
+});
+
+const foodConfirmationRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/food-confirmation/$bookingId",
+  component: FoodConfirmationPage,
+});
+
 const venueConfirmationRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/venue-confirmation/$bookingId",
@@ -327,6 +359,9 @@ adminLayoutRoute.addChildren([
   adminJobApplicationsRoute,
   adminVenuesRoute,
   adminVenueBookingsRoute,
+  adminCateringRoute,
+  adminFoodBookingsRoute,
+  adminOrganisersRoute,
   adminUsersRoute,
   adminListingsRoute,
   adminAnalyticsRoute,
@@ -362,6 +397,35 @@ const staffLoginRoute = createRoute({
   component: StaffLoginPage,
 });
 
+// ── Organiser Root (no Navbar/Footer) ──────────────────────────────────────
+const organiserRootRoute = createRootRoute({
+  component: () => <Outlet />,
+});
+
+const organiserLoginRoute = createRoute({
+  getParentRoute: () => organiserRootRoute,
+  path: "/organiser/login",
+  component: OrganiserLoginPage,
+});
+
+const organiserDashboardRoute = createRoute({
+  getParentRoute: () => organiserRootRoute,
+  path: "/organiser",
+  component: OrganiserDashboardPage,
+});
+
+const organiserCreateRoute = createRoute({
+  getParentRoute: () => organiserRootRoute,
+  path: "/organiser/create-event",
+  component: OrganiserCreateEventPage,
+});
+
+const organiserEditRoute = createRoute({
+  getParentRoute: () => organiserRootRoute,
+  path: "/organiser/edit-event/$id",
+  component: OrganiserEditEventPage,
+});
+
 // Public route tree
 const publicRouteTree = rootRoute.addChildren([
   indexRoute,
@@ -383,6 +447,7 @@ const publicRouteTree = rootRoute.addChildren([
   hotelConfirmationRoute,
   transportConfirmationRoute,
   venueConfirmationRoute,
+  foodConfirmationRoute,
   scanRoute,
 ]);
 
@@ -401,11 +466,20 @@ const vendorRouteTree = vendorRootRoute.addChildren([
 // Staff auth route tree
 const staffAuthRouteTree = staffAuthRootRoute.addChildren([staffLoginRoute]);
 
+// Organiser route tree
+const organiserRouteTree = organiserRootRoute.addChildren([
+  organiserLoginRoute,
+  organiserDashboardRoute,
+  organiserCreateRoute,
+  organiserEditRoute,
+]);
+
 // Build routers
 const publicRouter = createRouter({ routeTree: publicRouteTree });
 const adminRouter = createRouter({ routeTree: adminRouteTree });
 const vendorRouter = createRouter({ routeTree: vendorRouteTree });
 const staffAuthRouter = createRouter({ routeTree: staffAuthRouteTree });
+const organiserRouter = createRouter({ routeTree: organiserRouteTree });
 
 declare module "@tanstack/react-router" {
   interface Register {
@@ -430,8 +504,15 @@ function isStaffAuthPath(pathname: string) {
   return pathname.startsWith("/staff/login");
 }
 
+function isOrganiserPath(pathname: string) {
+  return pathname.startsWith("/organiser");
+}
+
 export default function App() {
   const pathname = window.location.pathname;
+  if (isOrganiserPath(pathname)) {
+    return <RouterProvider router={organiserRouter} />;
+  }
   if (isAdminPath(pathname)) {
     return <RouterProvider router={adminRouter} />;
   }
