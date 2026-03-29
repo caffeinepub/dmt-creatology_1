@@ -9,12 +9,12 @@ import Order "mo:core/Order";
 import Iter "mo:core/Iter";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
-import Upgrades "migration";
+
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
 // Event Management canister actor
-(with migration = Upgrades.run)
+
 actor {
   include MixinStorage();
 
